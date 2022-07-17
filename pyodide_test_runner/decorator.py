@@ -11,8 +11,8 @@ from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
 from .utils import package_is_built as _package_is_built
 
 
-def package_is_built(package_name):
-    return _package_is_built(package_name, pytest.pyodide_dist_dir)
+def package_is_built(package_name: str):
+    return _package_is_built(package_name, pytest.pyodide_dist_dir)  # type: ignore[arg-type]
 
 
 class SeleniumType:
@@ -36,7 +36,7 @@ def _encode(obj: Any) -> str:
 
 def _create_outer_test_function(
     run_test: Callable,
-    node: ast.stmt,
+    node: Any,
 ) -> Callable:
     """
     Create the top level item: it will be called by pytest and it calls
@@ -80,7 +80,7 @@ def _create_outer_test_function(
     # 1. <selenium_arg_name>
     # 2. all other arguments in a tuple
     func_body = ast.parse("return run_test(selenium_arg_name, (arg1, arg2, ...))").body
-    onwards_call = func_body[0].value
+    onwards_call = func_body[0].value  # type: ignore[attr-defined]
     onwards_call.func = ast.Name(id=run_test_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
     onwards_call.args[1].elts = [  # Set tuple elements
@@ -229,7 +229,7 @@ class run_in_pyodide:
 
     def _generate_pyodide_ast(
         self, module_ast: ast.Module, funcname: str, func_line_no: int
-    ) -> tuple[ast.Module, bool, ast.expr]:
+    ) -> None:
         """Generates appropriate AST for the test to run in Pyodide.
 
         The test ast includes mypy magic imports and the test function definition.
@@ -257,7 +257,7 @@ class run_in_pyodide:
                 and node.end_lineno > func_line_no
                 and node.lineno < func_line_no
             ):
-                it = iter(node.body)
+                it = iter(node.body)  # type: ignore[attr-defined]
                 continue
 
             # We also want the function definition for the current test

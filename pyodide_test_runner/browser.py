@@ -118,7 +118,7 @@ class BrowserWrapper:
         self.server_log = server_log
         self.script_type = script_type
         self.dist_dir = dist_dir
-        self.driver = self.get_driver()  # type: ignore[attr-defined]
+        self.driver = self.get_driver()
         self.set_script_timeout(script_timeout)
         self.script_timeout = script_timeout
         self.prepare_driver()

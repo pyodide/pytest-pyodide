@@ -76,7 +76,7 @@ def selenium_common(
         ("playwright", "node"): NodeWrapper,
     }
 
-    cls = browser_set.get((runner_type, request.param))
+    cls = browser_set.get((runner_type, request.param))  # type: ignore[assignment]
     if cls is None:
         raise AssertionError(
             f"Unknown runner or browser: {runner_type} / {request.param}"

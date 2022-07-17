@@ -49,7 +49,7 @@ repos:
     rev: "v0.961"
     hooks:
       - id: mypy
-        exclude: (setup.py|^src/tests|conftest.py)
+        exclude: (setup.py|^tests|conftest.py)
         args: []
         additional_dependencies: &mypy-deps
           - packaging
