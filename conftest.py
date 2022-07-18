@@ -1,4 +1,4 @@
 pytest_plugins = [
-    "pyodide_test_runner.hook",
-    "pyodide_test_runner.fixture",
+    "pytest_pyodide.hook",
+    "pytest_pyodide.fixture",
 ]

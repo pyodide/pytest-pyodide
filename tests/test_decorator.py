@@ -1,9 +1,9 @@
 import pytest
 from hypothesis import given, settings
 
-from pyodide_test_runner.decorator import run_in_pyodide
-from pyodide_test_runner.hypothesis import any_strategy, std_hypothesis_settings
-from pyodide_test_runner.utils import parse_driver_timeout
+from pytest_pyodide.decorator import run_in_pyodide
+from pytest_pyodide.hypothesis import any_strategy, std_hypothesis_settings
+from pytest_pyodide.utils import parse_driver_timeout
 
 
 @run_in_pyodide
