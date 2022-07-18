@@ -1,5 +1,7 @@
 # pytest-pyodide
 
+![GHA](https://github.com/pyodide/pytest-pyodide/actions/workflows/main.yml/badge.svg)
+
 Pytest plugin for testing Pyodide and third-party applications that use Pyodide"
 
 ## Installation
