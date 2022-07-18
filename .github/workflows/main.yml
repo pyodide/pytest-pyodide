@@ -1,7 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application
+name: main
 
 on:
   push:
@@ -12,20 +9,55 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: main-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-    - name: Test with pytest
-      run: |
-        pytest
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.10.2
+      - uses: pre-commit/action@v2.0.3
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DISPLAY: :99
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.10.2
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+
+      - name: Install requirements
+        shell: bash -l {0}
+        run: |
+          pip install -e .
+          pip install pytest-cov
+          # Currently we only install the package for dependencies.
+          # We then uninstall it otherwise tests fails due to pytest hook being
+          # registered twice.
+          pip uninstall -y pyodide-test-runner
+      - name: Download Pyodide
+        shell: bash -l {0}
+        run: |
+          wget https://github.com/pyodide/pyodide/releases/download/0.21.0a3/pyodide-build-0.21.0a3.tar.bz2
+          tar xjf pyodide-build-0.21.0a3.tar.bz2
+          mv pyodide dist/
+      - name: Run tests
+        shell: bash -l {0}
+        run: |
+          # TODO: fix node tests
+          pytest --cov=pyodide_test_runner -v --dist-dir=./dist/ -k "not node"
+      - uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true

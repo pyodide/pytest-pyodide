@@ -23,7 +23,7 @@ try:
     from exceptiongroup import ExceptionGroup
 except ImportError:
 
-    class ExceptionGroup:
+    class ExceptionGroup:  # type: ignore[no-redef]
         pass
 
 
@@ -42,15 +42,6 @@ std_hypothesis_settings = settings(
     deadline=2000,
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
-
-
-def is_picklable(x):
-    try:
-        pickle.dumps(x)
-        return True
-    except Exception:
-        return False
-
 
 strategy = (
     strategies.from_type(type)
