@@ -34,6 +34,10 @@ jobs:
         with:
           python-version: 3.10.2
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Install requirements
         shell: bash -l {0}
         run: |
@@ -52,7 +56,7 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest --cov=pyodide_test_runner -v -k node --dist-dir=./dist/
+          pytest --cov=pyodide_test_runner -v --dist-dir=./dist/
       - uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
