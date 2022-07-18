@@ -1,8 +1,7 @@
 # pytest-pyodide
 
 ![GHA](https://github.com/pyodide/pytest-pyodide/actions/workflows/main.yml/badge.svg)
-
-[![codecov](https://codecov.io/gh/pyodide/pytest-pyodide/branch/master/graph/badge.svg)](https://codecov.io/gh/pyodide/pytest-pyodide)
+[![codecov](https://codecov.io/gh/pyodide/pytest-pyodide/branch/main/graph/badge.svg?token=U7tWHpJj5c)](https://codecov.io/gh/pyodide/pytest-pyodide)
 
 
 Pytest plugin for testing Pyodide and third-party applications that use Pyodide"
