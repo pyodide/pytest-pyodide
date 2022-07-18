@@ -474,8 +474,16 @@ class NodeWrapper(BrowserWrapper):
         # disable canonical input processing mode to allow sending longer lines
         # See: https://pexpect.readthedocs.io/en/stable/api/pexpect.html#pexpect.spawn.send
         self.p.sendline("stty -icanon")
+
+        node_version = pexpect.spawn("node --version").read().decode("utf-8")
+        node_extra_args = ""
+        # Node v14 require the --experimental-wasm-bigint which
+        # produces errors on later versions
+        if node_version.startswith("v14"):
+            node_extra_args = "--experimental-wasm-bigint"
+
         self.p.sendline(
-            f"node --expose-gc --experimental-wasm-bigint {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
+            f"node --expose-gc {node_extra_args} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
         )
 
         try:
