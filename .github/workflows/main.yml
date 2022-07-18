@@ -46,9 +46,9 @@ jobs:
       - name: Download Pyodide
         shell: bash -l {0}
         run: |
-          wget https://github.com/pyodide/pyodide/archive/refs/tags/0.21.0a3.tar.gz
-          tar xzf 0.21.0a3.tar.gz
-          ls
+          wget https://github.com/pyodide/pyodide/releases/download/0.21.0a3/pyodide-build-0.21.0a3.tar.bz2
+          tar xjf pyodide-build-0.21.0a3.tar.bz2
+          mv pyodide dist/
       - name: Run tests
         shell: bash -l {0}
         run: |
