@@ -43,6 +43,12 @@ jobs:
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
           pip uninstall -y pyodide-test-runner
+      - name: Download Pyodide
+        shell: bash -l {0}
+        run: |
+          wget https://github.com/pyodide/pyodide/archive/refs/tags/0.21.0a3.tar.gz
+          tar xzf 0.21.0a3.tar.gz
+          ls
       - name: Run tests
         shell: bash -l {0}
         run: |
