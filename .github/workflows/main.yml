@@ -52,7 +52,7 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest --cov=pyodide_test_runner -v
+          pytest --cov=pyodide_test_runner -v --dist-dir=./dist/
       - uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
