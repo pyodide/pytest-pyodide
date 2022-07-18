@@ -25,6 +25,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      DISPLAY: :99
     steps:
       - uses: actions/checkout@v2
 
@@ -35,7 +37,7 @@ jobs:
       - name: Install requirements
         shell: bash -l {0}
         run: |
-          python3 -m pip install .
+          echo "Skip"
       - name: Run tests
         shell: bash -l {0}
         run: |
@@ -43,3 +45,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+      - name: Create wheel
+        shell: bash -l {0}
+        run: |
+          python -m pip install build
+          build .
