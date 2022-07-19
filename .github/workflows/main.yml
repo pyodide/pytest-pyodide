@@ -13,6 +13,9 @@ concurrency:
   group: main-${{ github.head_ref }}
   cancel-in-progress: true
 
+env:
+  PYODIDE_VERSION: 0.21.0a3
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -23,10 +26,43 @@ jobs:
           python-version: 3.10.2
       - uses: pre-commit/action@v2.0.3
 
+  download-pyodide:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Pyodide
+        uses: actions/cache@v2
+        id: cache-pyodide
+        with:
+          path: dist
+          key: ${{ runner.os }}-pyodide-$PYODIDE_VERSION
+          restore-keys: |
+            ${{ runner.os }}-pyodide-
+
+      - name: Download Pyodide
+        shell: bash -l {0}
+        if: steps.cache-pyodide.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/pyodide/pyodide/releases/download/$PYODIDE_VERSION/pyodide-build-$PYODIDE_VERSION.tar.bz2
+          tar xjf pyodide-build-$PYODIDE_VERSION.tar.bz2
+          mv pyodide dist/
+
   test:
     runs-on: ubuntu-latest
     env:
       DISPLAY: :99
+    strategy:
+      matrix:
+        test-config: [
+          {runner: selenium, browser: firefox, version: 102},
+          {runner: selenium, browser: chrome, version: 102},
+          {runner: selenium, browser: node, version: 14},
+          {runner: selenium, browser: node, version: 16},
+          {runner: selenium, browser: node, version: 18},
+          {runner: playwright, browser: firefox, version: _},
+          {runner: plawyright, browser: chrome, version: _},
+        ]
     steps:
       - uses: actions/checkout@v2
 
@@ -35,8 +71,9 @@ jobs:
           python-version: 3.10.2
 
       - uses: actions/setup-node@v3
+        if: ${{ matrix.test-config.browser == 'node' }}
         with:
-          node-version: 14
+          node-version: ${{ matrix.test-config.version }}
 
       - name: Install requirements
         shell: bash -l {0}
@@ -47,12 +84,15 @@ jobs:
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
           pip uninstall -y pytest-pyodide
-      - name: Download Pyodide
-        shell: bash -l {0}
-        run: |
-          wget https://github.com/pyodide/pyodide/releases/download/0.21.0a3/pyodide-build-0.21.0a3.tar.bz2
-          tar xjf pyodide-build-0.21.0a3.tar.bz2
-          mv pyodide dist/
+
+      - name: Get Pyodide from cache
+        uses: actions/cache@v2
+        with:
+          path: dist
+          key: ${{ runner.os }}-pyodide-$PYODIDE_VERSION
+          restore-keys: |
+            ${{ runner.os }}-pyodide-
+
       - name: Run tests
         shell: bash -l {0}
         run: |
