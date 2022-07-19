@@ -43,6 +43,7 @@ jobs:
           mv pyodide dist/
 
   test:
+    needs: download-pyodide
     runs-on: ubuntu-latest
     env:
       DISPLAY: :99
