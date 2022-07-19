@@ -50,6 +50,7 @@ jobs:
     env:
       DISPLAY: :99
     strategy:
+      fail-fast: false
       matrix:
         test-config: [
           {runner: selenium, browser: firefox, firefox-version: latest, geckodriver-version: latest },
