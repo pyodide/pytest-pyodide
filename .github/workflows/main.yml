@@ -139,8 +139,6 @@ jobs:
             -k "${{ matrix.test-config.browser }}"
 
       - uses: codecov/codecov-action@v3
-        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' &&
-                matrix.test-config.runner == 'selenium' &&
-                matrix.test-config.browser == 'chrome' }}
+        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' }}
         with:
           fail_ci_if_error: true
