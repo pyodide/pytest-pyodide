@@ -1,16 +1,12 @@
 name: main
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
 
 permissions:
   contents: read
 
 concurrency:
-  group: main-${{ github.head_ref }}
+  group: main-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -47,6 +43,7 @@ jobs:
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
           pip uninstall -y pytest-pyodide
+          npm install node-fetch@2
       - name: Download Pyodide
         shell: bash -l {0}
         run: |
@@ -56,8 +53,8 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          # TODO: fix node tests
-          pytest --cov=pytest_pyodide -v --dist-dir=./dist/ -k "not node"
+          pytest --cov=pytest_pyodide -v --dist-dir=./dist/
       - uses: codecov/codecov-action@v3
+        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' }}
         with:
           fail_ci_if_error: true

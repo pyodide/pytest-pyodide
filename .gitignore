@@ -2,3 +2,6 @@
 __pycache__
 *.egg-info
 dist/
+
+# pyenv
+.python-version
