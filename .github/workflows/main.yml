@@ -80,7 +80,8 @@ jobs:
         if: ${{ matrix.test-config.runner == 'playwright' }}
         run: |
           pip install playwright==${{ matrix.test-config.playwright-version }}
-          python -m playwright install ${{ matrix.test-config.browser }} --with-deps
+          # TODO: install only browsers that are required
+          python -m playwright install --with-deps
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
