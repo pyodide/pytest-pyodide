@@ -176,6 +176,7 @@ async def test_run_in_pyodide_async(selenium):
     assert x == 6
 
 
+@pytest.mark.driver_timeout(60)
 @pytest.mark.skip_refcount_check
 @pytest.mark.skip_pyproxy_check
 @given(obj=any_strategy)
