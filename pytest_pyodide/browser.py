@@ -488,7 +488,7 @@ class NodeWrapper(BrowserWrapper):
 
         try:
             self.p.expect_exact("READY!!")
-        except pexpect.exceptions.EOF:
+        except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
             raise JavascriptException("", self.p.before.decode())
 
     def get_driver(self):
