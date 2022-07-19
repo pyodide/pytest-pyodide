@@ -38,7 +38,7 @@ jobs:
 
       - name: Download Pyodide
         shell: bash -l {0}
-        if: steps.cache-pyodide.outputs.cache-hit == 'false'
+        if: steps.cache-pyodide.outputs.cache-hit != 'true'
         run: |
           wget https://github.com/pyodide/pyodide/releases/download/$PYODIDE_VERSION/pyodide-build-$PYODIDE_VERSION.tar.bz2
           tar xjf pyodide-build-$PYODIDE_VERSION.tar.bz2
@@ -58,7 +58,7 @@ jobs:
           {runner: selenium, browser: node, node-version: 18},
           # playwright browser versions are pinned to playwright version
           {runner: playwright, browser: firefox, playwright-version: 1.22.0, node-version: 18},
-          {runner: plawyright, browser: chrome, playwright-version: 1.22.0, node-version: 18},
+          {runner: playwright, browser: chrome, playwright-version: 1.22.0, node-version: 18},
         ]
     steps:
       - uses: actions/checkout@v2
@@ -72,8 +72,6 @@ jobs:
         if: ${{ matrix.test-config.browser == 'node' || matrix.test-config.runner == 'playwright' }}
         with:
           node-version: ${{ matrix.test-config.node-version }}
-        run: |
-          node --version
 
       - name: Install playwright
         shell: bash -l {0}
@@ -87,31 +85,24 @@ jobs:
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'firefox' }}
         with:
           firefox-version: ${{ matrix.test-config.firefox-version }}
-        run: |
-          firefox --version
 
       - name: Install geckodriver
         uses: browser-actions/setup-geckodriver@latest
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'firefox' }}
         with:
           geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
-        run: |
-          geckodriver --version
 
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'chrome' }}
         with:
           chrome-version: ${{ matrix.test-config.geckodriver-version }}
-        run: |
-          google-chrome --version
 
       - name: Install chromedriver
         shell: bash -l {0}
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'chrome' }}
         run: |
           cd tools && ./install_chromedriver.sh ${{ matrix.test-config.chromedriver-version }}
-          chromedriver --version
 
       - name: Install requirements
         shell: bash -l {0}
