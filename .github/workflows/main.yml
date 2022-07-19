@@ -43,6 +43,7 @@ jobs:
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
           pip uninstall -y pytest-pyodide
+          npm install node-fetch@2
       - name: Download Pyodide
         shell: bash -l {0}
         run: |
