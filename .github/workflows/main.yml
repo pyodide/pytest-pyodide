@@ -32,8 +32,9 @@ jobs:
         id: cache-pyodide
         with:
           path: dist
-          key: ${{ runner.os }}-pyodide-$PYODIDE_VERSION
+          key: ${{ runner.os }}-pyodide-$PYODIDE_VERSION-${{ hashFiles('.github/**/*.yml') }}
           restore-keys: |
+            ${{ runner.os }}-pyodide-$PYODIDE_VERSION
             ${{ runner.os }}-pyodide-
 
       - name: Download Pyodide
@@ -119,8 +120,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: dist
-          key: ${{ runner.os }}-pyodide-$PYODIDE_VERSION
+          key: ${{ runner.os }}-pyodide-$PYODIDE_VERSION-${{ hashFiles('.github/**/*.yml') }}
           restore-keys: |
+            ${{ runner.os }}-pyodide-$PYODIDE_VERSION
             ${{ runner.os }}-pyodide-
 
       - name: Run tests
