@@ -55,6 +55,6 @@ jobs:
         run: |
           pytest --cov=pytest_pyodide -v --dist-dir=./dist/
       - uses: codecov/codecov-action@v3
-        if: ${{ github.event.repo.name == "pyodide/pytest-pyodide" }} 
+        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' }}
         with:
           fail_ci_if_error: true
