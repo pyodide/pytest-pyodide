@@ -110,11 +110,3 @@ def pytest_generate_tests(metafunc: Any) -> None:
             metafunc.parametrize("conf", pytest.skip("Non-host test"))
         else:
             metafunc.parametrize("runtime", RUNTIMES, scope="session")
-
-
-# def pytest_runtest_setup(item):
-#     runtime = item.config.option.runtime
-#     browsers = "|".join(RUNTIMES)
-
-#     if runtime == "host" and re.match(rf"test_[\w\-]+\[({browsers})[^\]]*\]", item.name):
-#         pytest.skip()
