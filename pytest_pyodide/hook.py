@@ -106,7 +106,14 @@ def pytest_generate_tests(metafunc: Any) -> None:
         runtime = RUNTIMES
 
     if "runtime" in metafunc.fixturenames:
-        if runtime == "host":
-            metafunc.parametrize("__skip__", pytest.skip("Non-host test"))
-        else:
-            metafunc.parametrize("runtime", [runtime], scope="session")
+        metafunc.parametrize("runtime", [runtime], scope="session")
+
+
+def pytest_collection_modifyitems(items: list[Any]) -> None:
+    for item in items:
+        if item.config.option.runtime == "host" and "runtime" in item.fixturenames:
+            item.add_marker(pytest.mark.skip(reason="Non-host test"))
+        elif (
+            item.config.option.runtime != "host" and "runtime" not in item.fixturenames
+        ):
+            item.add_marker(pytest.mark.skip(reason="Host test"))
