@@ -107,6 +107,6 @@ def pytest_generate_tests(metafunc: Any) -> None:
 
     if "runtime" in metafunc.fixturenames:
         if runtime == "host":
-            metafunc.parametrize("conf", pytest.skip("Non-host test"))
+            metafunc.parametrize("__skip__", pytest.skip("Non-host test"))
         else:
             metafunc.parametrize("runtime", [runtime], scope="session")
