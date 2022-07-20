@@ -39,7 +39,7 @@ You would also one at least one of the following runtimes,
 3. For convenience, the `run_in_pyodide` decorator is also provided. For
    instance the above example would be equivalent to,
    ```py
-   from pytest_pyodide.decorator import run_in_pyodide
+   from pytest_pyodide import run_in_pyodide
 
    @run_in_pyodide
    def test_a(selenium):
