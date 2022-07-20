@@ -39,7 +39,7 @@ any_strategy = (
 any_equal_to_self_strategy = any_strategy.filter(is_equal_to_self)
 
 std_hypothesis_settings = settings(
-    deadline=2000,
+    deadline=6000,
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 
