@@ -55,6 +55,7 @@ def pytest_addoption(parser):
         help="Select testing frameworks, selenium or playwright (default: %(default)s)",
     )
     group.addoption(
+        "-rt",
         "--runtime",
         default="node",
         choices=RUNTIMES + ["all", "host"],
