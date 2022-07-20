@@ -10,6 +10,8 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+RUNTIMES = ["firefox", "chrome", "node"]
+
 
 def pytest_configure(config):
 
@@ -52,6 +54,14 @@ def pytest_addoption(parser):
         choices=["selenium", "playwright"],
         help="Select testing frameworks, selenium or playwright (default: %(default)s)",
     )
+    group.addoption(
+        "--rt",
+        "--runtime",
+        dest="runtime",
+        default="node",
+        choices=RUNTIMES + ["all", "host"],
+        help="Select runtime, firefox, chrome, node, all, or host (default: %(default)s)",
+    )
 
 
 # Handling for pytest assertion rewrites
@@ -89,3 +99,23 @@ def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> No
     rewrite_asserts(tree2, source, strfn, REWRITE_CONFIG)
     REWRITTEN_MODULE_ASTS[strfn] = tree2
     orig_pytest_pycollect_makemodule(module_path, parent)
+
+
+def pytest_generate_tests(metafunc: Any) -> None:
+    runtime = metafunc.config.option.runtime
+
+    if runtime == "all":
+        runtime = RUNTIMES
+
+    if "runtime" in metafunc.fixturenames:
+        metafunc.parametrize("runtime", [runtime], scope="session")
+
+
+def pytest_collection_modifyitems(items: list[Any]) -> None:
+    for item in items:
+        if item.config.option.runtime == "host" and "runtime" in item.fixturenames:
+            item.add_marker(pytest.mark.skip(reason="Non-host test"))
+        elif (
+            item.config.option.runtime != "host" and "runtime" not in item.fixturenames
+        ):
+            item.add_marker(pytest.mark.skip(reason="Host test"))
