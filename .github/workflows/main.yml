@@ -144,7 +144,6 @@ jobs:
           fail_ci_if_error: true
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     environment: PyPi-deploy
     steps:
       - uses: actions/checkout@v2
