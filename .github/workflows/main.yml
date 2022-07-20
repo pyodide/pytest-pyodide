@@ -51,14 +51,15 @@ jobs:
       fail-fast: false
       matrix:
         test-config: [
-          {runner: selenium, browser: firefox, firefox-version: latest, geckodriver-version: latest },
-          {runner: selenium, browser: chrome, chrome-version: latest, chromedriver-version: latest },
-          {runner: selenium, browser: node, node-version: 14},
-          {runner: selenium, browser: node, node-version: 16},
-          {runner: selenium, browser: node, node-version: 18},
+          {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
+          {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
+          {runner: selenium, runtime: node, node-version: 14},
+          {runner: selenium, runtime: node, node-version: 16},
+          {runner: selenium, runtime: node, node-version: 18},
+          {runner: selenium, runtime: host},
           # playwright browser versions are pinned to playwright version
-          {runner: playwright, browser: firefox, playwright-version: 1.22.0, node-version: 18},
-          {runner: playwright, browser: chrome, playwright-version: 1.22.0, node-version: 18},
+          {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
+          {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
         ]
     steps:
       - uses: actions/checkout@v2
@@ -69,7 +70,7 @@ jobs:
 
       - name: Install node
         uses: actions/setup-node@v3
-        if: ${{ matrix.test-config.browser == 'node' || matrix.test-config.runner == 'playwright' }}
+        if: ${{ matrix.test-config.runtime == 'node' || matrix.test-config.runner == 'playwright' }}
         with:
           node-version: ${{ matrix.test-config.node-version }}
 
@@ -90,25 +91,25 @@ jobs:
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'firefox' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'firefox' }}
         with:
           firefox-version: ${{ matrix.test-config.firefox-version }}
 
       - name: Install geckodriver
         uses: browser-actions/setup-geckodriver@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'firefox' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'firefox' }}
         with:
           geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
 
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'chrome' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
         with:
           chrome-version: ${{ matrix.test-config.geckodriver-version }}
 
       - name: Install chromedriver
         shell: bash -l {0}
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.browser == 'chrome' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
         run: |
           cd tools && ./install_chromedriver.sh ${{ matrix.test-config.chromedriver-version }}
 
@@ -136,7 +137,7 @@ jobs:
             --cov=pytest_pyodide \
             --dist-dir=./dist/ \
             --runner=${{ matrix.test-config.runner }} \
-            --runtime=${{ matrix.test-config.browser }}
+            --runtime=${{ matrix.test-config.runtime }}
 
       - uses: codecov/codecov-action@v3
         if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request' }}
