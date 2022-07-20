@@ -137,7 +137,7 @@ jobs:
             --cov=pytest_pyodide \
             --dist-dir=./dist/ \
             --runner=${{ matrix.test-config.runner }} \
-            -rt=${{ matrix.test-config.runtime }}
+            --rt=${{ matrix.test-config.runtime }}
 
       - uses: codecov/codecov-action@v3
         if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request' }}
