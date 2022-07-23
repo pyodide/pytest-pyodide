@@ -113,6 +113,9 @@ def pytest_generate_tests(metafunc: Any) -> None:
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
     for item in items:
+        if not hasattr(item, "fixturenames"):
+            # Some items like DoctestItem has no fixture
+            continue
         if item.config.option.runtime == "host" and "runtime" in item.fixturenames:
             item.add_marker(pytest.mark.skip(reason="Non-host test"))
         elif (

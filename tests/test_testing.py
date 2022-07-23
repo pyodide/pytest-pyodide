@@ -15,3 +15,11 @@ def test_host(request):
 def test_runtime(selenium, request):
     runtime = request.config.option.runtime
     assert runtime != "host", "this test should only run when runtime is not host"
+
+
+def test_doctest():
+    """
+    >>> 1+1
+    2
+    """
+    pass
