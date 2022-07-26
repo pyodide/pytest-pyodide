@@ -102,13 +102,13 @@ def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> No
 
 
 def pytest_generate_tests(metafunc: Any) -> None:
-    runtime = metafunc.config.option.runtime
-
-    if runtime == "all":
-        runtime = RUNTIMES
-
     if "runtime" in metafunc.fixturenames:
-        metafunc.parametrize("runtime", [runtime], scope="session")
+        runtime = metafunc.config.option.runtime
+
+        if runtime == "all":
+            runtime = RUNTIMES
+
+        metafunc.parametrize("runtime", [runtime], scope="module")
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
