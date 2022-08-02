@@ -60,6 +60,7 @@ jobs:
           # playwright browser versions are pinned to playwright version
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
           {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
+          {runner: playwright, runtime: safari, playwright-version: 1.22.0, node-version: 18},
         ]
     steps:
       - uses: actions/checkout@v2

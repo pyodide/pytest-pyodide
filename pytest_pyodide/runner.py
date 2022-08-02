@@ -358,15 +358,15 @@ class _SeleniumBaseRunner(_BrowserBaseRunner):
 
 
 class _PlaywrightBaseRunner(_BrowserBaseRunner):
-    def __init__(self, browsers, *args, **kwargs):
-        self.browsers = browsers
+    def __init__(self, playwright_browser, *args, **kwargs):
+        self.playwright_browser = playwright_browser
         super().__init__(*args, **kwargs)
 
     def goto(self, page):
         self.driver.goto(page)
 
     def get_driver(self):
-        return self.browsers[self.browser].new_page()
+        return self.playwright_browser.new_page()
 
     def set_script_timeout(self, timeout):
         # playwright uses milliseconds for timeout
@@ -443,6 +443,10 @@ class PlaywrightChromeRunner(_PlaywrightBaseRunner):
 
 class PlaywrightFirefoxRunner(_PlaywrightBaseRunner):
     browser = "firefox"
+
+
+class PlaywrightSafariRunner(_PlaywrightBaseRunner):
+    browser = "safari"
 
 
 class NodeRunner(_BrowserBaseRunner):
