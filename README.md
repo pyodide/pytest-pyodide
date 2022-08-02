@@ -36,26 +36,75 @@ You would also one at least one of the following runtimes,
    ```bash
    pytest --dist-dir=./dist/
    ```
-3. For convenience, the `run_in_pyodide` decorator is also provided. For
-   instance the above example would be equivalent to,
 
-   ```py
-   from pytest_pyodide import run_in_pyodide
+## `run_in_pyodide`
 
-   @run_in_pyodide
-   def test_a(selenium):
-       assert 1+1 == 2
-   ```
+Some tests simply involve running a chunk of code in Pyodide and ensuring it
+doesn't error. In this case, one can use the `run_in_pyodide` decorate from
+`pytest_pyodide`, e.g.
 
+```python
+from pytest_pyodide import run_in_pyodide
+@run_in_pyodide
+def test_add(selenium):
+    assert 1 + 1 == 2
+```
 
-   If there are packages required for a test,
-   you need to add them to the `packages` argument.
+In this case, the body of the function will automatically be run in Pyodide. The
+decorator can also be called with a `packages` argument to load packages before
+running the test. For example:
 
-   ```py
-   @run_in_pyodide(packages=["numpy"])
-   def test_numpy(selenium):
-       assert sum(numpy.zeros()) == 0.0
-   ```
+```python
+from pytest_pyodide import run_in_pyodide
+@run_in_pyodide(packages = ["regex"])
+def test_regex(selenium_standalone):
+    import regex
+    assert regex.search("o", "foo").end() == 2
+```
+
+You can also use `@run_in_pyodide` with
+`pytest.mark.parametrize`, with `hypothesis`, etc. `@run_in_pyodide` MUST be the
+innermost decorator. Any decorators inside of `@run_in_pyodide` will be have no
+effect on the behavior of the test.
+
+```python
+from pytest_pyodide import run_in_pyodide
+@pytest.mark.parametrize("x", [1, 2, 3])
+@run_in_pyodide(packages = ["regex"])
+def test_type_of_int(selenium, x):
+    assert type(x) is int
+```
+
+These arguments must be picklable. You can also use fixtures as long as the
+return values of the fixtures are picklable (most commonly, if they are `None`).
+As a special case, the function will see the `selenium` fixture as `None` inside
+the test.
+
+It is possible to use `run_in_pyodide` as an inner function:
+
+```py
+def test_inner_function(selenium):
+    @run_in_pyodide
+    def inner_function(selenium, x):
+        assert x == 6
+        return 7
+    assert inner_function(selenium_mock, 6) == 7
+```
+
+Again both the arguments and return value must be pickleable.
+
+Also, the function will not see closure variables at all:
+
+```py
+def test_inner_function_closure(selenium):
+    x = 6
+    @run_in_pyodide
+    def inner_function(selenium):
+        assert x == 6
+        return 7
+    # Raises `NameError: 'x' is not defined`
+    assert inner_function(selenium_mock) == 7
+```
 
 ## Specifying a browser
 
@@ -84,7 +133,7 @@ First install playwright browsers
 python -m playwright install --with-deps
 ```
 
-Then use the --runner argument to specify to run tests with playwright.
+Then use the `--runner` argument to specify to run tests with playwright.
 
 ```
 pytest --runner playwright
