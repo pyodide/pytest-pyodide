@@ -1,7 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
 from .decorator import run_in_pyodide
-from .fixture import *  # noqa: F403, F401
 from .runner import (
     BrowserWrapper,
     NodeWrapper,
