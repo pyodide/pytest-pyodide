@@ -38,12 +38,14 @@ You would also one at least one of the following runtimes,
    ```
 3. For convenience, the `run_in_pyodide` decorator is also provided. For
    instance the above example would be equivalent to,
+
    ```py
    from pytest_pyodide import run_in_pyodide
 
    @run_in_pyodide
    def test_a(selenium):
        assert 1+1 == 2
+   ```
 
 
    If there are packages required for a test,
@@ -65,7 +67,7 @@ Possible options for `--runtime` are:
 - firefox
 - chrome
 - all (chrome + firefox + node)
-- host (do not run browser based-tests)
+- host (do not run browser-based tests)
 
 ```sh
 pytest --runtime firefox
