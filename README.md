@@ -139,6 +139,16 @@ Then use the `--runner` argument to specify to run tests with playwright.
 pytest --runner playwright
 ```
 
+### Custom test marks
+
+Custeom test marks supported by `pytest-pyodide`:
+
+`pytest.mark.driver_timeout(timeout)`: Set script timeout in WebDriver. If the
+test is known to take a long time, you can extend the deadline with this marker.
+
+`pytest.mark.xfail_browsers(chrome="why chrome fails")`: xfail a test in
+specific browsers.
+
 ## License
 
 pytest-pyodide uses the [Mozilla Public License Version
