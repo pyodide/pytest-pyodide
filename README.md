@@ -44,7 +44,49 @@ You would also one at least one of the following runtimes,
    @run_in_pyodide
    def test_a(selenium):
        assert 1+1 == 2
+
+
+   If there are packages required for a test,
+   you need to add them to the `packages` argument.
+
+   ```py
+   @run_in_pyodide(packages=["numpy"])
+   def test_numpy(selenium):
+       assert sum(numpy.zeros()) == 0.0
    ```
+
+## Specifying a browser
+
+You can specify a browser runtime using `--runtime` (`--rt`) commandline option.
+
+Possible options for `--runtime` are:
+
+- node (default)
+- firefox
+- chrome
+- all (chrome + firefox + node)
+- host (do not run browser based-tests)
+
+```sh
+pytest --runtime firefox
+```
+
+## Running tests with Playwright (optional)
+
+By default, the tests will be run with Selenium.
+It is possible to run tests with [playwright](https://github.com/microsoft/playwright-python) instead as follows.
+
+First install playwright browsers
+
+```sh
+python -m playwright install --with-deps
+```
+
+Then use the --runner argument to specify to run tests with playwright.
+
+```
+pytest --runner playwright
+```
 
 ## License
 
