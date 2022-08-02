@@ -98,7 +98,7 @@ class JavascriptException(Exception):
         return "\n\n".join(x for x in [self.msg, self.stack] if x)
 
 
-class BrowserWrapper:
+class _BrowserBaseRunner:
     browser = ""
     JavascriptException = JavascriptException
 
@@ -315,7 +315,7 @@ class BrowserWrapper:
         self.run_js(f"await pyodide.loadPackage({packages!r})")
 
 
-class SeleniumWrapper(BrowserWrapper):
+class _SeleniumBaseRunner(_BrowserBaseRunner):
     def goto(self, page):
         self.driver.get(page)
 
@@ -357,7 +357,7 @@ class SeleniumWrapper(BrowserWrapper):
             yield self.driver.current_url
 
 
-class PlaywrightWrapper(BrowserWrapper):
+class _PlaywrightBaseRunner(_BrowserBaseRunner):
     def __init__(self, browsers, *args, **kwargs):
         self.browsers = browsers
         super().__init__(*args, **kwargs)
@@ -401,7 +401,7 @@ class PlaywrightWrapper(BrowserWrapper):
             raise JavascriptException(retval[1], retval[2])
 
 
-class SeleniumFirefoxWrapper(SeleniumWrapper):
+class SeleniumFirefoxRunner(_SeleniumBaseRunner):
 
     browser = "firefox"
 
@@ -415,7 +415,7 @@ class SeleniumFirefoxWrapper(SeleniumWrapper):
         return Firefox(executable_path="geckodriver", options=options)
 
 
-class SeleniumChromeWrapper(SeleniumWrapper):
+class SeleniumChromeRunner(_SeleniumBaseRunner):
 
     browser = "chrome"
 
@@ -433,7 +433,7 @@ class SeleniumChromeWrapper(SeleniumWrapper):
         self.driver.execute_cdp_cmd("HeapProfiler.collectGarbage", {})
 
 
-class PlaywrightChromeWrapper(PlaywrightWrapper):
+class PlaywrightChromeRunner(_PlaywrightBaseRunner):
     browser = "chrome"
 
     def collect_garbage(self):
@@ -441,11 +441,11 @@ class PlaywrightChromeWrapper(PlaywrightWrapper):
         client.send("HeapProfiler.collectGarbage")
 
 
-class PlaywrightFirefoxWrapper(PlaywrightWrapper):
+class PlaywrightFirefoxRunner(_PlaywrightBaseRunner):
     browser = "firefox"
 
 
-class NodeWrapper(BrowserWrapper):
+class NodeRunner(_BrowserBaseRunner):
     browser = "node"
 
     def init_node(self):
@@ -534,3 +534,28 @@ class NodeWrapper(BrowserWrapper):
             return json.loads(self.p.before.decode().replace("undefined", "null"))
         else:
             raise JavascriptException("", self.p.before.decode())
+
+
+def _deprecated(old_name, new_module):
+    def _warn_deprecated(*args, **kwargs):
+        import warnings
+
+        warnings.simplefilter("always", DeprecationWarning)
+        warnings.warn(
+            f"{old_name} has been renamed to {new_module.__name__}", DeprecationWarning
+        )
+        return new_module(*args, **kwargs)
+
+    return _warn_deprecated
+
+
+BrowserWrapper = _deprecated("BrowserWrapper", _BrowserBaseRunner)
+SeleniumWrapper = _deprecated("SeleniumWrapper", _SeleniumBaseRunner)
+PlaywrightWrapper = _deprecated("PlaywrightWrapper", _PlaywrightBaseRunner)
+NodeWrapper = _deprecated("NodeWrapper", NodeRunner)
+SeleniumChromeWrapper = _deprecated("SeleniumChromeWrapper", SeleniumChromeRunner)
+SeleniumFirefoxWrapper = _deprecated("SeleniumFirefoxWrapper", SeleniumFirefoxRunner)
+PlaywrightChromeWrapper = _deprecated("PlaywrightChromeWrapper", PlaywrightChromeRunner)
+PlaywrightFirefoxWrapper = _deprecated(
+    "PlaywrightFirefoxWrapper", PlaywrightFirefoxRunner
+)
