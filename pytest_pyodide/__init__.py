@@ -1,6 +1,8 @@
 from importlib.metadata import PackageNotFoundError, version
 
-from .browser import (
+from .decorator import run_in_pyodide
+from .fixture import *  # noqa: F403, F401
+from .runner import (
     BrowserWrapper,
     NodeWrapper,
     PlaywrightChromeWrapper,
@@ -10,8 +12,6 @@ from .browser import (
     SeleniumFirefoxWrapper,
     SeleniumWrapper,
 )
-from .decorator import run_in_pyodide
-from .fixture import *  # noqa: F403, F401
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
 
