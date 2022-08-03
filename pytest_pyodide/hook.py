@@ -10,6 +10,8 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+from .utils import parse_xfail_browsers
+
 RUNTIMES = ["firefox", "chrome", "node", "safari"]
 
 
@@ -125,3 +127,24 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
             item.config.option.runtime != "host" and "runtime" not in item.fixturenames
         ):
             item.add_marker(pytest.mark.skip(reason="Host test"))
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+
+    browser = None
+    for fixture in item._fixtureinfo.argnames:
+        if fixture.startswith("selenium"):
+            browser = item.funcargs[fixture]
+            break
+
+    if not browser:
+        yield
+        return
+
+    xfail_msg = parse_xfail_browsers(item).get(browser.browser, None)
+    if xfail_msg is not None:
+        pytest.xfail(xfail_msg)
+
+    yield
+    return
