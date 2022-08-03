@@ -10,9 +10,8 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+from .constants import RUNTIMES
 from .utils import parse_xfail_browsers
-
-RUNTIMES = ["firefox", "chrome", "node", "safari"]
 
 
 def pytest_configure(config):

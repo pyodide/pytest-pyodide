@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from .hook import RUNTIMES
+from .constants import RUNTIMES
 
 
 @contextlib.contextmanager
