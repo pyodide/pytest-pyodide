@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from .browser import (
-    BrowserWrapper,
-    NodeWrapper,
-    PlaywrightChromeWrapper,
-    PlaywrightFirefoxWrapper,
-    SeleniumChromeWrapper,
-    SeleniumFirefoxWrapper,
+from .runner import (
+    NodeRunner,
+    PlaywrightChromeRunner,
+    PlaywrightFirefoxRunner,
+    SeleniumChromeRunner,
+    SeleniumFirefoxRunner,
+    _BrowserBaseRunner,
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
@@ -70,15 +70,15 @@ def selenium_common(
 
     server_hostname, server_port, server_log = web_server_main
     runner_type = request.config.option.runner.lower()
-    cls: type[BrowserWrapper]
+    cls: type[_BrowserBaseRunner]
 
     browser_set = {
-        ("selenium", "firefox"): SeleniumFirefoxWrapper,
-        ("selenium", "chrome"): SeleniumChromeWrapper,
-        ("selenium", "node"): NodeWrapper,
-        ("playwright", "firefox"): PlaywrightFirefoxWrapper,
-        ("playwright", "chrome"): PlaywrightChromeWrapper,
-        ("playwright", "node"): NodeWrapper,
+        ("selenium", "firefox"): SeleniumFirefoxRunner,
+        ("selenium", "chrome"): SeleniumChromeRunner,
+        ("selenium", "node"): NodeRunner,
+        ("playwright", "firefox"): PlaywrightFirefoxRunner,
+        ("playwright", "chrome"): PlaywrightChromeRunner,
+        ("playwright", "node"): NodeRunner,
     }
 
     cls = browser_set.get((runner_type, runtime))  # type: ignore[assignment]

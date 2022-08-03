@@ -149,6 +149,10 @@ test is known to take a long time, you can extend the deadline with this marker.
 `pytest.mark.xfail_browsers(chrome="why chrome fails")`: xfail a test in
 specific browsers.
 
+## Examples
+
+See [`examples`](./examples).
+
 ## License
 
 pytest-pyodide uses the [Mozilla Public License Version
