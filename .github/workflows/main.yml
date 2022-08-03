@@ -89,6 +89,8 @@ jobs:
           pip install playwright==${{ matrix.test-config.playwright-version }}
           RUNTIME=${{ matrix.test-config.runtime }}
           RUNTIME=${RUNTIME//safari/webkit}
+          RUNTIME=${RUNTIME//chrome/chromium}
+
           python -m playwright install "${RUNTIME}" --with-deps
 
       - name: Install firefox
