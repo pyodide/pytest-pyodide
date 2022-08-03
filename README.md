@@ -46,6 +46,10 @@ You would also one at least one of the following runtimes,
        assert 1+1 == 2
    ```
 
+## Examples
+
+See [`examples`](./examples).
+
 ## License
 
 pytest-pyodide uses the [Mozilla Public License Version
