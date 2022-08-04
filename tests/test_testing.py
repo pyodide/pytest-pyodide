@@ -1,7 +1,5 @@
 import pathlib
 
-import pytest
-
 
 def test_web_server_secondary(selenium, web_server_secondary):
     host, port, logs = web_server_secondary
@@ -25,11 +23,3 @@ def test_doctest():
     2
     """
     pass
-
-
-def test_deprecated():
-    import warnings
-
-    warnings.simplefilter("always", DeprecationWarning)
-    with pytest.warns(DeprecationWarning):
-        import pytest_pyodide.browser  # noqa

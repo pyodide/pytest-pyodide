@@ -1,20 +1,12 @@
 from importlib.metadata import PackageNotFoundError, version
 
 from .decorator import run_in_pyodide
-from .runner import (  # deprecated
-    BrowserWrapper,
+from .runner import (
     NodeRunner,
-    NodeWrapper,
     PlaywrightChromeRunner,
-    PlaywrightChromeWrapper,
     PlaywrightFirefoxRunner,
-    PlaywrightFirefoxWrapper,
-    PlaywrightWrapper,
     SeleniumChromeRunner,
-    SeleniumChromeWrapper,
     SeleniumFirefoxRunner,
-    SeleniumFirefoxWrapper,
-    SeleniumWrapper,
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
@@ -35,13 +27,4 @@ __all__ = [
     "parse_driver_timeout",
     "run_in_pyodide",
     "spawn_web_server",
-    # deprecated
-    "BrowserWrapper",
-    "SeleniumWrapper",
-    "PlaywrightWrapper",
-    "SeleniumFirefoxWrapper",
-    "SeleniumChromeWrapper",
-    "PlaywrightChromeWrapper",
-    "PlaywrightFirefoxWrapper",
-    "NodeWrapper",
 ]
