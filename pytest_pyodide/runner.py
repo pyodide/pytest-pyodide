@@ -534,28 +534,3 @@ class NodeRunner(_BrowserBaseRunner):
             return json.loads(self.p.before.decode().replace("undefined", "null"))
         else:
             raise JavascriptException("", self.p.before.decode())
-
-
-def _deprecated(old_name, new_module):
-    def _warn_deprecated(*args, **kwargs):
-        import warnings
-
-        warnings.simplefilter("always", DeprecationWarning)
-        warnings.warn(
-            f"{old_name} has been renamed to {new_module.__name__}", DeprecationWarning
-        )
-        return new_module(*args, **kwargs)
-
-    return _warn_deprecated
-
-
-BrowserWrapper = _deprecated("BrowserWrapper", _BrowserBaseRunner)
-SeleniumWrapper = _deprecated("SeleniumWrapper", _SeleniumBaseRunner)
-PlaywrightWrapper = _deprecated("PlaywrightWrapper", _PlaywrightBaseRunner)
-NodeWrapper = _deprecated("NodeWrapper", NodeRunner)
-SeleniumChromeWrapper = _deprecated("SeleniumChromeWrapper", SeleniumChromeRunner)
-SeleniumFirefoxWrapper = _deprecated("SeleniumFirefoxWrapper", SeleniumFirefoxRunner)
-PlaywrightChromeWrapper = _deprecated("PlaywrightChromeWrapper", PlaywrightChromeRunner)
-PlaywrightFirefoxWrapper = _deprecated(
-    "PlaywrightFirefoxWrapper", PlaywrightFirefoxRunner
-)
