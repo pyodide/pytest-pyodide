@@ -10,9 +10,8 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+from .constants import RUNTIMES
 from .utils import parse_xfail_browsers
-
-RUNTIMES = ["firefox", "chrome", "node"]
 
 
 def pytest_configure(config):
@@ -106,9 +105,12 @@ def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> No
 def pytest_generate_tests(metafunc: Any) -> None:
     if "runtime" in metafunc.fixturenames:
         runtime = metafunc.config.option.runtime
+        runner = metafunc.config.option.runner
 
         if runtime == "all":
             runtime = RUNTIMES
+            if runner == "selenium":
+                runtime = runtime.remove("safari")
 
         metafunc.parametrize("runtime", [runtime], scope="module")
 

@@ -60,6 +60,7 @@ jobs:
           # playwright browser versions are pinned to playwright version
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
           {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
+          {runner: playwright, runtime: safari, playwright-version: 1.22.0, node-version: 18},
         ]
     steps:
       - uses: actions/checkout@v2
@@ -86,8 +87,11 @@ jobs:
         if: ${{ matrix.test-config.runner == 'playwright' }}
         run: |
           pip install playwright==${{ matrix.test-config.playwright-version }}
-          # TODO: install only browsers that are required
-          python -m playwright install --with-deps
+          RUNTIME=${{ matrix.test-config.runtime }}
+          RUNTIME=${RUNTIME//safari/webkit}
+          RUNTIME=${RUNTIME//chrome/chromium}
+
+          python -m playwright install "${RUNTIME}" --with-deps
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
