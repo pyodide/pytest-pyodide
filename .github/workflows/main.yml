@@ -108,10 +108,8 @@ jobs:
           chrome-version: ${{ matrix.test-config.geckodriver-version }}
 
       - name: Install chromedriver
-        shell: bash -l {0}
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
-        run: |
-          cd tools && ./install_chromedriver.sh ${{ matrix.test-config.chromedriver-version }}
+        uses: nanasess/setup-chromedriver@v1
 
       - name: Install requirements
         shell: bash -l {0}
