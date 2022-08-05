@@ -79,7 +79,12 @@ def _create_outer_test_function(
     # Make onwards call with two args:
     # 1. <selenium_arg_name>
     # 2. all other arguments in a tuple
-    func_body = ast.parse("__tracebackhide__ = True; return run_test(selenium_arg_name, (arg1, arg2, ...))").body
+    func_body = ast.parse(
+        """\
+        __tracebackhide__ = True; \
+        return run_test(selenium_arg_name, (arg1, arg2, ...)) \
+        """.strip()
+    ).body
     onwards_call = func_body[1].value  # type: ignore[attr-defined]
     onwards_call.func = ast.Name(id=run_test_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
