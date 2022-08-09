@@ -22,8 +22,8 @@ You would also one at least one of the following runtimes,
 
 1. First you would need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
    ```
-   wget https://github.com/pyodide/pyodide/releases/download/0.21.0a3/pyodide-build-0.21.0a3.tar.bz2
-   tar xjf pyodide-build-0.21.0a3.tar.bz2
+   wget https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2
+   tar xjf pyodide-build-0.21.0.tar.bz2
    mv pyodide dist/
    ```
 
