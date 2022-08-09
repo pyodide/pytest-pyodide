@@ -79,8 +79,13 @@ def _create_outer_test_function(
     # Make onwards call with two args:
     # 1. <selenium_arg_name>
     # 2. all other arguments in a tuple
-    func_body = ast.parse("return run_test(selenium_arg_name, (arg1, arg2, ...))").body
-    onwards_call = func_body[0].value  # type: ignore[attr-defined]
+    func_body = ast.parse(
+        """\
+        __tracebackhide__ = True; \
+        return run_test(selenium_arg_name, (arg1, arg2, ...)) \
+        """.strip()
+    ).body
+    onwards_call = func_body[1].value  # type: ignore[attr-defined]
     onwards_call.func = ast.Name(id=run_test_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
     onwards_call.args[1].elts = [  # Set tuple elements
@@ -182,6 +187,7 @@ class run_in_pyodide:
         """
         return f"""
         async def __tmp():
+            __tracebackhide__ = True
             from base64 import b64encode, b64decode
             import pickle
             mod = pickle.loads(b64decode({_encode(self._mod)!r}))
@@ -214,6 +220,7 @@ class run_in_pyodide:
     def _run_test(self, selenium: SeleniumType, args: tuple):
         """The main test runner, called from the AST generated in
         _create_outer_test_function."""
+        __tracebackhide__ = True
         code = self._code_template(args)
         if self._pkgs:
             selenium.load_package(self._pkgs)
