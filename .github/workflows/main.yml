@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYODIDE_VERSION: 0.21.0a3
+  PYODIDE_VERSION: 0.21.0
 
 jobs:
   lint:
