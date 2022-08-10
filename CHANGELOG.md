@@ -1,8 +1,7 @@
-All notable changes to this project will be documented in this file.
+## [0.21.1] - 2022.08.10
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+- Use forked tblib and clean up tracebacks ([#22](https://github.com/pyodide/pytest-pyodide/pull/22))
 
-## [Unreleased]
 
 ## [0.21.0] - 2022.08.05
 
