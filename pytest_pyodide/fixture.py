@@ -117,6 +117,30 @@ def selenium_standalone(request, runtime, web_server_main, playwright_browsers):
                 print(selenium.logs)
 
 
+@pytest.fixture(scope="function")
+def selenium_standalone_refresh(selenium):
+    """
+    Experimental standalone fixture which refreshes a page instead of
+    instantiating a new webdriver session.
+
+    by setting STANDALONE_REFRESH env variable,
+    selenium_standalone_refresh fixture will override selenium_standalone
+    """
+    selenium.clean_logs()
+
+    yield selenium
+
+    selenium.refresh()
+    selenium.load_pyodide()
+    selenium.initialize_pyodide()
+    selenium.save_state()
+    selenium.restore_state()
+
+
+if os.environ.get("STANDALONE_REFRESH"):
+    selenium_standalone = selenium_standalone_refresh  # type: ignore[assignment] # noqa: F811
+
+
 @pytest.fixture(scope="module")
 def selenium_esm(request, runtime, web_server_main, playwright_browsers):
     with selenium_common(

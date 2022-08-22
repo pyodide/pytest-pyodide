@@ -123,6 +123,8 @@ jobs:
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'safari' && contains(runner.os, 'macos') }}
         run: |
           sudo safaridriver --enable
+          # Only one Safari browser instance can be active at any given time
+          echo "STANDALONE_REFRESH=1" >> $GITHUB_ENV
 
       - name: Install requirements
         shell: bash -l {0}
@@ -144,7 +146,7 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest -v \
+          STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./dist/ \
             --runner=${{ matrix.test-config.runner }} \
