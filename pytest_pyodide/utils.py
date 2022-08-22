@@ -1,10 +1,7 @@
 import contextlib
 import functools
 import json
-import re
 from pathlib import Path
-
-import pytest
 
 
 @contextlib.contextmanager
@@ -40,53 +37,6 @@ def parse_xfail_browsers(node) -> dict[str, str]:
     if mark is None:
         return {}
     return mark.kwargs
-
-
-def maybe_skip_test(item, dist_dir, delayed=False):
-    """If necessary skip test at the fixture level, to avoid
-
-    loading the selenium_standalone fixture which takes a long time.
-    """
-    browsers = "|".join(["firefox", "chrome", "node"])
-
-    skip_msg = None
-    # Testing a package. Skip the test if the package is not built.
-    match = re.match(
-        r".*/packages/(?P<name>[\w\-]+)/test_[\w\-]+\.py", str(item.parent.fspath)
-    )
-    if match:
-        package_name = match.group("name")
-        if not package_is_built(package_name, dist_dir) and re.match(
-            rf"test_[\w\-]+\[({browsers})[^\]]*\]", item.name
-        ):
-            skip_msg = f"package '{package_name}' is not built."
-
-    # Common package import test. Skip it if the package is not built.
-    if (
-        skip_msg is None
-        and str(item.fspath).endswith("test_packages_common.py")
-        and item.name.startswith("test_import")
-    ):
-        match = re.match(rf"test_import\[({browsers})-(?P<name>[\w-]+)\]", item.name)
-        if match:
-            package_name = match.group("name")
-            if not package_is_built(package_name, dist_dir):
-                # If the test is going to be skipped remove the
-                # selenium_standalone as it takes a long time to initialize
-                skip_msg = f"package '{package_name}' is not built."
-        else:
-            raise AssertionError(
-                f"Couldn't parse package name from {item.name}. This should not happen!"
-            )
-
-    # TODO: also use this hook to skip doctests we cannot run (or run them
-    # inside the selenium wrapper)
-
-    if skip_msg is not None:
-        if delayed:
-            item.add_marker(pytest.mark.skip(reason=skip_msg))
-        else:
-            pytest.skip(skip_msg)
 
 
 @functools.cache
