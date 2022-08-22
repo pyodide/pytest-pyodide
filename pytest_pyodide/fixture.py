@@ -10,6 +10,7 @@ from .runner import (
     PlaywrightFirefoxRunner,
     SeleniumChromeRunner,
     SeleniumFirefoxRunner,
+    SeleniumSafariRunner,
     _BrowserBaseRunner,
 )
 from .server import spawn_web_server
@@ -75,6 +76,7 @@ def selenium_common(
     browser_set = {
         ("selenium", "firefox"): SeleniumFirefoxRunner,
         ("selenium", "chrome"): SeleniumChromeRunner,
+        ("selenium", "safari"): SeleniumSafariRunner,
         ("selenium", "node"): NodeRunner,
         ("playwright", "firefox"): PlaywrightFirefoxRunner,
         ("playwright", "chrome"): PlaywrightChromeRunner,

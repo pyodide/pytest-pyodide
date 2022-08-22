@@ -7,6 +7,7 @@ from .runner import (
     PlaywrightFirefoxRunner,
     SeleniumChromeRunner,
     SeleniumFirefoxRunner,
+    SeleniumSafariRunner,
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
@@ -23,6 +24,7 @@ __all__ = [
     "PlaywrightFirefoxRunner",
     "SeleniumChromeRunner",
     "SeleniumFirefoxRunner",
+    "SeleniumSafariRunner",
     "set_webdriver_script_timeout",
     "parse_driver_timeout",
     "run_in_pyodide",
