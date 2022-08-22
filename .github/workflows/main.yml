@@ -45,12 +45,13 @@ jobs:
 
   test:
     needs: download-pyodide
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     env:
       DISPLAY: :99
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         pyodide-version: [0.21.0a3, 0.21.0]
         test-config: [
           {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
@@ -63,6 +64,11 @@ jobs:
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
           {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
         ]
+        include:
+          - os: macos-latest
+            pyodide-version: 0.21.0
+            test-config: {runner: selenium, runtime: safari }
+
     steps:
       - uses: actions/checkout@v2
 
@@ -87,9 +93,9 @@ jobs:
         shell: bash -l {0}
         if: ${{ matrix.test-config.runner == 'playwright' }}
         run: |
-          pip install playwright==${{ matrix.test-config.playwright-version }}
+          python3 -m pip install playwright==${{ matrix.test-config.playwright-version }}
           # TODO: install only browsers that are required
-          python -m playwright install --with-deps
+          python3 -m playwright install --with-deps
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
@@ -113,15 +119,23 @@ jobs:
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
         uses: nanasess/setup-chromedriver@v1
 
+      # Adapted from: https://github.com/Choices-js/Choices/blob/master/.github/workflows/browsers.yml
+      - name: Enable Safari Driver
+        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'safari' && contains(runner.os, 'macos') }}
+        run: |
+          mkdir -p ~/Library/WebDriver/
+          curl https://raw.githubusercontent.com/web-platform-tests/wpt/master/tools/ci/azure/com.apple.Safari.plist -o ~/Library/WebDriver/com.apple.Safari.plist
+          defaults write com.apple.Safari WebKitJavaScriptCanOpenWindowsAutomatically 1
+
       - name: Install requirements
         shell: bash -l {0}
         run: |
-          pip install -e .
-          pip install pytest-cov
+          python3 -m pip install -e .
+          python3 -m pip install pytest-cov
           # Currently we only install the package for dependencies.
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
-          pip uninstall -y pytest-pyodide
+          python3 -m pip uninstall -y pytest-pyodide
           which npm && npm install node-fetch@2
 
       - name: Get Pyodide from cache

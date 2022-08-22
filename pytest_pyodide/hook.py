@@ -12,7 +12,7 @@ from _pytest.python import (
 
 from .utils import parse_xfail_browsers
 
-RUNTIMES = ["firefox", "chrome", "node"]
+RUNTIMES = ["firefox", "chrome", "safari", "node"]
 
 
 def pytest_configure(config):
