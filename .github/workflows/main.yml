@@ -119,13 +119,11 @@ jobs:
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
         uses: nanasess/setup-chromedriver@v1
 
-      # Adapted from: https://github.com/Choices-js/Choices/blob/master/.github/workflows/browsers.yml
+      # Adapted from: https://circleci.com/developer/orbs/orb/circleci/macos
       - name: Enable Safari Driver
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'safari' && contains(runner.os, 'macos') }}
         run: |
-          mkdir -p ~/Library/WebDriver/
-          curl https://raw.githubusercontent.com/web-platform-tests/wpt/master/tools/ci/azure/com.apple.Safari.plist -o ~/Library/WebDriver/com.apple.Safari.plist
-          defaults write com.apple.Safari WebKitJavaScriptCanOpenWindowsAutomatically 1
+          sudo safaridriver --enable
 
       - name: Install requirements
         shell: bash -l {0}
