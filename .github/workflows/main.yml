@@ -33,7 +33,7 @@ jobs:
         id: cache-pyodide
         with:
           path: dist
-          key: ${{ runner.os }}-pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
+          key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Download Pyodide
         shell: bash -l {0}
@@ -119,7 +119,6 @@ jobs:
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
         uses: nanasess/setup-chromedriver@v1
 
-      # Adapted from: https://circleci.com/developer/orbs/orb/circleci/macos
       - name: Enable Safari Driver
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'safari' && contains(runner.os, 'macos') }}
         run: |
@@ -140,7 +139,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: dist
-          key: ${{ runner.os }}-pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
+          key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Run tests
         shell: bash -l {0}

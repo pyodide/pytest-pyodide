@@ -443,7 +443,6 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
         from selenium.webdriver.safari.options import Options
 
         options = Options()
-
         return Safari(options=options)
 
 
