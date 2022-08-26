@@ -448,6 +448,10 @@ class PlaywrightFirefoxRunner(_PlaywrightBaseRunner):
 class NodeRunner(_BrowserBaseRunner):
     browser = "node"
 
+    def __init__(self):
+        super().__init__(self)
+        self.node_args = []
+
     def init_node(self):
         curdir = Path(__file__).parent
         self.p = pexpect.spawn("/bin/bash", timeout=60)
@@ -458,14 +462,14 @@ class NodeRunner(_BrowserBaseRunner):
         self.p.sendline("stty -icanon")
 
         node_version = pexpect.spawn("node --version").read().decode("utf-8")
-        node_extra_args = ""
+        node_args = self.node_args[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
         if node_version.startswith("v14"):
-            node_extra_args = "--experimental-wasm-bigint"
+            node_args.append("--experimental-wasm-bigint")
 
         self.p.sendline(
-            f"node --expose-gc {node_extra_args} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
+            f"node --expose-gc {' '.join(node_args)} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
         )
 
         try:
