@@ -112,6 +112,7 @@ def test_local_fail_load_package(selenium_standalone):
     def _load_package_error(*args, **kwargs):
         raise OSError("STOP!")
 
+    _load_package_original = selenium.load_package
     selenium.load_package = _load_package_error
 
     exc = None
@@ -119,6 +120,8 @@ def test_local_fail_load_package(selenium_standalone):
         example_func(selenium)
     except OSError:
         exc = pytest.ExceptionInfo.from_current()
+    finally:
+        selenium.load_package = _load_package_original
 
     assert exc
     try:

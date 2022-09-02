@@ -12,7 +12,6 @@ import tempfile
 
 @contextlib.contextmanager
 def spawn_web_server(dist_dir):
-
     tmp_dir = tempfile.mkdtemp()
     log_path = pathlib.Path(tmp_dir) / "http-server.log"
     q: multiprocessing.Queue[str] = multiprocessing.Queue()
@@ -20,7 +19,7 @@ def spawn_web_server(dist_dir):
 
     try:
         p.start()
-        port = q.get()
+        port = q.get(timeout=20)
         hostname = "127.0.0.1"
 
         print(

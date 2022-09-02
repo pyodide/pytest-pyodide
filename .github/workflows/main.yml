@@ -33,7 +33,7 @@ jobs:
         id: cache-pyodide
         with:
           path: dist
-          key: ${{ runner.os }}-pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
+          key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Download Pyodide
         shell: bash -l {0}
@@ -45,12 +45,13 @@ jobs:
 
   test:
     needs: download-pyodide
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     env:
       DISPLAY: :99
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         pyodide-version: [0.21.0a3, 0.21.0]
         test-config: [
           {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
@@ -63,6 +64,11 @@ jobs:
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
           {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
         ]
+        include:
+          - os: macos-latest
+            pyodide-version: 0.21.0
+            test-config: {runner: selenium, runtime: safari }
+
     steps:
       - uses: actions/checkout@v2
 
@@ -87,9 +93,9 @@ jobs:
         shell: bash -l {0}
         if: ${{ matrix.test-config.runner == 'playwright' }}
         run: |
-          pip install playwright==${{ matrix.test-config.playwright-version }}
+          python3 -m pip install playwright==${{ matrix.test-config.playwright-version }}
           # TODO: install only browsers that are required
-          python -m playwright install --with-deps
+          python3 -m playwright install --with-deps
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
@@ -113,27 +119,34 @@ jobs:
         if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
         uses: nanasess/setup-chromedriver@v1
 
+      - name: Enable Safari Driver
+        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'safari' && contains(runner.os, 'macos') }}
+        run: |
+          sudo safaridriver --enable
+          # Only one Safari browser instance can be active at any given time
+          echo "STANDALONE_REFRESH=1" >> $GITHUB_ENV
+
       - name: Install requirements
         shell: bash -l {0}
         run: |
-          pip install -e .
-          pip install pytest-cov
+          python3 -m pip install -e .
+          python3 -m pip install pytest-cov
           # Currently we only install the package for dependencies.
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
-          pip uninstall -y pytest-pyodide
+          python3 -m pip uninstall -y pytest-pyodide
           which npm && npm install node-fetch@2
 
       - name: Get Pyodide from cache
         uses: actions/cache@v3
         with:
           path: dist
-          key: ${{ runner.os }}-pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
+          key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest -v \
+          STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./dist/ \
             --runner=${{ matrix.test-config.runner }} \
