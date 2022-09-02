@@ -1,4 +1,4 @@
-## [0.21.2] - Unreleased
+## [0.22.0] - 2022.09.02
 
 - Add `selenium_standalone_refresh` fixture ([#27](https://github.com/pyodide/pytest-pyodide/pull/27))
 - Add selenium safari support ([#27](https://github.com/pyodide/pytest-pyodide/pull/27))
