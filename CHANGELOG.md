@@ -1,6 +1,6 @@
 ## [0.22.1] - unreleased
 
-- Re-order safari tests to make sure only one simultaneous session exists during the test ([#28](https://github.com/pyodide/pytest-pyodide/pull/28))
+- Re-order safari tests to make sure only one simultaneous session exists during the test ([#29](https://github.com/pyodide/pytest-pyodide/pull/29))
 
 ## [0.22.0] - 2022.09.02
 
