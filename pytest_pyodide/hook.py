@@ -1,4 +1,5 @@
 import ast
+import re
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -124,6 +125,37 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
             item.config.option.runtime != "host" and "runtime" not in item.fixturenames
         ):
             item.add_marker(pytest.mark.skip(reason="Host test"))
+
+    # Run all Safari standalone tests first
+    # Since Safari doesn't support more than one simultaneous session, we run all
+    # selenium_standalone Safari tests first. We preserve the order of other
+    # tests.
+
+    OFFSET = 10000
+
+    counter = [0]
+    standalone_fixtures = [
+        "selenium_standalone",
+        "selenium_standalone_noload",
+        "selenium_webworker_standalone",
+    ]
+
+    def _has_standalone_fixture(fixturenames):
+        for fixture in fixturenames:
+            if fixture in standalone_fixtures:
+                return True
+
+        return False
+
+    def _get_item_position(item):
+        counter[0] += 1
+        if any(
+            [re.match(r"^safari[\-$]", el) for el in item.keywords._markers.keys()]
+        ) and _has_standalone_fixture(item._request.fixturenames):
+            return counter[0] - OFFSET
+        return counter[0]
+
+    items[:] = sorted(items, key=_get_item_position)
 
 
 @pytest.hookimpl(hookwrapper=True)
