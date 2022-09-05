@@ -16,6 +16,7 @@ pip install pytest-pyodide
 You would also one at least one of the following runtimes,
  - Chrome and chromedriver
  - Firefox and geckodriver
+ - Safari and safaridriver
  - node v14+
 
 ## Usage
@@ -116,7 +117,8 @@ Possible options for `--runtime` are:
 - node (default)
 - firefox
 - chrome
-- all (chrome + firefox + node)
+- safari
+- all (chrome + firefox + safari + node)
 - host (do not run browser-based tests)
 
 ```sh
