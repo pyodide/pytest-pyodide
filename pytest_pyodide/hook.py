@@ -150,7 +150,7 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
     def _get_item_position(item):
         counter[0] += 1
         if any(
-            [re.match(r"^safari[\-$]", el) for el in item.keywords._markers.keys()]
+            [re.match(r"^safari[\-$]?", el) for el in item.keywords._markers.keys()]
         ) and _has_standalone_fixture(item._request.fixturenames):
             return counter[0] - OFFSET
         return counter[0]
