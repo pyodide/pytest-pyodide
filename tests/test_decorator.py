@@ -133,7 +133,7 @@ def test_local_fail_load_package(selenium_standalone):
         raise Exception(
             "run_in_pyodide decorator badly messed up the line numbers."
             " This could crash pytest. Printed the traceback to stdout."
-        )
+        ) from None
 
 
 @run_in_pyodide
