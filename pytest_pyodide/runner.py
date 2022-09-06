@@ -484,7 +484,7 @@ class NodeRunner(_BrowserBaseRunner):
         try:
             self.p.expect_exact("READY!!")
         except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
-            raise JavascriptException("", self.p.before.decode())
+            raise JavascriptException("", self.p.before.decode()) from None
 
     def get_driver(self):
         self._logs = []
