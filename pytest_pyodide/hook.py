@@ -124,7 +124,7 @@ def pytest_generate_tests(metafunc: Any) -> None:
 
             runtime_filtered.append(rt)
 
-        metafunc.parametrize("runtime", [runtime_filtered], scope="module")
+        metafunc.parametrize("runtime", runtime_filtered, scope="module")
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
