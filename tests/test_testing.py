@@ -9,12 +9,12 @@ def test_web_server_secondary(selenium, web_server_secondary):
 
 def test_host(request):
     runtime = request.config.option.runtime
-    assert runtime == "host", "this test should only run when runtime is host"
+    assert "host" in runtime, "this test should only run when runtime includes host"
 
 
 def test_runtime(selenium, request):
     runtime = request.config.option.runtime
-    assert runtime != "host", "this test should only run when runtime is not host"
+    assert "host" not in runtime, "this test should only run when runtime is not host"
 
 
 def test_doctest():

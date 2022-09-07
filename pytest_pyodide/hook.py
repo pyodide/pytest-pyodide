@@ -14,6 +14,8 @@ from _pytest.python import (
 from .utils import parse_xfail_browsers
 
 RUNTIMES = ["firefox", "chrome", "safari", "node"]
+RUNTIMES_AND_HOST = RUNTIMES + ["host"]
+RUNTIMES_NEGATE = [f"no {runtime}" for runtime in RUNTIMES_AND_HOST]
 
 
 def pytest_configure(config):
@@ -61,9 +63,10 @@ def pytest_addoption(parser):
         "--rt",
         "--runtime",
         dest="runtime",
-        default="node",
-        choices=RUNTIMES + ["all", "host"],
-        help="Select runtime, firefox, chrome, node, all, or host (default: %(default)s)",
+        nargs="+",
+        default=["node"],
+        choices=RUNTIMES_AND_HOST + RUNTIMES_NEGATE,
+        help="Select runtime: firefox, chrome, safari, node, or host (default: %(default)s)",
     )
 
 
@@ -108,10 +111,20 @@ def pytest_generate_tests(metafunc: Any) -> None:
     if "runtime" in metafunc.fixturenames:
         runtime = metafunc.config.option.runtime
 
-        if runtime == "all":
-            runtime = RUNTIMES
+        # Always run host test, unless 'no host' is given.
+        runtime = runtime + ["host"]
 
-        metafunc.parametrize("runtime", [runtime], scope="module")
+        # remove duplicates
+        runtime_set = set(runtime)
+
+        runtime_filtered = []
+        for rt in runtime_set:
+            if rt.startswith("no") or f"no {rt}" in runtime_set:
+                continue
+
+            runtime_filtered.append(rt)
+
+        metafunc.parametrize("runtime", [runtime_filtered], scope="module")
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
@@ -119,10 +132,11 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
         if not hasattr(item, "fixturenames"):
             # Some items like DoctestItem has no fixture
             continue
-        if item.config.option.runtime == "host" and "runtime" in item.fixturenames:
+        if "host" in item.config.option.runtime and "runtime" in item.fixturenames:
             item.add_marker(pytest.mark.skip(reason="Non-host test"))
         elif (
-            item.config.option.runtime != "host" and "runtime" not in item.fixturenames
+            "host" not in item.config.option.runtime
+            and "runtime" not in item.fixturenames
         ):
             item.add_marker(pytest.mark.skip(reason="Host test"))
 
