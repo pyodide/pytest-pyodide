@@ -60,6 +60,11 @@ jobs:
           {runner: selenium, runtime: node, node-version: 16},
           {runner: selenium, runtime: node, node-version: 18},
           {runner: selenium, runtime: firefox-no-host, firefox-version: latest, geckodriver-version: latest },
+          {
+            runner: selenium, runtime: chrome firefox,
+            firefox-version: latest, geckodriver-version: latest,
+            chrome-version: latest, chromedriver-version: latest,
+          },
           {runner: selenium, runtime: host},
           # playwright browser versions are pinned to playwright version
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
