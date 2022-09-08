@@ -118,11 +118,14 @@ Possible options for `--runtime` are:
 - firefox
 - chrome
 - safari
-- all (chrome + firefox + safari + node)
 - host (do not run browser-based tests)
 
 ```sh
 pytest --runtime firefox
+pytest --runtime firefox --runtime chrome
+
+# Adding -no-host suffix will disable running host tests
+pytest --runtime chrome-no-host
 ```
 
 ## Running tests with Playwright (optional)
