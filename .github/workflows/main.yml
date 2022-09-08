@@ -59,6 +59,7 @@ jobs:
           {runner: selenium, runtime: node, node-version: 14},
           {runner: selenium, runtime: node, node-version: 16},
           {runner: selenium, runtime: node, node-version: 18},
+          {runner: selenium, runtime: firefox-no-host, firefox-version: latest, geckodriver-version: latest },
           {runner: selenium, runtime: host},
           # playwright browser versions are pinned to playwright version
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
@@ -81,7 +82,7 @@ jobs:
 
       - name: Install node
         uses: actions/setup-node@v3
-        if: ${{ matrix.test-config.runtime == 'node' || matrix.test-config.runner == 'playwright' }}
+        if: ${{ contains(matrix.test-config.runtime, 'node') || matrix.test-config.runner == 'playwright' }}
         with:
           node-version: ${{ matrix.test-config.node-version }}
 
@@ -102,28 +103,28 @@ jobs:
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'firefox' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'firefox') }}
         with:
           firefox-version: ${{ matrix.test-config.firefox-version }}
 
       - name: Install geckodriver
         uses: browser-actions/setup-geckodriver@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'firefox' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'firefox') }}
         with:
           geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
 
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'chrome') }}
         with:
           chrome-version: ${{ matrix.test-config.geckodriver-version }}
 
       - name: Install chromedriver
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'chrome' }}
+        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'chrome') }}
         uses: nanasess/setup-chromedriver@v1
 
       - name: Enable Safari Driver
-        if: ${{ matrix.test-config.runner == 'selenium' && matrix.test-config.runtime == 'safari' && contains(runner.os, 'macos') }}
+        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'safari') && contains(runner.os, 'macos') }}
         run: |
           sudo safaridriver --enable
           # Only one Safari browser instance can be active at any given time
