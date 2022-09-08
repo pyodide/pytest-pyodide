@@ -14,6 +14,31 @@ from _pytest.python import (
 from .utils import parse_xfail_browsers
 
 RUNTIMES = ["firefox", "chrome", "safari", "node"]
+RUNTIMES_AND_HOST = RUNTIMES + ["host"]
+RUNTIMES_NO_HOST = [f"{runtime}-no-host" for runtime in RUNTIMES]
+
+
+def _filter_runtimes(runtime: list[str]) -> tuple[bool, set[str]]:
+    # Always run host test, unless 'no-host' is given.
+    run_host = True
+
+    # remove duplicates
+    runtime_set = set(runtime)
+
+    runtime_filtered = set()
+    for rt in runtime_set:
+        if rt.endswith("-no-host"):
+            run_host = False
+            rt = rt.replace("-no-host", "")
+
+        runtime_filtered.add(rt)
+
+    # If '--rt chrome-no-host --rt host' is given, we run host tests.
+    run_host = run_host or ("host" in runtime_filtered)
+
+    runtime_filtered.discard("host")
+
+    return run_host, runtime_filtered
 
 
 def pytest_configure(config):
@@ -38,6 +63,9 @@ def pytest_configure(config):
         "xfail_browsers: xfail a test in specific browsers",
     )
 
+    run_host, runtimes = _filter_runtimes(config.option.runtime)
+    pytest.pyodide_run_host_test = run_host
+    pytest.pyodide_runtimes = runtimes
     pytest.pyodide_dist_dir = config.getoption("--dist-dir")
 
 
@@ -61,9 +89,10 @@ def pytest_addoption(parser):
         "--rt",
         "--runtime",
         dest="runtime",
-        default="node",
-        choices=RUNTIMES + ["all", "host"],
-        help="Select runtime, firefox, chrome, node, all, or host (default: %(default)s)",
+        nargs="+",
+        default=["node"],
+        choices=RUNTIMES_AND_HOST + RUNTIMES_NO_HOST,
+        help="Select runtime (default: %(default)s)",
     )
 
 
@@ -106,26 +135,10 @@ def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> No
 
 def pytest_generate_tests(metafunc: Any) -> None:
     if "runtime" in metafunc.fixturenames:
-        runtime = metafunc.config.option.runtime
-
-        if runtime == "all":
-            runtime = RUNTIMES
-
-        metafunc.parametrize("runtime", [runtime], scope="module")
+        metafunc.parametrize("runtime", pytest.pyodide_runtimes, scope="module")
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
-    for item in items:
-        if not hasattr(item, "fixturenames"):
-            # Some items like DoctestItem has no fixture
-            continue
-        if item.config.option.runtime == "host" and "runtime" in item.fixturenames:
-            item.add_marker(pytest.mark.skip(reason="Non-host test"))
-        elif (
-            item.config.option.runtime != "host" and "runtime" not in item.fixturenames
-        ):
-            item.add_marker(pytest.mark.skip(reason="Host test"))
-
     # Run all Safari standalone tests first
     # Since Safari doesn't support more than one simultaneous session, we run all
     # selenium_standalone Safari tests first. We preserve the order of other
@@ -156,6 +169,18 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
         return counter[0]
 
     items[:] = sorted(items, key=_get_item_position)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    if not hasattr(item, "fixturenames"):
+        # Some items like DoctestItem has no fixture
+        return
+
+    if not pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
+        pytest.skip(reason="Non-host test")
+    elif not pytest.pyodide_run_host_test and "runtime" not in item.fixturenames:  # type: ignore[truthy-bool]
+        pytest.skip("Host test")
 
 
 @pytest.hookimpl(hookwrapper=True)
