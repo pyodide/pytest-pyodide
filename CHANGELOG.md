@@ -1,9 +1,9 @@
-## [0.22.2] - 2002.09.08
+## [0.22.2] - 2022.09.08
 
 - Host tests will now run by default. If you want to disable running host tests, add `-no-host` suffix in the `--runtime` option. ([#33](https://github.com/pyodide/pytest-pyodide/pull/33))
 - Multiple browser testing is now available by passing `--runtime` option multiple times. ([#33](https://github.com/pyodide/pytest-pyodide/pull/33))
 
-## [0.22.1] - 2002.09.06
+## [0.22.1] - 2022.09.06
 
 - Re-order safari tests to make sure only one simultaneous session exists during the test ([#29](https://github.com/pyodide/pytest-pyodide/pull/29))
 
