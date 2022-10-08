@@ -1,6 +1,6 @@
 name: main
 
-on: [push, pull_request]
+on: [push, pull_request,workflow_call]
 
 permissions:
   contents: read
@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   lint:
+    if: github.event_name!="workflow_call"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -32,7 +33,7 @@ jobs:
         uses: actions/cache@v3
         id: cache-pyodide
         with:
-          path: dist
+          path: pyodide-dist
           key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Download Pyodide
@@ -41,7 +42,7 @@ jobs:
         run: |
           wget -q https://github.com/pyodide/pyodide/releases/download/${{ matrix.pyodide-version }}/pyodide-build-${{ matrix.pyodide-version }}.tar.bz2
           tar xjf pyodide-build-${{ matrix.pyodide-version }}.tar.bz2
-          mv pyodide dist/
+          mv pyodide pyodide-dist/
 
   test:
     needs: download-pyodide
@@ -137,7 +138,8 @@ jobs:
 
       - name: Install requirements
         shell: bash -l {0}
-        run: |
+        if: github.event_name!="workflow_call"
+        run:|
           python3 -m pip install -e .
           python3 -m pip install pytest-cov
           # Currently we only install the package for dependencies.
@@ -145,11 +147,22 @@ jobs:
           # registered twice.
           python3 -m pip uninstall -y pytest-pyodide
           which npm && npm install node-fetch@2
-
+      - name: Install pytest-pyodide for workflow
+        shell: bash -l {0}
+        if: github.event_name=="workflow_call"
+        run:|
+          python3 -m pip install pytest-pyodide
+          python3 -m pip install pytest-cov
+          # Currently we only install the package for dependencies.
+          # We then uninstall it otherwise tests fails due to pytest hook being
+          # registered twice.
+          python3 -m pip uninstall -y pytest-pyodide
+          which npm && npm install node-fetch@2
+      
       - name: Get Pyodide from cache
         uses: actions/cache@v3
         with:
-          path: dist
+          path: pyodide-dist
           key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Run tests
@@ -157,7 +170,7 @@ jobs:
         run: |
           STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
             --cov=pytest_pyodide \
-            --dist-dir=./dist/ \
+            --dist-dir=./pyodide-dist/ \
             --runner=${{ matrix.test-config.runner }} \
             --rt ${{ matrix.test-config.runtime }}
 
