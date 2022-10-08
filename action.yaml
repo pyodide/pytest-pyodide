@@ -1,0 +1,16 @@
+name: 'Run pytest'
+description: 'Run pytest for a given browser / pyodide combination'
+author: 'Joe Marshall'
+inputs:
+  pyodide-folder:
+    description: 'Pyodide distribution folder'
+    default: 'dist'
+  test-folder:
+    description: "Folder containing tests"
+    default: 'tests'
+  browser:
+    description: "Browser to run pyodide tests in"
+    default: "chrome"
+runs:
+  using: 'node12'
+  main: 'action/main.js'
