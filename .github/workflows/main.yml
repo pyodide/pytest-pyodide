@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   lint:
-    if: github.event_name!="workflow_call"
+    if: github.event_name != "workflow_call"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Download build artifacts from calling package
-        if: github.event_name=="workflow_call"
+        if: github.event_name == "workflow_call"
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.build-artifact-name }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Install requirements
         shell: bash -l {0}
-        if: github.event_name!="workflow_call"
+        if: github.event_name != "workflow_call"
         run: |
           python3 -m pip install -e .
           python3 -m pip install pytest-cov
@@ -163,7 +163,7 @@ jobs:
           which npm && npm install node-fetch@2
       - name: Install pytest-pyodide for workflow
         shell: bash -l {0}
-        if: github.event_name=="workflow_call"
+        if: github.event_name == "workflow_call"
         run: | 
           python3 -m pip install pytest-pyodide
           python3 -m pip install pytest-cov
