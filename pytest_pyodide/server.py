@@ -60,7 +60,6 @@ def run_web_server(q, log_filepath, dist_dir,extra_headers):
         def end_headers(self):
             # Enable Cross-Origin Resource Sharing (CORS)
             self.send_header("Access-Control-Allow-Origin", "*")
-            header_list=""
             for k,v in extra_headers.items():
                 self.send_header(k, v)
             if len(extra_headers)>0:
