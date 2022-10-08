@@ -2,6 +2,18 @@ name: main
 
 on: [push, pull_request,workflow_call]
 
+on:
+  workflow_call:
+    inputs:
+      build_artifact_name:
+        required: true
+        type: string
+      build_artifact_folder:
+        required: true
+        type: string
+  push:
+  pull_request:
+
 permissions:
   contents: read
 
@@ -81,7 +93,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Download build artifacts from calling package
+        if: github.event_name=="workflow_call"
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.build_artifact_name }}
+          path: ${{ inputs.build_artifact_path }}
 
+- uses: actions/
       - uses: actions/setup-python@v3
         with:
           python-version: 3.10.2
