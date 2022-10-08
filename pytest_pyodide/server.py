@@ -11,11 +11,13 @@ import tempfile
 
 
 @contextlib.contextmanager
-def spawn_web_server(dist_dir,extra_headers={}):
+def spawn_web_server(dist_dir, extra_headers={}):
     tmp_dir = tempfile.mkdtemp()
     log_path = pathlib.Path(tmp_dir) / "http-server.log"
     q: multiprocessing.Queue[str] = multiprocessing.Queue()
-    p = multiprocessing.Process(target=run_web_server, args=(q, log_path, dist_dir,extra_headers))
+    p = multiprocessing.Process(
+        target=run_web_server, args=(q, log_path, dist_dir, extra_headers)
+    )
 
     try:
         p.start()
@@ -33,7 +35,7 @@ def spawn_web_server(dist_dir,extra_headers={}):
         shutil.rmtree(tmp_dir)
 
 
-def run_web_server(q, log_filepath, dist_dir,extra_headers):
+def run_web_server(q, log_filepath, dist_dir, extra_headers):
     """Start the HTTP web server
 
     Parameters
@@ -60,12 +62,12 @@ def run_web_server(q, log_filepath, dist_dir,extra_headers):
         def end_headers(self):
             # Enable Cross-Origin Resource Sharing (CORS)
             self.send_header("Access-Control-Allow-Origin", "*")
-            for k,v in extra_headers.items():
+            for k, v in extra_headers.items():
                 self.send_header(k, v)
-            if len(extra_headers)>0:
-                joined_headers=",".join(extra_headers.keys())
+            if len(extra_headers) > 0:
+                joined_headers = ",".join(extra_headers.keys())
                 # if you don't send this, CORS blocks custom headers in javascript
-                self.send_header("Access-Control-Expose-Headers",joined_headers)
+                self.send_header("Access-Control-Expose-Headers", joined_headers)
             super().end_headers()
 
     with socketserver.TCPServer(("", 0), Handler) as httpd:
