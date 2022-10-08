@@ -3,10 +3,10 @@ name: main
 on:
   workflow_call:
     inputs:
-      build_artifact_name:
+      build-artifact-name:
         required: true
         type: string
-      build_artifact_folder:
+      build-artifact-folder:
         required: true
         type: string
   push:
