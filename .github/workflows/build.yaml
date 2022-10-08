@@ -9,9 +9,10 @@ on:
 permissions:
   contents: read
 
-test:
-    uses: main.yml@action-test
-    with:
-      build-artifact-name: none
-      build-artifact-path: none
-      self-build: 1
+jobs:
+  test:
+      uses: main.yml@action-test
+      with:
+        build-artifact-name: none
+        build-artifact-path: none
+        self-build: 1
