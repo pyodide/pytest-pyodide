@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-      uses: /.github/workflows/main.yml@action-test
+      uses: ./.github/workflows/main.yml
       with:
         build-artifact-name: none
         build-artifact-path: none
