@@ -99,12 +99,9 @@ jobs:
         with:
           name: ${{ inputs.build_artifact_name }}
           path: ${{ inputs.build_artifact_path }}
-
-- uses: actions/
       - uses: actions/setup-python@v3
         with:
           python-version: 3.10.2
-
       - name: Install node
         uses: actions/setup-node@v3
         if: ${{ contains(matrix.test-config.runtime, 'node') || matrix.test-config.runner == 'playwright' }}
