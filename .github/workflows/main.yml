@@ -12,9 +12,7 @@ on:
       self-build:
         required: false
         type: number
-  push:
-  pull_request:
-
+  
 permissions:
   contents: read
 
