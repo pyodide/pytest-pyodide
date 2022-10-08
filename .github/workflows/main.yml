@@ -6,7 +6,7 @@ on:
       build-artifact-name:
         required: true
         type: string
-      build-artifact-folder:
+      build-artifact-path:
         required: true
         type: string
   push:
@@ -95,8 +95,8 @@ jobs:
         if: github.event_name=="workflow_call"
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.build_artifact_name }}
-          path: ${{ inputs.build_artifact_path }}
+          name: ${{ inputs.build-artifact-name }}
+          path: ${{ inputs.build-artifact-path }}
       - uses: actions/setup-python@v3
         with:
           python-version: 3.10.2
