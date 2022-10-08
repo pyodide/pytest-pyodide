@@ -155,7 +155,7 @@ jobs:
       - name: Install requirements
         shell: bash -l {0}
         if: github.event_name!="workflow_call"
-        run:|
+        run: |
           python3 -m pip install -e .
           python3 -m pip install pytest-cov
           # Currently we only install the package for dependencies.
@@ -166,7 +166,7 @@ jobs:
       - name: Install pytest-pyodide for workflow
         shell: bash -l {0}
         if: github.event_name=="workflow_call"
-        run:|
+        run: | 
           python3 -m pip install pytest-pyodide
           python3 -m pip install pytest-cov
           # Currently we only install the package for dependencies.
