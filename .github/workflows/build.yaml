@@ -1,0 +1,15 @@
+name: main
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+test:
+    uses: main.yml@action-test
+    with:
+      build-artifact-name: none
+      build-artifact-path: none
+      self-build: 1
