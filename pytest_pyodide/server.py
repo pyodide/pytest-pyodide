@@ -11,7 +11,9 @@ import tempfile
 
 
 @contextlib.contextmanager
-def spawn_web_server(dist_dir, extra_headers={}):
+def spawn_web_server(dist_dir, extra_headers=None):
+    if not extra_headers:
+        extra_headers={}
     tmp_dir = tempfile.mkdtemp()
     log_path = pathlib.Path(tmp_dir) / "http-server.log"
     q: multiprocessing.Queue[str] = multiprocessing.Queue()
