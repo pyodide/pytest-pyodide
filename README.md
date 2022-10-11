@@ -21,11 +21,11 @@ You would also one at least one of the following runtimes,
 
 ## Github Reusable workflow
 
-pytest-pyodide also supports testing on github actions by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process. 
+pytest-pyodide also supports testing on github actions by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process.
 
-In your github actions workflow, call it with as a aseparate job. To pass in your build wheel use an upload-artifact step in your build step. 
+In your github actions workflow, call it with as a aseparate job. To pass in your build wheel use an upload-artifact step in your build step.
 
-This will run your tests on a bunch of browser/pyodide version/OS configurations. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders
+This will run your tests on a bunch of browser/pyodide version/OS configurations. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders.
 
 ```
 jobs:
@@ -41,7 +41,7 @@ jobs:
       with:
         version: 3.1.14
     - run: pip install pyodide-build==0.21.0
-    - run: pyodide build    
+    - run: pyodide build
     - uses: actions/upload-artifact@v3
       with:
         name: pyodide wheel
