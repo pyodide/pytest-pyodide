@@ -73,17 +73,13 @@ def test_inner_function(selenium):
 def test_inner_function_js_exception(selenium):
     @run_in_pyodide
     def inner_function(selenium):
-        # Try to do a sync request with non-standard responseType.
-        # This is not allowed in the main thread and will raise a JsException
-        from js import XMLHttpRequest
+        from js import eval as js_eval
 
-        xhr = XMLHttpRequest.new()
-        xhr.responseType = "arraybuffer"
-        xhr.open("GET", "http://non-existing-url/", False)
+        js_eval("throw 'some error'")
 
     with pytest.raises(
         JsException,
-        match="InvalidAccessError.*XMLHttpRequest.*",
+        match="Error: some error",
     ):
         inner_function(selenium)
 
