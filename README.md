@@ -19,6 +19,42 @@ You would also one at least one of the following runtimes,
  - Safari and safaridriver
  - node v14+
 
+## Github Reusable workflow
+
+pytest-pyodide also supports testing on github actions by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process. 
+
+In your github actions workflow, call it with as a aseparate job. To pass in your build wheel use an upload-artifact step in your build step. 
+
+This will run your tests on a bunch of browser/pyodide version/OS configurations. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders
+
+```
+jobs:
+  # Build for pyodide 0.21.0
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.2
+    - uses: mymindstorm/setup-emsdk@v11
+      with:
+        version: 3.1.14
+    - run: pip install pyodide-build==0.21.0
+    - run: pyodide build    
+    - uses: actions/upload-artifact@v3
+      with:
+        name: pyodide wheel
+        path: dist
+  # this is the job which you add to run pyodide-test
+  test:
+    needs: build
+    uses: pyodide/pytest-pyodide/.github/workflows/main.yml@main
+    with:
+      build-artifact-name: pyodide wheel
+      build-artifact-path: dist
+```
+
 ## Usage
 
 1. First you would need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
