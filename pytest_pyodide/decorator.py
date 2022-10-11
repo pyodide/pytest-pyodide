@@ -4,12 +4,14 @@ import sys
 from base64 import b64decode, b64encode
 from collections.abc import Callable, Collection
 from copy import deepcopy
+from io import BytesIO
 from typing import Any
 
 import pytest
 
 from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
 from .utils import package_is_built as _package_is_built
+from .pyodide import JsException
 
 
 def package_is_built(package_name: str):
@@ -33,6 +35,25 @@ def _encode(obj: Any) -> str:
     templating.
     """
     return b64encode(pickle.dumps(obj)).decode()
+
+
+class Unpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        """
+        Catch exceptions that only exist in the pyodide environment and
+        convert them to exception in the host.
+        """
+        if module == "pyodide" and name == "JsException":
+            return JsException
+        else:
+            return super().find_class(module, name)
+
+
+def _decode(result: str) -> Any:
+    buffer = BytesIO()
+    buffer.write(b64decode(result))
+    buffer.seek(0)
+    return Unpickler(buffer).load()
 
 
 def _create_outer_test_function(
@@ -229,7 +250,7 @@ class run_in_pyodide:
         r = selenium.run_async(code)
         [status, result] = r
 
-        result = pickle.loads(b64decode(result))
+        result = _decode(result)
         if status:
             raise result
         else:
