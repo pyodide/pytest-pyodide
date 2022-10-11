@@ -10,8 +10,8 @@ from typing import Any
 import pytest
 
 from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
-from .utils import package_is_built as _package_is_built
 from .pyodide import JsException
+from .utils import package_is_built as _package_is_built
 
 
 def package_is_built(package_name: str):
