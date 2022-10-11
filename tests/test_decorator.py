@@ -83,8 +83,7 @@ def test_inner_function_js_exception(selenium):
 
     with pytest.raises(
         JsException,
-        match="InvalidAccessError: Failed to execute 'open' on 'XMLHttpRequest': "
-        "Synchronous requests from a document must not set a response type.",
+        match="InvalidAccessError.*XMLHttpRequest.*",
     ):
         inner_function(selenium)
 
