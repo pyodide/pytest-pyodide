@@ -1,6 +1,6 @@
 ## [0.22.3] - 2022.10.12
 
-- `JsException` raise from within pyodide is now unpickled correctly in the host. ([#45](https://github.com/pyodide/pytest-pyodide/issues/45)) 
+- `JsException` raise from within pyodide is now unpickled correctly in the host. ([#45](https://github.com/pyodide/pytest-pyodide/issues/45))
 
 ## [0.22.2] - 2022.09.08
 
