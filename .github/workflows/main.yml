@@ -15,15 +15,15 @@ on:
       pyodide-versions:
         required: false
         type: string
-        default: '["0.21.0a3", "0.21.0"]'
+        default: '*'
       runners:
         required: false
         type: string
-        default: '["selenium","playwright"]'
+        default: '*'
       browsers:
         required: false
         type: string
-        default: '["firefox","chrome","firefox-no-host","node","safari"]'
+        default: '*'
       os:
         required: false
         type: string
@@ -51,8 +51,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      needs: make_test_matrix
       matrix:
-        pyodide-version: ${{fromJSON(inputs.pyodide-versions)}}
+        pyodide-version: ${{ fromJSON(needs.make_test_matrix.outputs.pyodide_versions) }}
     steps:
       - uses: actions/checkout@v2
 
@@ -73,6 +74,7 @@ jobs:
   make_test_matrix:
     outputs:
       matrix: ${{ steps.filter.outputs.matrix }}
+      pyodide_versions: ${{ steps.filter.output.pyodide_versions }}
     runs-on: ubuntu-latest
     steps:
       - name: Write py file
@@ -82,7 +84,7 @@ jobs:
 
           matrix=yaml.safe_load("""
             os: [ubuntu-latest]
-            pyodide-version: [0.1,0.2]
+            pyodide-version: [0.21.0a3,0.21.0]
             test-config: [
               {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
               {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
@@ -133,6 +135,7 @@ jobs:
           # now output the full list of configurations as json
           # which can be used in the include key in a matrix
           print(f"matrix={json.dumps(config_list)}")
+          print(f"pyodide_versions={json.dumps(matrix["pyodide-version"])}")
           EOF
       - name: Filter matrix
         id: filter
