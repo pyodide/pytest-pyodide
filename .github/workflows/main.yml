@@ -77,63 +77,63 @@ jobs:
     steps:
       - run: |
           cat << 'EOF' > filtermatrix.py
-            import yaml,json
+          import yaml,json
 
-            matrix=yaml.safe_load("""
-              os: [ubuntu-latest]
-              pyodide-version: [0.1,0.2]
-              test-config: [
-                {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
-                {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
-                {runner: selenium, runtime: node, node-version: 14},
-                {runner: selenium, runtime: node, node-version: 16},
-                {runner: selenium, runtime: node, node-version: 18},
-                {runner: selenium, runtime: firefox-no-host, firefox-version: latest, geckodriver-version: latest },
-                {
-                  runner: selenium, runtime: chrome firefox,
-                  firefox-version: latest, geckodriver-version: latest,
-                  chrome-version: latest, chromedriver-version: latest,
-                },
-                {runner: selenium, runtime: host},
-                # playwright browser versions are pinned to playwright version
-                {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
-                {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
-              ]
-              include:
-                - os: macos-latest
-                  pyodide-version: 0.21.0
-                  test-config: {runner: selenium, runtime: safari}
-                - os: macos-latest
-                  pyodide-version: 0.21.0
-                  test-config: {runner: selenium, runtime: safari, refresh: 1 }
-            """)
+          matrix=yaml.safe_load("""
+            os: [ubuntu-latest]
+            pyodide-version: [0.1,0.2]
+            test-config: [
+              {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
+              {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
+              {runner: selenium, runtime: node, node-version: 14},
+              {runner: selenium, runtime: node, node-version: 16},
+              {runner: selenium, runtime: node, node-version: 18},
+              {runner: selenium, runtime: firefox-no-host, firefox-version: latest, geckodriver-version: latest },
+              {
+                runner: selenium, runtime: chrome firefox,
+                firefox-version: latest, geckodriver-version: latest,
+                chrome-version: latest, chromedriver-version: latest,
+              },
+              {runner: selenium, runtime: host},
+              # playwright browser versions are pinned to playwright version
+              {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
+              {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
+            ]
+            include:
+              - os: macos-latest
+                pyodide-version: 0.21.0
+                test-config: {runner: selenium, runtime: safari}
+              - os: macos-latest
+                pyodide-version: 0.21.0
+                test-config: {runner: selenium, runtime: safari, refresh: 1 }
+          """)
 
-            import itertools
-            ranges={}
-            for key in matrix.keys():
-              if key!="include":
-                ranges[key]=[]
-                for v in matrix[key]:
-                    ranges[key].append((key,v))
+          import itertools
+          ranges={}
+          for key in matrix.keys():
+            if key!="include":
+              ranges[key]=[]
+              for v in matrix[key]:
+                  ranges[key].append((key,v))
 
-            l=list(ranges.values())
+          l=list(ranges.values())
 
-            config_list=[]
-            for c in itertools.product(*l):
-                dict_out={}
-                for (key,v) in c:
-                    dict_out[key]=v
-                config_list.append(dict_out)
+          config_list=[]
+          for c in itertools.product(*l):
+              dict_out={}
+              for (key,v) in c:
+                  dict_out[key]=v
+              config_list.append(dict_out)
 
-            if "include" in matrix:
-                for c,inc_spec in enumerate(matrix["include"]):
-                    config_list.append(inc_spec)
+          if "include" in matrix:
+              for c,inc_spec in enumerate(matrix["include"]):
+                  config_list.append(inc_spec)
 
-            # now output the full list of configurations as json
-            # which can be used in the include key in a matrix
-            print(f"::set-output name=matrix::{json.dumps(config_list)}")
-            'EOF'
-            python filtermatrix.py
+          # now output the full list of configurations as json
+          # which can be used in the include key in a matrix
+          print(f"::set-output name=matrix::{json.dumps(config_list)}")
+          EOF
+          python filtermatrix.py
   test:
     needs: [download-pyodide,make_test_matrix]
     runs-on: ${{ matrix.os }}
