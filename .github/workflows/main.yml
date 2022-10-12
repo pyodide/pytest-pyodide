@@ -27,7 +27,7 @@ on:
       os:
         required: false
         type: string
-        default: '["ubuntu-latest","macos-latest"]'
+        default: '[ubuntu-latest,macos-latest]'
 
 permissions:
   contents: read
