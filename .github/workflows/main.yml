@@ -19,7 +19,7 @@ on:
       runners:
         required: false
         type: string
-        default: Selenium
+        default: selenium
       browsers:
         required: false
         type: string
