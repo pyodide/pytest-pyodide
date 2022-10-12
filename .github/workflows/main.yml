@@ -146,6 +146,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         include: fromJSON(${{ needs.make_test_matrix.matrix_includes}})
     steps:
       - uses: actions/checkout@v2
