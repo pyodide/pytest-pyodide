@@ -72,7 +72,7 @@ jobs:
           mv pyodide pyodide-dist/
   make_test_matrix:
     outputs:
-      matrix_includes: steps.filter_matrix.outputs.MATRIX
+      matrix_includes: ${{ steps.filter_matrix.outputs.MATRIX }}
     runs-on: ubuntu-latest
     steps:
       - name: Write py file
