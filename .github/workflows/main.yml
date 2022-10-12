@@ -73,6 +73,7 @@ jobs:
   make_test_matrix:
     outputs:
       matrix_includes: steps.filter_matrix.outputs.includes
+    runs-on: ubuntu-latest
     steps:
       - run: |
           echo `
