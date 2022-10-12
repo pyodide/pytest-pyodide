@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          cat << EOF
+          cat << 'EOF' >> filtermatrix.py
             import yaml,json
 
             matrix=yaml.safe_load("""
@@ -132,7 +132,6 @@ jobs:
             # now output the full list of configurations as json
             # which can be used in the include key in a matrix
             print(f"::set-output name=matrix::{json.dumps(config_list)}")
-            `>filtermatrix.py
             EOF
             python filtermatrix.py
   test:
