@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          cat << 'EOF' >> filtermatrix.py
+          cat << 'EOF' > filtermatrix.py
             import yaml,json
 
             matrix=yaml.safe_load("""
