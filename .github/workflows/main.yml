@@ -141,7 +141,7 @@ jobs:
 
           def parse_filter(str):
             import re
-            if str=="*":
+            if str.find("*")!=-1:
               return None
             else:
               return re.findall(r'[^,\'"\[\]]+',str)
