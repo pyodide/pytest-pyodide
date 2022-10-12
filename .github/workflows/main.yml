@@ -144,7 +144,7 @@ jobs:
               return None
             else:
               if str.find("[")!=-1:
-                return json.parse(str)
+                return json.loads(str)
               else:
                 return str
 
