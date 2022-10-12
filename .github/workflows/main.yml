@@ -105,7 +105,7 @@ jobs:
           - os: macos-latest
             pyodide-version: 0.21.0
             test-config: {runner: selenium, runtime: safari, refresh: 1 }
-    if: ${{ fromJSON(inputs.runners).contains(matrix.runner) && fromJSON(inputs.browsers).contains(matrix.runtime) && fromJSON(inputs.os).contains(matrix.os) }}
+    if: ${{ contains(fromJSON(inputs.runners),matrix.runner) && contains(fromJSON(inputs.browsers,matrix.runtime) && contains(fromJSON(inputs.os),matrix.os) }}
     steps:
       - uses: actions/checkout@v2
       - name: Download build artifacts from calling package
