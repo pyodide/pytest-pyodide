@@ -89,9 +89,9 @@ jobs:
           if pyodide_versions=="*":
             pyodide_versions="[0.21.0a3,0.21.0]"
 
-          matrix=yaml.safe_load(f"""
+          matrix=yaml.safe_load("""
             os: [ubuntu-latest]
-            pyodide-version: {pyodide_versions}
+            pyodide-version: """+pyodide_versions+"""
             test-config: [
               {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
               {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
