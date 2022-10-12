@@ -49,9 +49,9 @@ jobs:
 
   download-pyodide:
     runs-on: ubuntu-latest
+    needs: make_test_matrix
     strategy:
       fail-fast: false
-      needs: make_test_matrix
       matrix:
         pyodide-version: ${{ fromJSON(needs.make_test_matrix.outputs.pyodide_versions) }}
     steps:
