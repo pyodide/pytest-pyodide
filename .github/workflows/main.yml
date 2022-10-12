@@ -74,7 +74,7 @@ jobs:
   make_test_matrix:
     outputs:
       matrix: ${{ steps.filter.outputs.matrix }}
-      pyodide_versions: ${{ steps.filter.output.pyodide_versions }}
+      pyodide_versions: ${{ steps.filter.outputs.pyodide_versions }}
     runs-on: ubuntu-latest
     steps:
       - name: Write py file
