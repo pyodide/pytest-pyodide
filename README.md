@@ -55,6 +55,21 @@ jobs:
       build-artifact-path: dist
 ```
 
+This tests on absolutely everything by default, if you only want to test on a smaller range of browsers, you can add inputs to the job to choose specific browsers, test-runner, pyodide versions or OS. Do it like the code below, but delete the things you don't want.
+
+```
+  test:
+    needs: build
+    uses: pyodide/pytest-pyodide/.github/workflows/main.yml@main
+    with:
+      build-artifact-name: pyodide wheel
+      build-artifact-path: dist
+      pyodide-versions: [0.21.0,0.23.0]
+      runners: [selenium,playwright]
+      browsers: [firefox,chrome,node]
+      os: [ubuntu-latest,macos-latest]
+```
+
 ## Usage
 
 1. First you would need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
