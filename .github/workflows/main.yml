@@ -72,10 +72,11 @@ jobs:
           mv pyodide pyodide-dist/
   make_test_matrix:
     outputs:
-      matrix_includes: steps.filter_matrix.outputs.includes
+      matrix_includes: steps.filter_matrix.outputs.MATRIX
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: filter_matrix
+        run: |
           cat << 'EOF' > filtermatrix.py
           import yaml,json
 
@@ -131,9 +132,10 @@ jobs:
 
           # now output the full list of configurations as json
           # which can be used in the include key in a matrix
-          print(f"::set-output name=matrix::{json.dumps(config_list)}")
+          print(f"MATRIX={json.dumps(config_list)}")
           EOF
-          python filtermatrix.py
+          python filtermatrix.py >> $GITHUB_OUTPUT
+      - run: echo "FilterMatrix ${{ steps.filter_matrix.outputs.MATRIX }}"
   test:
     needs: [download-pyodide,make_test_matrix]
     runs-on: ${{ matrix.os }}
