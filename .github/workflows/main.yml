@@ -19,7 +19,7 @@ on:
       runners:
         required: false
         type: string
-        default: selenium
+        default: '[selenium,playwright]'
       browsers:
         required: false
         type: string
@@ -144,7 +144,7 @@ jobs:
             if str.find("*")!=-1:
               return None
             else:
-              return re.findall(r'[^,\'"\[\]]+',str)
+              return [x.lower() for x in re.findall(r'[^,\'"\[\]]+',str)]
 
           os_filter=parse_filter("${{ inputs.os }}")
           runner_filter= parse_filter("${{inputs.runners}}")
@@ -152,9 +152,9 @@ jobs:
 
           filtered_configs=[]
           for c in config_list:
-            if os_filter==None or c["os"] in os_filter:
-              if runner_filter==None or c["test-config"]["runner"] in runner_filter:
-                if runtime_filter==None or c["test-config"]["runtime"] in runtime_filter:
+            if os_filter==None or c["os"].lower() in os_filter:
+              if runner_filter==None or c["test-config"]["runner"].lower() in runner_filter:
+                if runtime_filter==None or c["test-config"]["runtime"].lower() in runtime_filter:
                   filtered_configs.append(c)
 
           # now output the full list of configurations as json
