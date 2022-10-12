@@ -12,6 +12,22 @@ on:
       self-build:
         required: false
         type: number
+      pyodide-versions:
+        required: false
+        type: string
+        default: '["0.21.0a3", "0.21.0"]'
+      runners:
+        required: false
+        type: string
+        default: '["selenium","playwright"]'
+      browsers:
+        required: false
+        type: string
+        default: '["firefox","chrome","firefox-no-host","node","safari"]'
+      os:
+        required: false
+        type: string
+        default: '["ubuntu-latest","macos-latest"]'
 
 permissions:
   contents: read
@@ -36,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pyodide-version: [0.21.0a3, 0.21.0]
+        pyodide-version: ${{fromJSON(inputs.pyodide-versions)}}
     steps:
       - uses: actions/checkout@v2
 
@@ -89,7 +105,7 @@ jobs:
           - os: macos-latest
             pyodide-version: 0.21.0
             test-config: {runner: selenium, runtime: safari, refresh: 1 }
-
+    if: fromJSON(inputs.runners).contains(matrix.runner) && fromJSON(inputs.browsers).contains(matrix.runtime) && fromJSON(inputs.os).contains(matrix.os)
     steps:
       - uses: actions/checkout@v2
       - name: Download build artifacts from calling package
