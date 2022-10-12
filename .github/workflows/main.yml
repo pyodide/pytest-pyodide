@@ -135,7 +135,7 @@ jobs:
           # now output the full list of configurations as json
           # which can be used in the include key in a matrix
           print(f"matrix={json.dumps(config_list)}")
-          print(f"pyodide_versions={json.dumps(matrix["pyodide-version"])}")
+          print(f"pyodide_versions={json.dumps(matrix['pyodide-version'])}")
           EOF
       - name: Filter matrix
         id: filter
