@@ -132,7 +132,7 @@ jobs:
             # now output the full list of configurations as json
             # which can be used in the include key in a matrix
             print(f"::set-output name=matrix::{json.dumps(config_list)}")
-            EOF
+            'EOF'
             python filtermatrix.py
   test:
     needs: [download-pyodide,make_test_matrix]
