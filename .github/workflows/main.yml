@@ -140,13 +140,11 @@ jobs:
                   config_list.append(inc_spec)
 
           def parse_filter(str):
+            import re
             if str=="*":
               return None
             else:
-              if str.find("[")!=-1:
-                return json.loads(str)
-              else:
-                return str
+              return re.findall(r'[^,\'"\[\]]+',str)
 
           os_filter=parse_filter("${{ inputs.os }}")
           runner_filter= parse_filter("${{inputs.runners}}")
