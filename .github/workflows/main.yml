@@ -139,6 +139,12 @@ jobs:
         run: python filtermatrix.py >> $GITHUB_OUTPUT
       - name: output filter matrix
         run: echo "FilterMatrix is ${{ steps.filter_matrix.outputs.MATRIX }}"
+  check_matrix:
+    needs: make_test_matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: show matrix
+        run: echo "${{ needs.make_test_matrix.matrix_includes }}"
   test:
     needs: [download-pyodide,make_test_matrix]
     runs-on: ${{ matrix.os }}
