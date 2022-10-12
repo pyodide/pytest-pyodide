@@ -72,7 +72,7 @@ jobs:
           mv pyodide pyodide-dist/
   make_test_matrix:
     outputs:
-      matrix_includes: ${{ steps.filter.outputs.matrix }}
+      matrix: ${{ steps.filter.outputs.matrix }}
     runs-on: ubuntu-latest
     steps:
       - name: Write py file
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: show matrix
-        run: echo "${{ needs.make_test_matrix.matrix_includes }}"
+        run: echo "${{ needs.make_test_matrix.matrix }}"
   test:
     needs: [download-pyodide,make_test_matrix]
     runs-on: ${{ matrix.os }}
@@ -153,7 +153,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.make_test_matrix.matrix_includes) }}
+        include: ${{ fromJSON(needs.make_test_matrix.matrix) }}
     steps:
       - uses: actions/checkout@v2
       - name: Download build artifacts from calling package
