@@ -53,7 +53,14 @@ def _decode(result: str) -> Any:
     buffer = BytesIO()
     buffer.write(b64decode(result))
     buffer.seek(0)
-    return Unpickler(buffer).load()
+    try:
+        return Unpickler(buffer).load()
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            f"There was a problem with unpickling the return value/exception from your pyodide environment. "
+            f"This usually means the type of the return value does not exist in your host environment. "
+            f"The original message is: {exc}. "
+        )
 
 
 def _create_outer_test_function(

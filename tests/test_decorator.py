@@ -84,6 +84,23 @@ def test_inner_function_js_exception(selenium):
         inner_function(selenium)
 
 
+def test_not_unpickable_return_value(selenium):
+    @run_in_pyodide
+    async def inner_function(selenium):
+        with open("some_module.py", "w") as fp:
+            fp.write("class Test: pass\n")
+
+        from some_module import Test
+
+        return Test()
+
+    with pytest.raises(
+            ModuleNotFoundError,
+            match="There was a problem with unpickling the return.*",
+    ):
+        inner_function(selenium)
+
+
 def complicated_decorator(attr_name: str):
     def inner_func(value):
         def dec(func):
