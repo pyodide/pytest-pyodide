@@ -3,6 +3,7 @@ from hypothesis import given, settings
 
 from pytest_pyodide.decorator import run_in_pyodide
 from pytest_pyodide.hypothesis import any_strategy, std_hypothesis_settings
+from pytest_pyodide.pyodide import JsException
 from pytest_pyodide.utils import parse_driver_timeout
 
 
@@ -67,6 +68,37 @@ def test_inner_function(selenium):
         return 7
 
     assert inner_function(selenium, 6) == 7
+
+
+def test_inner_function_js_exception(selenium):
+    @run_in_pyodide
+    def inner_function(selenium):
+        from pyodide.code import run_js
+
+        run_js("throw 'some error'")
+
+    with pytest.raises(
+        JsException,
+        match="Error: some error",
+    ):
+        inner_function(selenium)
+
+
+def test_not_unpickable_return_value(selenium):
+    @run_in_pyodide
+    async def inner_function(selenium):
+        with open("some_module.py", "w") as fp:
+            fp.write("class Test: pass\n")
+
+        from some_module import Test
+
+        return Test()
+
+    with pytest.raises(
+        ModuleNotFoundError,
+        match="There was a problem with unpickling the return.*",
+    ):
+        inner_function(selenium)
 
 
 def complicated_decorator(attr_name: str):

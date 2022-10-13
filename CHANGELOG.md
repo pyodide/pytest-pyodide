@@ -1,3 +1,7 @@
+## [0.22.3] - 2022.10.12
+
+- `JsException` raise from within pyodide is now unpickled correctly in the host. ([#45](https://github.com/pyodide/pytest-pyodide/issues/45))
+
 ## [0.22.2] - 2022.09.08
 
 - Host tests will now run by default. If you want to disable running host tests, add `-no-host` suffix in the `--runtime` option. ([#33](https://github.com/pyodide/pytest-pyodide/pull/33))
