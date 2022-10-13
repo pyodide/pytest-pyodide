@@ -14,11 +14,10 @@ class CustomHandler(DefaultHandler):
 
 def test_custom_handler(selenium):
     @run_in_pyodide
-    async def inner_function(selenium, base_url):
-        from js import fetch
-
-        response = await fetch(base_url + "/random-path")
-        return await response.text()
+    def inner_function(selenium, base_url):
+        from pyodide.http import open_url
+        data = open_url(base_url + "/random-path")
+        return data.read()
 
     with spawn_web_server(".", handler_cls=CustomHandler) as server:
         server_hostname, server_port, _ = server
