@@ -15,7 +15,9 @@ def spawn_web_server(dist_dir, handler_cls=None):
     tmp_dir = tempfile.mkdtemp()
     log_path = pathlib.Path(tmp_dir) / "http-server.log"
     q: multiprocessing.Queue[str] = multiprocessing.Queue()
-    p = multiprocessing.Process(target=run_web_server, args=(q, log_path, dist_dir, handler_cls))
+    p = multiprocessing.Process(
+        target=run_web_server, args=(q, log_path, dist_dir, handler_cls)
+    )
 
     try:
         p.start()

@@ -16,6 +16,7 @@ def test_custom_handler(selenium):
     @run_in_pyodide
     async def inner_function(selenium, base_url):
         from js import fetch
+
         response = await fetch(base_url + "/random-path")
         return await response.text()
 
