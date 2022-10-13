@@ -11,11 +11,11 @@ import tempfile
 
 
 @contextlib.contextmanager
-def spawn_web_server(dist_dir):
+def spawn_web_server(dist_dir, handler_cls=None):
     tmp_dir = tempfile.mkdtemp()
     log_path = pathlib.Path(tmp_dir) / "http-server.log"
     q: multiprocessing.Queue[str] = multiprocessing.Queue()
-    p = multiprocessing.Process(target=run_web_server, args=(q, log_path, dist_dir))
+    p = multiprocessing.Process(target=run_web_server, args=(q, log_path, dist_dir, handler_cls))
 
     try:
         p.start()
@@ -33,7 +33,20 @@ def spawn_web_server(dist_dir):
         shutil.rmtree(tmp_dir)
 
 
-def run_web_server(q, log_filepath, dist_dir):
+class DefaultHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format_, *args):
+        print(
+            "[%s] source: %s:%s - %s"
+            % (self.log_date_time_string(), *self.client_address, format_ % args)
+        )
+
+    def end_headers(self):
+        # Enable Cross-Origin Resource Sharing (CORS)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
+
+
+def run_web_server(q, log_filepath, dist_dir, handler_cls):
     """Start the HTTP web server
 
     Parameters
@@ -47,22 +60,13 @@ def run_web_server(q, log_filepath, dist_dir):
     os.chdir(dist_dir)
 
     log_fh = log_filepath.open("w", buffering=1)
-    sys.stdout = log_fh
-    sys.stderr = log_fh
+    # sys.stdout = log_fh
+    # sys.stderr = log_fh
 
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, format_, *args):
-            print(
-                "[%s] source: %s:%s - %s"
-                % (self.log_date_time_string(), *self.client_address, format_ % args)
-            )
+    if not handler_cls:
+        handler_cls = DefaultHandler
 
-        def end_headers(self):
-            # Enable Cross-Origin Resource Sharing (CORS)
-            self.send_header("Access-Control-Allow-Origin", "*")
-            super().end_headers()
-
-    with socketserver.TCPServer(("", 0), Handler) as httpd:
+    with socketserver.TCPServer(("", 0), handler_cls) as httpd:
         host, port = httpd.server_address
         print(f"Starting webserver at http://{host}:{port}")
         httpd.server_name = "test-server"  # type: ignore[attr-defined]
