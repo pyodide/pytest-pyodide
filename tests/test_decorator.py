@@ -95,8 +95,8 @@ def test_not_unpickable_return_value(selenium):
         return Test()
 
     with pytest.raises(
-            ModuleNotFoundError,
-            match="There was a problem with unpickling the return.*",
+        ModuleNotFoundError,
+        match="There was a problem with unpickling the return.*",
     ):
         inner_function(selenium)
 
