@@ -60,8 +60,8 @@ def run_web_server(q, log_filepath, dist_dir, handler_cls):
     os.chdir(dist_dir)
 
     log_fh = log_filepath.open("w", buffering=1)
-    # sys.stdout = log_fh
-    # sys.stderr = log_fh
+    sys.stdout = log_fh
+    sys.stderr = log_fh
 
     if not handler_cls:
         handler_cls = DefaultHandler
