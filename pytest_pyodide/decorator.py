@@ -68,6 +68,9 @@ class SeleniumHandle:
     pointer but it isn't very useful). When handed back as the argument to
     another run_in_pyodide function, on the Pyodide side there is an `obj` field
     which contains the actual wrapped object.
+
+    It's unpickled with persistent_load which injects the selenium instance.
+    Because of this, we don't bother implementing __setstate__.
     """
 
     def __init__(self, selenium, ptr):
@@ -77,7 +80,6 @@ class SeleniumHandle:
     def __del__(self):
         if self.ptr is None:
             return
-        print("del", self.ptr)
         ptr = self.ptr
         self.ptr = None
         self.selenium.run_js(
