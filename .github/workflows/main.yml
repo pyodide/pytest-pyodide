@@ -44,7 +44,7 @@ on:
         required: false
         type: string
         default: latest
-      gekcodriver-version:
+      geckodriver-version:
         required: false
         type: string
         default: latest
