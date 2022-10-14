@@ -1,6 +1,62 @@
 name: main
 
-on: [push, pull_request]
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: false
+        type: string
+        default: ubuntu-latest
+      build-artifact-name:
+        required: true
+        type: string
+      build-artifact-path:
+        required: true
+        type: string
+      self-build:
+        required: false
+        type: number
+      pyodide-version:
+        required: true
+        type: string
+        default: 0.21.0
+      runner:
+        required: false
+        type: string
+        default: selenium
+      runtime:
+        required: false
+        type: string
+        default: node
+      playwright-version:
+        required: false
+        type: string
+        default: 1.22.0
+      node-version:
+        required: false
+        type: string
+        default: "16"
+      firefox-version:
+        required: false
+        type: string
+        default: latest
+      chrome-version:
+        required: false
+        type: string
+        default: latest
+      gekcodriver-version:
+        required: false
+        type: string
+        default: latest
+      chromedriver-version:
+        required: false
+        type: string
+        default: latest
+      selenium-refresh:
+        required: false
+        type: number
+        default: 0
+      
 
 permissions:
   contents: read
@@ -10,21 +66,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v3
-        with:
-          python-version: 3.10.2
-      - uses: pre-commit/action@v2.0.3
-
   download-pyodide:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        pyodide-version: [0.21.0a3, 0.21.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -33,51 +76,21 @@ jobs:
         id: cache-pyodide
         with:
           path: dist
-          key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
+          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Download Pyodide
         shell: bash -l {0}
         if: steps.cache-pyodide.outputs.cache-hit != 'true'
         run: |
-          wget -q https://github.com/pyodide/pyodide/releases/download/${{ matrix.pyodide-version }}/pyodide-build-${{ matrix.pyodide-version }}.tar.bz2
-          tar xjf pyodide-build-${{ matrix.pyodide-version }}.tar.bz2
+          wget -q https://github.com/pyodide/pyodide/releases/download/${{ inputs.pyodide-version }}/pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
+          tar xjf pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
           mv pyodide dist/
 
   test:
     needs: download-pyodide
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ inputs.os }}
     env:
       DISPLAY: :99
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        pyodide-version: [0.21.0a3, 0.21.0]
-        test-config: [
-          {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
-          {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
-          {runner: selenium, runtime: node, node-version: 14},
-          {runner: selenium, runtime: node, node-version: 16},
-          {runner: selenium, runtime: node, node-version: 18},
-          {runner: selenium, runtime: firefox-no-host, firefox-version: latest, geckodriver-version: latest },
-          {
-            runner: selenium, runtime: chrome firefox,
-            firefox-version: latest, geckodriver-version: latest,
-            chrome-version: latest, chromedriver-version: latest,
-          },
-          {runner: selenium, runtime: host},
-          # playwright browser versions are pinned to playwright version
-          {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
-          {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
-        ]
-        include:
-          - os: macos-latest
-            pyodide-version: 0.21.0
-            test-config: {runner: selenium, runtime: safari}
-          - os: macos-latest
-            pyodide-version: 0.21.0
-            test-config: {runner: selenium, runtime: safari, refresh: 1 }
-
     steps:
       - uses: actions/checkout@v2
 
@@ -87,53 +100,53 @@ jobs:
 
       - name: Install node
         uses: actions/setup-node@v3
-        if: ${{ contains(matrix.test-config.runtime, 'node') || matrix.test-config.runner == 'playwright' }}
+        if: ${{ contains(inputs.runtime, 'node') || inputs.runner == 'playwright' }}
         with:
-          node-version: ${{ matrix.test-config.node-version }}
+          node-version: ${{ inputs.node-version }}
 
       - name: Cache Playwright browsers
         uses: actions/cache@v3
-        if: ${{ matrix.test-config.runner == 'playwright' }}
+        if: ${{ inputs.runner == 'playwright' }}
         with:
           path: .cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ matrix.test-config.playwright-version }}
+          key: ${{ runner.os }}-playwright-${{ inputs.playwright-version }}
 
       - name: Install playwright
         shell: bash -l {0}
-        if: ${{ matrix.test-config.runner == 'playwright' }}
+        if: ${{ inputs.runner == 'playwright' }}
         run: |
-          python3 -m pip install playwright==${{ matrix.test-config.playwright-version }}
+          python3 -m pip install playwright==${{ inputs.playwright-version }}
           # TODO: install only browsers that are required
           python3 -m playwright install --with-deps
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'firefox') }}
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.runtime, 'firefox') }}
         with:
-          firefox-version: ${{ matrix.test-config.firefox-version }}
+          firefox-version: ${{ inputs.firefox-version }}
 
       - name: Install geckodriver
         uses: browser-actions/setup-geckodriver@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'firefox') }}
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.runtime, 'firefox') }}
         with:
-          geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
+          geckodriver-version: ${{ inputs.geckodriver-version }}
 
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
-        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'chrome') }}
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.runtime, 'chrome') }}
         with:
-          chrome-version: ${{ matrix.test-config.geckodriver-version }}
+          chrome-version: ${{ inputs.geckodriver-version }}
 
       - name: Install chromedriver
-        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'chrome') }}
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.runtime, 'chrome') }}
         uses: nanasess/setup-chromedriver@v1
 
       - name: Enable Safari Driver
-        if: ${{ matrix.test-config.runner == 'selenium' && contains(matrix.test-config.runtime, 'safari') && contains(runner.os, 'macos') }}
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.runtime, 'safari') && contains(runner.os, 'macos') }}
         run: |
           sudo safaridriver --enable
           # Only one Safari browser instance can be active at any given time
-          echo "STANDALONE_REFRESH=${{ matrix.test-config.refresh }}" >> $GITHUB_ENV
+          echo "STANDALONE_REFRESH=${{ inputs.selenium-refresh }}" >> $GITHUB_ENV
 
       - name: Install requirements
         shell: bash -l {0}
@@ -150,7 +163,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: dist
-          key: pyodide-${{ matrix.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
+          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Run tests
         shell: bash -l {0}
@@ -158,8 +171,8 @@ jobs:
           STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./dist/ \
-            --runner=${{ matrix.test-config.runner }} \
-            --rt ${{ matrix.test-config.runtime }}
+            --runner=${{ inputs.runner }} \
+            --rt ${{ inputs.runtime }}
 
       - uses: codecov/codecov-action@v3
         if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request' }}

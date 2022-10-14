@@ -1,0 +1,62 @@
+name: main
+
+on:
+  push:
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        pyodide-version: [0.21.0a3, 0.21.0]
+        test-config: [
+          {runner: selenium, runtime: firefox, firefox-version: latest, geckodriver-version: latest },
+          {runner: selenium, runtime: chrome, chrome-version: latest, chromedriver-version: latest },
+          {runner: selenium, runtime: node, node-version: 14},
+          {runner: selenium, runtime: node, node-version: 16},
+          {runner: selenium, runtime: node, node-version: 18},
+          {runner: selenium, runtime: firefox-no-host, firefox-version: latest, geckodriver-version: latest },
+          {
+            runner: selenium, runtime: chrome firefox,
+            firefox-version: latest, geckodriver-version: latest,
+            chrome-version: latest, chromedriver-version: latest,
+          },
+          {runner: selenium, runtime: host},
+          # playwright browser versions are pinned to playwright version
+          {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
+          {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
+        ]
+        include:
+          - os: macos-latest
+            pyodide-version: 0.21.0
+            test-config: {runner: selenium, runtime: safari}
+          - os: macos-latest
+            pyodide-version: 0.21.0
+            test-config: {runner: selenium, runtime: safari, selenium-refresh: 1 }
+      uses: ./.github/workflows/main.yml
+      with:
+        build-artifact-name: none
+        build-artifact-path: none
+        self-build: 1
+        os: ${{ matrix.os }}
+        pyodide-version: ${{ matrix.pyodide-version }}
+        runner: ${{ matrix.test-config.runner }}
+        runtime: ${{ matrix.test-config.runtime }}
+        playwright-version: ${{ matrix.test-config.playwright-version }}
+        node-version: ${{ matrix.test-config.node-version }}
+        firefox-version: ${{ matrix.test-config.firefox-version }}
+        chrome-version: ${{ matrix.test-config.chrome-version }}
+        geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
+        chromedriver-version: ${{ matrix.test-config.chromedriver-version }}
+        selenium-refresh: ${{ matrix.test-config.refresh }}
+
+
+
+
