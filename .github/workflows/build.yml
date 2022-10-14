@@ -55,4 +55,4 @@ jobs:
       chrome-version: ${{ matrix.test-config.chrome-version }}
       geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
       chromedriver-version: ${{ matrix.test-config.chromedriver-version }}
-      # selenium-refresh: ${{ matrix.test-config.selenium-refresh }}
+      selenium-refresh: ${{ matrix.test-config.selenium-refresh }}

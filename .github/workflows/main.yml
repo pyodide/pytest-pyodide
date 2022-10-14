@@ -55,8 +55,7 @@ on:
         default: latest
       selenium-refresh:
         required: false
-        type: number
-        default: 0
+        type: string
 
 
 permissions:
