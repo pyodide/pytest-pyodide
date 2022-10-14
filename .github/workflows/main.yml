@@ -56,7 +56,7 @@ on:
         required: false
         type: number
         default: 0
-      
+
 
 permissions:
   contents: read
@@ -93,6 +93,13 @@ jobs:
       DISPLAY: :99
     steps:
       - uses: actions/checkout@v2
+
+      - name: Download build artifacts from calling package
+        if: inputs.self-build!=1
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.build-artifact-name }}
+          path: ${{ inputs.build-artifact-path }}
 
       - uses: actions/setup-python@v3
         with:
@@ -149,6 +156,7 @@ jobs:
           echo "STANDALONE_REFRESH=${{ inputs.selenium-refresh }}" >> $GITHUB_ENV
 
       - name: Install requirements
+        if: inputs.self-build==1
         shell: bash -l {0}
         run: |
           python3 -m pip install -e .
@@ -157,12 +165,22 @@ jobs:
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
           python3 -m pip uninstall -y pytest-pyodide
+          which npm && npm install -g npm && npm update
+          which npm && npm install node-fetch@2
+
+      - name: Install pytest-pyodide for workflow
+        shell: bash -l {0}
+        if: inputs.self-build!=1
+        run: |
+          python3 -m pip install pytest-pyodide
+          python3 -m pip install pytest-cov
+          which npm && npm install -g npm && npm update
           which npm && npm install node-fetch@2
 
       - name: Get Pyodide from cache
         uses: actions/cache@v3
         with:
-          path: dist
+          path: pyodide-dist
           key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Run tests
@@ -170,7 +188,7 @@ jobs:
         run: |
           STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
             --cov=pytest_pyodide \
-            --dist-dir=./dist/ \
+            --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
             --rt ${{ inputs.runtime }}
 
