@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   test:
+    uses: ./.github/workflows/main.yml
     strategy:
       fail-fast: false
       matrix:
@@ -40,7 +41,6 @@ jobs:
           - os: macos-latest
             pyodide-version: 0.21.0
             test-config: {runner: selenium, runtime: safari, selenium-refresh: 1 }
-    uses: ./.github/workflows/main.yml
     with:
       build-artifact-name: none
       build-artifact-path: none
