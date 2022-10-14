@@ -16,6 +16,7 @@ on:
       self-build:
         required: false
         type: number
+        default: 0
       pyodide-version:
         required: true
         type: string
@@ -61,10 +62,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: main-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   download-pyodide:
     runs-on: ubuntu-latest
@@ -75,7 +72,7 @@ jobs:
         uses: actions/cache@v3
         id: cache-pyodide
         with:
-          path: dist
+          path: pyodide-dist
           key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yml') }}
 
       - name: Download Pyodide
@@ -84,7 +81,7 @@ jobs:
         run: |
           wget -q https://github.com/pyodide/pyodide/releases/download/${{ inputs.pyodide-version }}/pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
           tar xjf pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
-          mv pyodide dist/
+          mv pyodide pyodide-dist
 
   test:
     needs: download-pyodide

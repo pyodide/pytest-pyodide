@@ -34,25 +34,25 @@ jobs:
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
           {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
         ]
-        include:
-          - os: macos-latest
-            pyodide-version: 0.21.0
-            test-config: {runner: selenium, runtime: safari}
-          - os: macos-latest
-            pyodide-version: 0.21.0
-            test-config: {runner: selenium, runtime: safari, selenium-refresh: 1 }
+        # include:
+        #   - os: macos-latest
+        #     pyodide-version: 0.21.0
+        #     test-config: {runner: selenium, runtime: safari}
+        #   - os: macos-latest
+        #     pyodide-version: 0.21.0
+        #     test-config: {runner: selenium, runtime: safari, selenium-refresh: 1 }
     with:
       build-artifact-name: none
       build-artifact-path: none
       self-build: 1
       os: ${{ matrix.os }}
       pyodide-version: ${{ matrix.pyodide-version }}
-      # runner: ${{ matrix.test-config.runner }}
-      # runtime: ${{ matrix.test-config.runtime }}
-      # playwright-version: ${{ matrix.test-config.playwright-version }}
-      # node-version: ${{ matrix.test-config.node-version }}
-      # firefox-version: ${{ matrix.test-config.firefox-version }}
-      # chrome-version: ${{ matrix.test-config.chrome-version }}
-      # geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
-      # chromedriver-version: ${{ matrix.test-config.chromedriver-version }}
-      # selenium-refresh: ${{ matrix.test-config.refresh }}
+      runner: ${{ matrix.test-config.runner }}
+      runtime: ${{ matrix.test-config.runtime }}
+      playwright-version: ${{ matrix.test-config.playwright-version }}
+      node-version: ${{ matrix.test-config.node-version }}
+      firefox-version: ${{ matrix.test-config.firefox-version }}
+      chrome-version: ${{ matrix.test-config.chrome-version }}
+      geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
+      chromedriver-version: ${{ matrix.test-config.chromedriver-version }}
+      # selenium-refresh: ${{ matrix.test-config.selenium-refresh }}
