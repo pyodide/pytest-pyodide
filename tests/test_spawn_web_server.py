@@ -5,7 +5,7 @@ from pytest_pyodide.decorator import run_in_pyodide
 from pytest_pyodide.server import DefaultHandler
 
 
-class CustomHandler(DefaultHandler):
+class HelloWorldHandler(DefaultHandler):
     def do_GET(self):
         self.send_response(HTTPStatus.OK)
         self.end_headers()
@@ -14,14 +14,56 @@ class CustomHandler(DefaultHandler):
 
 def test_custom_handler(selenium):
     @run_in_pyodide
-    def inner_function(selenium, base_url):
-        from pyodide.http import open_url
-        data = open_url(base_url + "/random-path")
-        return data.read()
+    async def inner_function(selenium, base_url):
+        from pyodide.http import pyfetch
+        data = await pyfetch(base_url + "/random-path")
+        return await data.string()
 
-    with spawn_web_server(".", handler_cls=CustomHandler) as server:
+    with spawn_web_server(".", handler_cls=HelloWorldHandler) as server:
         server_hostname, server_port, _ = server
         base_url = f"http://{server_hostname}:{server_port}/"
 
         data = inner_function(selenium, base_url)
         assert data == "hello world"
+
+
+class EchoHandler(DefaultHandler):
+    def do_POST(self):
+        self.send_response(HTTPStatus.OK)
+        self.end_headers()
+
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        self.wfile.write(post_body)
+
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Methods", "*")
+        self.send_header("Access-Control-Allow-Headers", "POST")
+
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        # When sending sync POST requests with custom headers
+        # like "Content-Type" chrome will send a preflight
+        # OPTIONS request. Make sure to handle it correctly.
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.end_headers()
+
+
+def test_post_handler(selenium):
+    @run_in_pyodide
+    async def inner_function(selenium, base_url):
+        from pyodide.http import pyfetch
+        data = await pyfetch(
+            base_url + "/random-path",
+            method="POST",
+            body="some post data"
+        )
+        return await data.string()
+
+    with spawn_web_server(".", handler_cls=EchoHandler) as server:
+        server_hostname, server_port, _ = server
+        base_url = f"http://{server_hostname}:{server_port}/"
+
+        data = inner_function(selenium, base_url)
+        assert data == "some post data"
