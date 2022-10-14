@@ -35,7 +35,7 @@ on:
       node-version:
         required: false
         type: string
-        default: "16"
+        default: 16
       firefox-version:
         required: false
         type: string
@@ -196,23 +196,3 @@ jobs:
         if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request' }}
         with:
           fail_ci_if_error: true
-  deploy:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    environment: PyPi-deploy
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v3
-        with:
-          python-version: 3.10.2
-      - name: Install requirements and build wheel
-        shell: bash -l {0}
-        run: |
-          python -m pip install build twine
-          python -m build .
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
