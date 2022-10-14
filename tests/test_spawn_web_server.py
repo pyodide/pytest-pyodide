@@ -16,6 +16,7 @@ def test_custom_handler(selenium):
     @run_in_pyodide
     async def inner_function(selenium, base_url):
         from pyodide.http import pyfetch
+
         data = await pyfetch(base_url + "/random-path")
         return await data.string()
 
@@ -32,7 +33,7 @@ class EchoHandler(DefaultHandler):
         self.send_response(HTTPStatus.OK)
         self.end_headers()
 
-        content_len = int(self.headers.get('content-length', 0))
+        content_len = int(self.headers.get("content-length", 0))
         post_body = self.rfile.read(content_len)
         self.wfile.write(post_body)
 
@@ -54,10 +55,9 @@ def test_post_handler(selenium):
     @run_in_pyodide
     async def inner_function(selenium, base_url):
         from pyodide.http import pyfetch
+
         data = await pyfetch(
-            base_url + "/random-path",
-            method="POST",
-            body="some post data"
+            base_url + "/random-path", method="POST", body="some post data"
         )
         return await data.string()
 
