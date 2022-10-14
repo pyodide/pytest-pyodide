@@ -47,12 +47,12 @@ jobs:
       self-build: 1
       os: ${{ matrix.os }}
       pyodide-version: ${{ matrix.pyodide-version }}
-      runner: ${{ matrix.test-config.runner }}
-      runtime: ${{ matrix.test-config.runtime }}
-      playwright-version: ${{ matrix.test-config.playwright-version }}
-      node-version: ${{ matrix.test-config.node-version }}
-      firefox-version: ${{ matrix.test-config.firefox-version }}
-      chrome-version: ${{ matrix.test-config.chrome-version }}
-      geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
-      chromedriver-version: ${{ matrix.test-config.chromedriver-version }}
-      selenium-refresh: ${{ matrix.test-config.refresh }}
+      # runner: ${{ matrix.test-config.runner }}
+      # runtime: ${{ matrix.test-config.runtime }}
+      # playwright-version: ${{ matrix.test-config.playwright-version }}
+      # node-version: ${{ matrix.test-config.node-version }}
+      # firefox-version: ${{ matrix.test-config.firefox-version }}
+      # chrome-version: ${{ matrix.test-config.chrome-version }}
+      # geckodriver-version: ${{ matrix.test-config.geckodriver-version }}
+      # chromedriver-version: ${{ matrix.test-config.chromedriver-version }}
+      # selenium-refresh: ${{ matrix.test-config.refresh }}
