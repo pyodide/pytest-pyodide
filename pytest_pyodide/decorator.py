@@ -38,6 +38,18 @@ def _encode(obj: Any) -> str:
 
 
 class Unpickler(pickle.Unpickler):
+    def __init__(self, file, selenium):
+        super().__init__(file)
+        self.selenium = selenium
+
+    def persistent_load(self, pid):
+        if not isinstance(pid, tuple) or len(pid) != 2 or pid[0] != "SeleniumHandle":
+            raise pickle.UnpicklingError("unsupported persistent object")
+        ptr = pid[1]
+        # the SeleniumHandle needs access to selenium in order to free the
+        # reference count.
+        return SeleniumHandle(self.selenium, ptr)
+
     def find_class(self, module, name):
         """
         Catch exceptions that only exist in the pyodide environment and
@@ -49,11 +61,33 @@ class Unpickler(pickle.Unpickler):
             return super().find_class(module, name)
 
 
-def _decode(result: str) -> Any:
-    buffer = BytesIO()
-    buffer.write(b64decode(result))
-    buffer.seek(0)
-    return Unpickler(buffer).load()
+class SeleniumHandle:
+    """This class allows passing a handle for a Pyodide object back to the host.
+
+    On the host side, the handle is an opaque pointer (well we can access the
+    pointer but it isn't very useful). When handed back as the argument to
+    another run_in_pyodide function, on the Pyodide side there is an `obj` field
+    which contains the actual wrapped object.
+    """
+
+    def __init__(self, selenium, ptr):
+        self.selenium = selenium
+        self.ptr = ptr
+
+    def __del__(self):
+        if self.ptr is None:
+            return
+        print("del", self.ptr)
+        ptr = self.ptr
+        self.ptr = None
+        self.selenium.run_js(
+            f"""
+            pyodide._module._Py_DecRef({ptr});
+            """
+        )
+
+    def __getstate__(self):
+        return {"ptr": self.ptr}
 
 
 def _create_outer_test_function(
@@ -141,6 +175,38 @@ def _create_outer_test_function(
     return globs[node.name]
 
 
+def initialize_decorator(selenium):
+    from pathlib import Path
+
+    _decorator_in_pyodide = (
+        Path(__file__).parent / "_decorator_in_pyodide.py"
+    ).read_text()
+    selenium.run(
+        f"""
+def temp():
+    _decorator_in_pyodide = '''{_decorator_in_pyodide}'''
+    from importlib.machinery import ModuleSpec
+    from importlib.util import module_from_spec
+
+    pkgname = "pytest_pyodide"
+    modname = "pytest_pyodide.decorator"
+    spec = ModuleSpec(pkgname, None)
+    pkg = module_from_spec(spec)
+    spec = ModuleSpec(modname, None)
+    mod = module_from_spec(spec)
+
+    exec(_decorator_in_pyodide, mod.__dict__)
+
+    import sys
+
+    sys.modules[pkgname] = pkg
+    sys.modules[modname] = mod
+temp()
+del temp
+        """
+    )
+
+
 class run_in_pyodide:
     def __new__(cls, function: Callable | None = None, /, **kwargs):
         if function:
@@ -210,27 +276,15 @@ class run_in_pyodide:
         return f"""
         async def __tmp():
             __tracebackhide__ = True
-            from base64 import b64encode, b64decode
-            import pickle
-            mod = pickle.loads(b64decode({_encode(self._mod)!r}))
-            args = pickle.loads(b64decode({_encode(args)!r}))
-            co = compile(mod, {self._module_filename!r}, "exec")
-            d = {{}}
-            exec(co, d)
-            def encode(x):
-                return b64encode(pickle.dumps(x)).decode()
-            try:
-                result = d[{self._func_name!r}](None, *args)
-                if {self._async_func}:
-                    result = await result
-                return [0, encode(result)]
-            except BaseException as e:
-                try:
-                    from tblib import pickling_support
-                    pickling_support.install()
-                except ImportError:
-                    pass
-                return [1, encode(e)]
+
+            from pytest_pyodide.decorator import run_in_pyodide_main
+            return run_in_pyodide_main(
+                {_encode(self._mod)!r},
+                {_encode(args)!r},
+                {self._module_filename!r},
+                {self._func_name!r},
+                {self._async_func!r},
+            )
 
         try:
             result = await __tmp()
@@ -250,7 +304,7 @@ class run_in_pyodide:
         r = selenium.run_async(code)
         [status, result] = r
 
-        result = _decode(result)
+        result = Unpickler(BytesIO(b64decode(result)), selenium).load()
         if status:
             raise result
         else:

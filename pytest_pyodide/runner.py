@@ -174,6 +174,9 @@ class _BrowserBaseRunner:
 
     def initialize_pyodide(self):
         self.run_js(INITIALIZE_SCRIPT)
+        from .decorator import initialize_decorator
+
+        initialize_decorator(self)
 
     @property
     def pyodide_loaded(self):
