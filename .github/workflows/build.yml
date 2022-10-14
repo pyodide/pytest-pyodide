@@ -34,13 +34,13 @@ jobs:
           {runner: playwright, runtime: firefox, playwright-version: 1.22.0, node-version: 18},
           {runner: playwright, runtime: chrome, playwright-version: 1.22.0, node-version: 18},
         ]
-        # include:
-        #   - os: macos-latest
-        #     pyodide-version: 0.21.0
-        #     test-config: {runner: selenium, runtime: safari}
-        #   - os: macos-latest
-        #     pyodide-version: 0.21.0
-        #     test-config: {runner: selenium, runtime: safari, selenium-refresh: 1 }
+        include:
+          - os: macos-latest
+            pyodide-version: 0.21.0
+            test-config: {runner: selenium, runtime: safari}
+          - os: macos-latest
+            pyodide-version: 0.21.0
+            test-config: {runner: selenium, runtime: safari, selenium-refresh: 1 }
     with:
       build-artifact-name: none
       build-artifact-path: none
