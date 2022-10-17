@@ -54,12 +54,12 @@ class Unpickler(pickle.Unpickler):
         self.selenium = selenium
 
     def persistent_load(self, pid: Any) -> Any:
-        if not isinstance(pid, tuple) or len(pid) != 2 or pid[0] != "SeleniumHandle":
+        if not isinstance(pid, tuple) or len(pid) != 2 or pid[0] != "PyodideHandle":
             raise pickle.UnpicklingError("unsupported persistent object")
         ptr = pid[1]
-        # the SeleniumHandle needs access to selenium in order to free the
+        # the PyodideHandle needs access to selenium in order to free the
         # reference count.
-        return SeleniumHandle(self.selenium, ptr)
+        return PyodideHandle(self.selenium, ptr)
 
     def find_class(self, module: str, name: str) -> Any:
         """
@@ -72,7 +72,7 @@ class Unpickler(pickle.Unpickler):
             return super().find_class(module, name)
 
 
-class SeleniumHandle:
+class PyodideHandle:
     """This class allows passing a handle for a Pyodide object back to the host.
 
     On the host side, the handle is an opaque pointer (well we can access the

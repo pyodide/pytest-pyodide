@@ -18,7 +18,7 @@ def pointer_to_object(ptr: int) -> Any:
     return temp[0]
 
 
-class SeleniumHandle:
+class PyodideHandle:
     """See documentation for the same-name class in decorator.py
 
     We pickle this with persistent_id (see below) so there is no need for
@@ -28,21 +28,21 @@ class SeleniumHandle:
     convenient to do that injection with "persistent_load".
     """
 
-    def __init__(self, obj):
+    def __init__(self, obj: Any):
         self.obj = obj
         self.ptr = id(obj)
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict[str, Any]):
         self.ptr = state["ptr"]
         self.obj = pointer_to_object(self.ptr)
 
 
 class Pickler(pickle.Pickler):
-    def persistent_id(self, obj):
-        if not isinstance(obj, SeleniumHandle):
+    def persistent_id(self, obj: Any) -> Any:
+        if not isinstance(obj, PyodideHandle):
             return None
         ctypes.pythonapi.Py_IncRef(obj.ptr)
-        return ("SeleniumHandle", obj.ptr)
+        return ("PyodideHandle", obj.ptr)
 
 
 def encode(x: Any) -> str:
@@ -92,4 +92,4 @@ async def run_in_pyodide_main(
         return (1, encode(e))
 
 
-__all__ = ["SeleniumHandle", "encode"]
+__all__ = ["PyodideHandle", "encode"]

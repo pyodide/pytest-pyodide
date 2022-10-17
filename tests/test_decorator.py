@@ -248,11 +248,11 @@ def assert_get_handle(selenium, handle, key, value):
 def returns_handle(selenium):
     import __main__
 
-    from pytest_pyodide.decorator import SeleniumHandle
+    from pytest_pyodide.decorator import PyodideHandle
 
     o = {"a": 6}
     __main__.o = o
-    handle = SeleniumHandle(o)
+    handle = PyodideHandle(o)
     return handle
 
 
