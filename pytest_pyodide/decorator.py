@@ -5,7 +5,7 @@ from base64 import b64decode, b64encode
 from collections.abc import Callable, Collection
 from copy import deepcopy
 from io import BytesIO
-from typing import Any
+from typing import Any, Protocol
 
 import pytest
 
@@ -18,14 +18,17 @@ def package_is_built(package_name: str):
     return _package_is_built(package_name, pytest.pyodide_dist_dir)  # type: ignore[arg-type]
 
 
-class SeleniumType:
+class SeleniumType(Protocol):
     JavascriptException: type
     browser: str
 
-    def load_package(self, *args, **kwargs):
+    def load_package(self, pkgs: str | list[str]):
         ...
 
     def run_async(self, code: str):
+        ...
+
+    def run_js(self, code: str):
         ...
 
 
@@ -37,12 +40,20 @@ def _encode(obj: Any) -> str:
     return b64encode(pickle.dumps(obj)).decode()
 
 
+class _ReadableFileobj(Protocol):
+    def read(self, __n: int) -> bytes:
+        ...
+
+    def readline(self) -> bytes:
+        ...
+
+
 class Unpickler(pickle.Unpickler):
-    def __init__(self, file, selenium):
+    def __init__(self, file: _ReadableFileobj, selenium: SeleniumType):
         super().__init__(file)
         self.selenium = selenium
 
-    def persistent_load(self, pid):
+    def persistent_load(self, pid: Any) -> Any:
         if not isinstance(pid, tuple) or len(pid) != 2 or pid[0] != "SeleniumHandle":
             raise pickle.UnpicklingError("unsupported persistent object")
         ptr = pid[1]
@@ -50,7 +61,7 @@ class Unpickler(pickle.Unpickler):
         # reference count.
         return SeleniumHandle(self.selenium, ptr)
 
-    def find_class(self, module, name):
+    def find_class(self, module: str, name: str) -> Any:
         """
         Catch exceptions that only exist in the pyodide environment and
         convert them to exception in the host.
@@ -73,9 +84,9 @@ class SeleniumHandle:
     Because of this, we don't bother implementing __setstate__.
     """
 
-    def __init__(self, selenium, ptr):
+    def __init__(self, selenium: SeleniumType, ptr: int):
         self.selenium = selenium
-        self.ptr = ptr
+        self.ptr: int | None = ptr
 
     def __del__(self):
         if self.ptr is None:
@@ -88,8 +99,19 @@ class SeleniumHandle:
             """
         )
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, Any]:
         return {"ptr": self.ptr}
+
+
+def _decode(result: str, selenium: SeleniumType) -> Any:
+    try:
+        return Unpickler(BytesIO(b64decode(result)), selenium).load()
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            f"There was a problem with unpickling the return value/exception from your pyodide environment. "
+            f"This usually means the type of the return value does not exist in your host environment. "
+            f"The original message is: {exc}. "
+        ) from None
 
 
 def _create_outer_test_function(
@@ -306,7 +328,7 @@ class run_in_pyodide:
         r = selenium.run_async(code)
         [status, result] = r
 
-        result = Unpickler(BytesIO(b64decode(result)), selenium).load()
+        result = _decode(result, selenium)
         if status:
             raise result
         else:
