@@ -1,3 +1,21 @@
+"""
+This file is not imported normally, it is loaded as a string and then exec'd
+into a module called pytest_pyodide.decorator inside of Pyodide.
+
+We use the name `pytest_pyodide.decorator` for this file for two reasons:
+
+1. so that unpickling works smoothly
+2. so that importing PyodideHandle works smoothly inside Pyodide
+
+We could handle 1. by subclassing Unpickler and overriding find_class. Then we
+could give a different name like `from pytest_pyodide.in_pyodide import
+PyodideHandle` or something. But I think this current approach is the easiest
+for users to make sense of. It is probably still quite confusing.
+
+See also:
+https://github.com/pyodide/pytest-pyodide/issues/43
+"""
+
 import ctypes
 import pickle
 from base64 import b64decode, b64encode
