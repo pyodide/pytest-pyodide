@@ -232,3 +232,47 @@ run_in_pyodide_alias2 = pytest.mark.driver_timeout(40)(run_in_pyodide_inner)
 @run_in_pyodide_alias2
 def test_run_in_pyodide_alias(request):
     assert parse_driver_timeout(request.node) == 40
+
+
+@run_in_pyodide
+def set_handle(selenium, handle, key, value):
+    handle.obj[key] = value
+
+
+@run_in_pyodide
+def assert_get_handle(selenium, handle, key, value):
+    assert handle.obj[key] == value
+
+
+@run_in_pyodide
+def returns_handle(selenium):
+    import __main__
+
+    from pytest_pyodide.decorator import PyodideHandle
+
+    o = {"a": 6}
+    __main__.o = o
+    handle = PyodideHandle(o)
+    return handle
+
+
+@run_in_pyodide
+def check_refcount(selenium, n):
+    import sys
+
+    import __main__
+
+    assert sys.getrefcount(__main__.o) == n
+
+
+def test_selenium_handle(selenium):
+    handle = returns_handle(selenium)
+    check_refcount(selenium, 4)
+    set_handle(selenium, handle, 7, 2)
+    set_handle(selenium, handle, "b", 1)
+    assert_get_handle(selenium, handle, "a", 6)
+    assert_get_handle(selenium, handle, 7, 2)
+    assert_get_handle(selenium, handle, "b", 1)
+    check_refcount(selenium, 4)
+    del handle
+    check_refcount(selenium, 3)
