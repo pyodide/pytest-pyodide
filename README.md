@@ -21,8 +21,8 @@ You would also one at least one of the following runtimes,
 
 ## Usage
 
-1. First you would need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
-   ```
+1. First you need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
+   ```bash
    wget https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2
    tar xjf pyodide-build-0.21.0.tar.bz2
    mv pyodide dist/
@@ -104,7 +104,7 @@ will see the `selenium` fixture as `None` inside the test.
 
 If you need to return a persistent reference to a Pyodide Python object, you can
 use the special `PyodideHandle` class:
-```
+```py
 @run_in_pyodide
 def get_pyodide_handle(selenium):
     from pytest_pyodide.decorator import PyodideHandle
