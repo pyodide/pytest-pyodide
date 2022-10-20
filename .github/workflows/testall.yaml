@@ -136,9 +136,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    matrix:
-      pyodide_version: ${{ fromJSON(needs.make_test_matrix.outputs.pyodide_versions) }}
-      include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
+      matrix:
+        include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
     steps:
       - name: Run test step
         uses: ./.github/workflows/main.yml
