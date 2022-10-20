@@ -44,8 +44,11 @@ permissions:
   contents: read
 
 jobs:
-  download-pyodide:
-    runs-on: ubuntu-latest
+  test:
+    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ inputs.os }},pyodide:${{ inputs.pyodide-version}})
+    runs-on: ${{ inputs.os }}
+    env:
+      DISPLAY: :99
     steps:
       - uses: actions/checkout@v2
       - name: Cache Pyodide
@@ -61,14 +64,6 @@ jobs:
           wget -q https://github.com/pyodide/pyodide/releases/download/${{ inputs.pyodide-version }}/pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
           tar xjf pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
           mv pyodide pyodide-dist/
-  test:
-    needs: download-pyodide
-    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ inputs.os }},pyodide:${{ inputs.pyodide-version}})
-    runs-on: ${{ inputs.os }}
-    env:
-      DISPLAY: :99
-    steps:
-      - uses: actions/checkout@v2
       - name: Download build artifacts from calling package
         if: inputs.self-build!=1
         uses: actions/download-artifact@v3
