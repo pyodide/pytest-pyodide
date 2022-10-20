@@ -43,10 +43,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: main-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   lint:
     if: inputs.self-build==1

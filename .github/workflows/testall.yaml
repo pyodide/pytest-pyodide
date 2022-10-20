@@ -28,6 +28,8 @@ on:
         required: false
         type: string
         default: '[ubuntu-latest,macos-latest]'
+permissions:
+  contents: read
 jobs:
   make_test_matrix:
     outputs:
