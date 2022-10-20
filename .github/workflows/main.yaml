@@ -63,7 +63,7 @@ jobs:
         id: cache-pyodide
         with:
           path: pyodide-dist
-          key: pyodide-${{ input.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
+          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
       - name: Download Pyodide
         shell: bash -l {0}
         if: steps.cache-pyodide.outputs.cache-hit != 'true'
