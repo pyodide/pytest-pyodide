@@ -159,6 +159,6 @@ jobs:
             --rt ${{ inputs.browser }}
 
       - uses: codecov/codecov-action@v3
-        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request' }}
+        if: ${{ inputs.self-build==1 && (github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request') }}
         with:
           fail_ci_if_error: true
