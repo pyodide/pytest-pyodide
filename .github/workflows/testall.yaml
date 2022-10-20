@@ -1,0 +1,151 @@
+name: main
+
+on:
+  workflow_call:
+    inputs:
+      build-artifact-name:
+        required: true
+        type: string
+      build-artifact-path:
+        required: true
+        type: string
+      self-build:
+        required: false
+        type: number
+      pyodide-versions:
+        required: false
+        type: string
+        default: "*"
+      runners:
+        required: false
+        type: string
+        default: '[selenium,playwright]'
+      browsers:
+        required: false
+        type: string
+        default: "*"
+      os:
+        required: false
+        type: string
+        default: '[ubuntu-latest,macos-latest]'
+jobs:
+  make_test_matrix:
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+      pyodide_versions: ${{ steps.filter.outputs.pyodide_versions }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write py file
+        run: |
+          cat << 'EOF' > filtermatrix.py
+          import yaml,json
+
+          # pyodide versions is a set of versions to test
+          # as opposed to other parameters which just filter
+          # the configs below
+          pyodide_versions="${{ inputs.pyodide-versions}}"
+          if pyodide_versions=="*":
+            pyodide_versions="[0.21.0a3,0.21.0]"
+
+          matrix=yaml.safe_load("""
+            os: [ubuntu-latest]
+            pyodide-version: """+pyodide_versions+"""
+            test-config: [
+              {runner: selenium, browser: firefox, browser-version: latest, driver-version: latest },
+              {runner: selenium, browser: chrome, browser-version: latest, driver-version: latest },
+              {runner: selenium, browser: node, browser-version: 14},
+              {runner: selenium, browser: node, browser-version: 16},
+              {runner: selenium, browser: node, browser-version: 18},
+              {runner: selenium, browser: firefox-no-host, browser-version: latest, driver-version: latest },
+              {
+                runner: selenium, browser: chrome firefox,
+                browser-version: latest, browser-version: latest,
+                browser-version: latest, browser-version: latest,
+              },
+              {runner: selenium, browser: host},
+              # playwright browser versions are pinned to playwright version
+              {runner: playwright, browser: firefox, browser-version: 1.22.0, driver-version: 18},
+              {runner: playwright, browser: chrome, browser-version: 1.22.0, driver-version: 18},
+            ]
+            include:
+              - os: macos-latest
+                pyodide-version: 0.21.0
+                test-config: {runner: selenium, browser: safari}
+              - os: macos-latest
+                pyodide-version: 0.21.0
+                test-config: {runner: selenium, browser: safari, refresh: 1 }
+          """)
+
+          import itertools
+          ranges={}
+          for key in matrix.keys():
+            if key!="include":
+              ranges[key]=[]
+              for v in matrix[key]:
+                  ranges[key].append((key,v))
+
+          l=list(ranges.values())
+
+          config_list=[]
+          for c in itertools.product(*l):
+              dict_out={}
+              for (key,v) in c:
+                  dict_out[key]=v
+              config_list.append(dict_out)
+
+          if "include" in matrix:
+              for c,inc_spec in enumerate(matrix["include"]):
+                  config_list.append(inc_spec)
+
+          def parse_filter(str):
+            import re
+            if str.find("*")!=-1:
+              return None
+            else:
+              return [x.lower() for x in re.findall(r'[^,\'"\[\]]+',str)]
+
+          os_filter=parse_filter("${{ inputs.os }}")
+          runner_filter= parse_filter("${{inputs.runners}}")
+          runtime_filter= parse_filter("${{inputs.browsers}}")
+
+          filtered_configs=[]
+          for c in config_list:
+            if os_filter==None or c["os"].lower() in os_filter:
+              if runner_filter==None or c["test-config"]["runner"].lower() in runner_filter:
+                if runtime_filter==None or c["test-config"]["runtime"].lower() in runtime_filter:
+                  filtered_configs.append(c)
+
+          # now output the full list of configurations as json
+          # which can be used in the include key in a matrix
+          print(f"matrix={json.dumps(filtered_configs)}")
+          print(f"pyodide_versions={json.dumps(matrix['pyodide-version'])}")
+          EOF
+      - name: Filter matrix
+        id: filter
+        run: python filtermatrix.py >> $GITHUB_OUTPUT
+      - name: output filter matrix
+        run: echo "FilterMatrix is ${{ steps.filter.outputs.matrix }}"
+  check_matrix:
+    needs: make_test_matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: show matrix
+        run: echo "${{ needs.make_test_matrix.outputs.matrix }}"
+  run_tests:
+    needs: make_test_matrix
+    strategy:
+      fail-fast: false
+    matrix:
+      pyodide_version: ${{ fromJSON(needs.make_test_matrix.outputs.pyodide_versions) }}
+      include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
+    steps:
+      - name: Run test step
+        uses: ./.github/workflows/main.yml
+        with:
+          pyodide-version: ${{ matrix.pyodide_version }}
+          runner: ${{ matrix.test_config.runner }}
+          browser: ${{ matrix.test_config.browser }}
+          os: ${{ matrix.os }}
+          browser-version: ${{ matrix.browser_version }}
+          driver-version: ${{ matrix.driver_version }}
+          refresh: ${{ matrix.refresh }}
