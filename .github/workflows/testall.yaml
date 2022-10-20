@@ -142,10 +142,10 @@ jobs:
       - name: Run test step
         uses: ./.github/workflows/main.yml
         with:
-          pyodide-version: ${{ matrix.pyodide_version }}
-          runner: ${{ matrix.test_config.runner }}
-          browser: ${{ matrix.test_config.browser }}
+          pyodide-version: ${{ matrix.pyodide-version }}
+          runner: ${{ matrix.test-config.runner }}
+          browser: ${{ matrix.test-config.browser }}
           os: ${{ matrix.os }}
-          browser-version: ${{ matrix.browser_version }}
-          driver-version: ${{ matrix.driver_version }}
+          browser-version: ${{ matrix.browser-version }}
+          driver-version: ${{ matrix.driver-version }}
           refresh: ${{ matrix.refresh }}
