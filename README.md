@@ -25,7 +25,7 @@ pytest-pyodide also supports testing on github actions by means of a reusable wo
 
 In your github actions workflow, call it with as a aseparate job. To pass in your build wheel use an upload-artifact step in your build step.
 
-This will run your tests on a bunch of browser/pyodide version/OS configurations. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders.
+This will run your tests on the given browser/pyodide version/OS configuration. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders.
 
 ```
 jobs:
@@ -49,18 +49,20 @@ jobs:
   # this is the job which you add to run pyodide-test
   test:
     needs: build
-    uses: pyodide/pytest-pyodide/.github/workflows/main.yml@main
+    uses: pyodide/pytest-pyodide/.github/workflows/main.yaml@main
     with:
       build-artifact-name: pyodide wheel
       build-artifact-path: dist
+      browser: firefox
+      runner: selenium
+      pyodide-version: 0.21.0
 ```
 
-This tests on absolutely everything by default, if you only want to test on a smaller range of browsers, you can add inputs to the job to choose specific browsers, test-runner, pyodide versions or OS. Do it like the code below, but delete the things you don't want.
-
+If you want to run on multiple browsers / pyodide versions etc., you can either use a matrix strategy and run main.yaml as above, or you can use testall.yaml. This by default tests on all browsers (and node) with multiple configurations. If you want to reduce the configurations you can filter with lists of browsers, runners, pyodide-versions as shown below.
 ```
   test:
     needs: build
-    uses: pyodide/pytest-pyodide/.github/workflows/main.yml@main
+    uses: pyodide/pytest-pyodide/.github/workflows/testall.yaml@main
     with:
       build-artifact-name: pyodide wheel
       build-artifact-path: dist
