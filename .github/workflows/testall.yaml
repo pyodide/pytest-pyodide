@@ -134,6 +134,7 @@ jobs:
       - name: show matrix
         run: echo "${{ needs.make_test_matrix.outputs.matrix }}"
   call-main-workflow:
+    needs: make_test_matrix
     strategy:
       fail-fast: false
       matrix:
