@@ -142,8 +142,8 @@ jobs:
         include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: '.'
+      - run: |
+          ls -R
       - name: Run test step
         uses: ./.github/workflows/main.yaml
         with:
