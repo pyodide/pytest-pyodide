@@ -24,7 +24,7 @@ on:
         required: false
         type: string
         default: "chrome"
-      browser_version:
+      browser-version:
         required: false
         type: string
         default: "latest"
@@ -32,7 +32,7 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
-      driver_version:
+      driver-version:
         required: false
         type: string
         default: "latest"
