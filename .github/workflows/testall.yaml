@@ -140,6 +140,9 @@ jobs:
         include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
     uses: ./.github/workflows/main.yaml
     with:
+      build-artifact-name: ${{ inputs.build-artifact-name }}
+      build-artifact-path: ${{ inputs.build-artifact-path }}
+      self-build: ${{ inputs.self-build }}
       pyodide-version: ${{ matrix.pyodide-version }}
       runner: ${{ matrix.test-config.runner }}
       browser: ${{ matrix.test-config.browser }}
