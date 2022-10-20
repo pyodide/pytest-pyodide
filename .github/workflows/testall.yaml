@@ -141,7 +141,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run test step
-        uses: ./.github/workflows/main.yml
+        uses: ./.github/workflows/main.yaml
         with:
           pyodide-version: ${{ matrix.pyodide-version }}
           runner: ${{ matrix.test-config.runner }}
