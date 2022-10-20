@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-      uses: ./.github/workflows/testall.yml
+      uses: ./.github/workflows/testall.yaml
       with:
         build-artifact-name: none
         build-artifact-path: none
