@@ -169,8 +169,8 @@ jobs:
           STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
-            --runner=${{ matrix.test-config.runner }} \
-            --rt ${{ matrix.test-config.runtime }}
+            --runner=${{ inputs.runner }} \
+            --rt ${{ inputs.browser }}
 
       - uses: codecov/codecov-action@v3
         if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request' }}
