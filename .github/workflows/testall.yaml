@@ -133,14 +133,11 @@ jobs:
     steps:
       - name: show matrix
         run: echo "${{ needs.make_test_matrix.outputs.matrix }}"
-  run_tests:
-    needs: make_test_matrix
-    runs-on: ubuntu-latest
-    strategy:
+    call-main-workflow:
+      strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
-    call-main-workflow:
       uses: .github/workflows/main.yaml
       with:
         pyodide-version: ${{ matrix.pyodide-version }}
