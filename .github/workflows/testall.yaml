@@ -145,7 +145,7 @@ jobs:
       - run: |
           ls -aR
       - name: Run test step
-        uses: ./.github/workflows/main.yaml
+        uses: .github/workflows/main.yaml
         with:
           pyodide-version: ${{ matrix.pyodide-version }}
           runner: ${{ matrix.test-config.runner }}
