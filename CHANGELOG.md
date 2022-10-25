@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+- Breaking: altered the way that `PyodideHandle` is received inside the Pyodide
+  function so that it is transparent to the callee: the handle is automatically
+  converted into the wrapped object.
+  [#54](https://github.com/pyodide/pytest-pyodide/pull/54)
+
 ## [0.23.0] - 2022.10.24
 
 - `JsException` raise from within pyodide is now unpickled correctly in the host. ([#45](https://github.com/pyodide/pytest-pyodide/issues/45))

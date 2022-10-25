@@ -113,11 +113,11 @@ def get_pyodide_handle(selenium):
 
 @run_in_pyodide
 def set_value(selenium, h, key, value):
-    h.obj[key] = value
+    h[key] = value
 
 @run_in_pyodide
 def get_value(selenium, h, key, value):
-    return h.obj[key]
+    return h[key]
 
 def test_pyodide_handle(selenium):
     h = get_pyodide_handle(selenium)

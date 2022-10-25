@@ -32,14 +32,6 @@ class SeleniumType(Protocol):
         ...
 
 
-def _encode(obj: Any) -> str:
-    """
-    Pickle and base 64 encode obj so we can send it to Pyodide using string
-    templating.
-    """
-    return b64encode(pickle.dumps(obj)).decode()
-
-
 class _ReadableFileobj(Protocol):
     def read(self, __n: int) -> bytes:
         ...
@@ -72,13 +64,19 @@ class Unpickler(pickle.Unpickler):
             return super().find_class(module, name)
 
 
+class Pickler(pickle.Pickler):
+    def persistent_id(self, obj: Any) -> Any:
+        if not isinstance(obj, PyodideHandle):
+            return None
+        return ("PyodideHandle", obj.ptr)
+
+
 class PyodideHandle:
     """This class allows passing a handle for a Pyodide object back to the host.
 
     On the host side, the handle is an opaque pointer (well we can access the
     pointer but it isn't very useful). When handed back as the argument to
-    another run_in_pyodide function, on the Pyodide side there is an `obj` field
-    which contains the actual wrapped object.
+    another run_in_pyodide function, it gets unpickled as the actual object.
 
     It's unpickled with persistent_load which injects the selenium instance.
     Because of this, we don't bother implementing __setstate__.
@@ -99,8 +97,15 @@ class PyodideHandle:
             """
         )
 
-    def __getstate__(self) -> dict[str, Any]:
-        return {"ptr": self.ptr}
+
+def _encode(obj: Any) -> str:
+    """
+    Pickle and base 64 encode obj so we can send it to Pyodide using string
+    templating.
+    """
+    b = BytesIO()
+    Pickler(b).dump(obj)
+    return b64encode(b.getvalue()).decode()
 
 
 def _decode(result: str, selenium: SeleniumType) -> Any:
