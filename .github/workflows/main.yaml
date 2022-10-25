@@ -84,13 +84,13 @@ jobs:
         if: ${{ inputs.runner == 'playwright' }}
         with:
           path: .cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ inputs.browser-version }}
+          key: ${{ runner.os }}-playwright-latest
 
       - name: Install playwright
         shell: bash -l {0}
         if: ${{ inputs.runner == 'playwright' }}
         run: |
-          python3 -m pip install playwright==${{ inputs.browser-version }}
+          python3 -m pip install playwright
           # TODO: install only browsers that are required
           python3 -m playwright install --with-deps
 
