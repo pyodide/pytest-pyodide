@@ -40,19 +40,15 @@ class PyodideHandle:
     """See documentation for the same-name class in decorator.py
 
     We pickle this with persistent_id (see below) so there is no need for
-    __getstate__. The only reason we pickle with persistent_id is that on the
-    other side when we unpickle we want to inject a selenium instance so that
-    the reference count can be released by the finalizer. It seems most
-    convenient to do that injection with "persistent_load".
+    __getstate__. We pickle with persistent_id because on the other side when we
+    unpickle we want to inject a selenium instance so that the reference count
+    can be released by the finalizer. It seems most convenient to do that
+    injection with "persistent_load".
     """
 
     def __init__(self, obj: Any):
         self.obj = obj
         self.ptr = id(obj)
-
-    def __setstate__(self, state: dict[str, Any]):
-        self.ptr = state["ptr"]
-        self.obj = pointer_to_object(self.ptr)
 
 
 class Pickler(pickle.Pickler):
@@ -63,6 +59,16 @@ class Pickler(pickle.Pickler):
         return ("PyodideHandle", obj.ptr)
 
 
+class Unpickler(pickle.Unpickler):
+    def persistent_load(self, pid: Any) -> Any:
+        if not isinstance(pid, tuple) or len(pid) != 2 or pid[0] != "PyodideHandle":
+            raise pickle.UnpicklingError("unsupported persistent object")
+        ptr = pid[1]
+        # Return the actual object rather than a PyodideHandle. In practice,
+        # this is much more convenient!
+        return pointer_to_object(ptr)
+
+
 def encode(x: Any) -> str:
     f = BytesIO()
     p = Pickler(f)
@@ -71,7 +77,7 @@ def encode(x: Any) -> str:
 
 
 def decode(x: str) -> Any:
-    return pickle.loads(b64decode(x))
+    return Unpickler(BytesIO(b64decode(x))).load()
 
 
 async def run_in_pyodide_main(

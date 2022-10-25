@@ -235,13 +235,13 @@ def test_run_in_pyodide_alias(request):
 
 
 @run_in_pyodide
-def set_handle(selenium, handle, key, value):
-    handle.obj[key] = value
+def set_handle(selenium, d, key, value):
+    d[key] = value
 
 
 @run_in_pyodide
-def assert_get_handle(selenium, handle, key, value):
-    assert handle.obj[key] == value
+def assert_get_handle(selenium, d, key, value):
+    assert d[key] == value
 
 
 @run_in_pyodide
