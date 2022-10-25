@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Filter matrix
         id: filter
-        run: python .github/workflows/filtermatrix.py ${{ inputs.pyodide_versions >> $GITHUB_OUTPUT
+        run: python .github/workflows/filtermatrix.py ${{ inputs.pyodide_versions }} >> $GITHUB_OUTPUT
       - name: output filter matrix
         run: echo "FilterMatrix is ${{ steps.filter.outputs.matrix }}"
   check_matrix:
