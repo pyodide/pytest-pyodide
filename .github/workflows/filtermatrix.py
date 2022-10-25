@@ -38,11 +38,11 @@ test-config: [
 ]
 include:
     - os: macos-latest
-    pyodide-version: 0.21.0
-    test-config: {runner: selenium, browser: safari}
+      pyodide-version: 0.21.0
+      test-config: {runner: selenium, browser: safari}
     - os: macos-latest
-    pyodide-version: 0.21.0
-    test-config: {runner: selenium, browser: safari, refresh: 1 }
+      pyodide-version: 0.21.0
+      test-config: {runner: selenium, browser: safari, refresh: 1 }
 """
 )
 
