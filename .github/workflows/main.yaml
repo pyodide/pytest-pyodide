@@ -20,6 +20,10 @@ on:
         required: false
         type: string
         default: "selenium"
+      runner-version:
+        required: false
+        type: string
+        default: ""
       browser:
         required: false
         type: string
@@ -90,7 +94,11 @@ jobs:
         shell: bash -l {0}
         if: ${{ inputs.runner == 'playwright' }}
         run: |
-          python3 -m pip install playwright
+          if (-n ${{inputs.runner-version}}) then
+            python3 -m pip install playwright==${{inputs.runner-version}}
+          else
+            python3 -m pip install playwright
+          fi
           # TODO: install only browsers that are required
           python3 -m playwright install --with-deps
 

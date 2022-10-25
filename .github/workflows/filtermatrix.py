@@ -33,8 +33,8 @@ test-config: [
     },
     {runner: selenium, browser: host},
     # playwright browser versions are pinned to playwright version
-    {runner: playwright, browser: firefox, browser-version: 1.22.0, driver-version: 18},
-    {runner: playwright, browser: chrome, browser-version: 1.22.0, driver-version: 18},
+    {runner: playwright, browser: firefox, runner-version: 1.22.0, driver-version: 18},
+    {runner: playwright, browser: chrome, runner-version: 1.22.0, driver-version: 18},
 ]
 include:
     - os: macos-latest
