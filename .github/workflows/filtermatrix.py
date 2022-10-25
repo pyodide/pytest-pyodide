@@ -75,9 +75,9 @@ def parse_filter(s) -> "list[str]|None":
         return [x.lower() for x in re.findall(r'[^,\'"\[\]]+', s)]
 
 
-os_filter = parse_filter("${{ inputs.os }}")
-runner_filter = parse_filter("${{inputs.runners}}")
-runtime_filter = parse_filter("${{inputs.browsers}}")
+os_filter = parse_filter(sys.argv[2])
+runner_filter = parse_filter(sys.argv[3])
+runtime_filter = parse_filter(sys.argv[4])
 
 filtered_configs = []
 for c in config_list:
@@ -85,7 +85,7 @@ for c in config_list:
         if runner_filter is None or c["test-config"]["runner"].lower() in runner_filter:
             if (
                 runtime_filter is None
-                or c["test-config"]["runtime"].lower() in runtime_filter
+                or c["test-config"]["browser"].lower() in runtime_filter
             ):
                 filtered_configs.append(c)
 
