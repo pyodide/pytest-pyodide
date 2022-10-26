@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.23.1] - 2022.10.26
+
 - Breaking: altered the way that `PyodideHandle` is received inside the Pyodide
   function so that it is transparent to the callee: the handle is automatically
   converted into the wrapped object.
