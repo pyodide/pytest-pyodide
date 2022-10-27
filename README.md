@@ -74,8 +74,8 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
 
 ## Usage
 
-1. First you would need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
-   ```
+1. First you need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
+   ```bash
    wget https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2
    tar xjf pyodide-build-0.21.0.tar.bz2
    mv pyodide dist/
@@ -130,10 +130,55 @@ def test_type_of_int(selenium, x):
     assert type(x) is int
 ```
 
-These arguments must be picklable. You can also use fixtures as long as the
-return values of the fixtures are picklable (most commonly, if they are `None`).
-As a special case, the function will see the `selenium` fixture as `None` inside
-the test.
+The first argument to a `@run_in_pyodide` function must be a browser runner,
+generally a `selenium` fixture. The remaining arguments and the return value of
+the `@run_in_pyodide` function must be picklable. The arguments will be pickled
+in the host Python and unpickled in the Pyodide Python. The reverse will happen
+to the return value. The first `selenium` argument will be `None` inside the
+body of the function (it is used internally by the fixture). Note that a
+consequence of this is that the received arguments are copies. Changes made to
+an argument will not be reflected in the host Python:
+```py
+@run_in_pyodide
+def mutate_dict(selenium, x):
+    x["a"] = -1
+    return x
+
+def test_mutate_dict():
+    d = {"a" : 9, "b" : 7}
+    assert mutate_dict(d) == { "a" : -1, "b" : 7 }
+    # d is unchanged because it was implicitly copied into the Pyodide runtime!
+    assert d == {"a" : 9, "b" : 7}
+```
+
+You can also use fixtures as long as the return values of the fixtures are
+picklable (most commonly, if they are `None`). As a special case, the function
+will see the `selenium` fixture as `None` inside the test.
+
+If you need to return a persistent reference to a Pyodide Python object, you can
+use the special `PyodideHandle` class:
+```py
+@run_in_pyodide
+def get_pyodide_handle(selenium):
+    from pytest_pyodide.decorator import PyodideHandle
+    d = { "a" : 2 }
+    return PyodideHandle(d)
+
+@run_in_pyodide
+def set_value(selenium, h, key, value):
+    h[key] = value
+
+@run_in_pyodide
+def get_value(selenium, h, key, value):
+    return h[key]
+
+def test_pyodide_handle(selenium):
+    h = get_pyodide_handle(selenium)
+    assert get_value(selenium, h, "a") == 2
+    set_value(selenium, h, "a", 3)
+    assert get_value(selenium, h, "a") == 3
+```
+This can be used to create fixtures for use with `@run_in_pyodide`.
 
 It is possible to use `run_in_pyodide` as an inner function:
 
@@ -145,10 +190,7 @@ def test_inner_function(selenium):
         return 7
     assert inner_function(selenium_mock, 6) == 7
 ```
-
-Again both the arguments and return value must be pickleable.
-
-Also, the function will not see closure variables at all:
+However, the function will not see closure variables at all:
 
 ```py
 def test_inner_function_closure(selenium):
@@ -160,6 +202,9 @@ def test_inner_function_closure(selenium):
     # Raises `NameError: 'x' is not defined`
     assert inner_function(selenium_mock) == 7
 ```
+Thus, the only value of inner `@run_in_pyodide` functions is to limit the scope
+of the function definition. If you need a closure, you will have to wrap it in a
+second function call.
 
 ## Specifying a browser
 
