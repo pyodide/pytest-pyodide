@@ -1,0 +1,173 @@
+name: main
+
+on:
+  workflow_call:
+    inputs:
+      build-artifact-name:
+        required: true
+        type: string
+      build-artifact-path:
+        required: true
+        type: string
+      self-build:
+        required: false
+        type: number
+      pyodide-version:
+        required: false
+        type: string
+        default: "0.21.0"
+      runner:
+        required: false
+        type: string
+        default: "selenium"
+      runner-version:
+        required: false
+        type: string
+        default: ""
+      browser:
+        required: false
+        type: string
+        default: "chrome"
+      browser-version:
+        required: false
+        type: string
+        default: "latest"
+      os:
+        required: false
+        type: string
+        default: "ubuntu-latest"
+      driver-version:
+        required: false
+        type: string
+        default: "latest"
+      refresh:
+        required: false
+        type: string
+        default: "0"
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ inputs.os }},pyodide:${{ inputs.pyodide-version}})
+    runs-on: ${{ inputs.os }}
+    env:
+      DISPLAY: :99
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache Pyodide
+        uses: actions/cache@v3
+        id: cache-pyodide
+        with:
+          path: pyodide-dist
+          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
+      - name: Download Pyodide
+        shell: bash -l {0}
+        if: steps.cache-pyodide.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://github.com/pyodide/pyodide/releases/download/${{ inputs.pyodide-version }}/pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
+          tar xjf pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
+          mv pyodide pyodide-dist/
+      - name: Download build artifacts from calling package
+        if: inputs.self-build!=1
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.build-artifact-name }}
+          path: ${{ inputs.build-artifact-path }}
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.10.2
+      - name: Install node
+        uses: actions/setup-node@v3
+        if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
+        with:
+          node-version: ${{ inputs.driver-version }}
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        if: ${{ inputs.runner == 'playwright' }}
+        with:
+          path: .cache/ms-playwright
+          key: ${{ runner.os }}-playwright-latest
+
+      - name: Install playwright
+        shell: bash -l {0}
+        if: ${{ inputs.runner == 'playwright' }}
+        run: |
+          if [ -n "${{ inputs.runner-version }}" ]
+          then
+            python3 -m pip install playwright==${{inputs.runner-version}}
+          else
+            python3 -m pip install playwright
+          fi
+          # TODO: install only browsers that are required
+          python3 -m playwright install --with-deps
+
+      - name: Install firefox
+        uses: browser-actions/setup-firefox@latest
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
+        with:
+          firefox-version: ${{ inputs.browser-version }}
+
+      - name: Install geckodriver
+        uses: browser-actions/setup-geckodriver@latest
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
+        with:
+          geckodriver-version: ${{ inputs.driver-version }}
+
+      - name: Install chrome
+        uses: browser-actions/setup-chrome@latest
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
+        with:
+          chrome-version: ${{ inputs.browser-version }}
+
+      - name: Install chromedriver
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
+        uses: nanasess/setup-chromedriver@v1
+
+      - name: Enable Safari Driver
+        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'safari') && contains(runner.os, 'macos') }}
+        run: |
+          sudo safaridriver --enable
+          # Only one Safari browser instance can be active at any given time
+          echo "STANDALONE_REFRESH=${{ inputs.refresh }}" >> $GITHUB_ENV
+
+      - name: Install requirements
+        shell: bash -l {0}
+        if: inputs.self-build==1
+        run: |
+          python3 -m pip install -e .
+          python3 -m pip install pytest-cov
+          # Currently we only install the package for dependencies.
+          # We then uninstall it otherwise tests fails due to pytest hook being
+          # registered twice.
+          python3 -m pip uninstall -y pytest-pyodide
+          which npm && npm install -g npm && npm update
+          which npm && npm install node-fetch@2
+      - name: Install pytest-pyodide for workflow
+        shell: bash -l {0}
+        if: inputs.self-build!=1
+        run: |
+          python3 -m pip install pytest-pyodide
+          python3 -m pip install pytest-cov
+          which npm && npm install -g npm && npm update
+          which npm && npm install node-fetch@2
+      - name: Get Pyodide from cache
+        uses: actions/cache@v3
+        with:
+          path: pyodide-dist
+          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
+
+      - name: Run tests
+        shell: bash -l {0}
+        run: |
+          STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
+            --cov=pytest_pyodide \
+            --dist-dir=./pyodide-dist/ \
+            --runner=${{ inputs.runner }} \
+            --rt ${{ inputs.browser }}
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ inputs.self-build==1 && (github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request') }}
+        with:
+          fail_ci_if_error: true
