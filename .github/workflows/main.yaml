@@ -94,7 +94,7 @@ jobs:
         shell: bash -l {0}
         if: ${{ inputs.runner == 'playwright' }}
         run: |
-          if [ -n ${{inputs.runner-version}} ] then
+          if [ -n "${{ inputs.runner-version }}" ] then
             python3 -m pip install playwright==${{inputs.runner-version}}
           else
             python3 -m pip install playwright
