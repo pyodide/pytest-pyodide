@@ -57,7 +57,7 @@ def test_post_handler(selenium):
         from pyodide.http import pyfetch
 
         data = await pyfetch(
-            base_url + "random-path", method="POST", body="some post data"
+            base_url + "/random-path", method="POST", body="some post data"
         )
         return await data.string()
 
