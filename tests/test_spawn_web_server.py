@@ -37,6 +37,11 @@ class EchoHandler(DefaultHandler):
         post_body = self.rfile.read(content_len)
         self.wfile.write(post_body)
 
+    def do_GET(self) -> None:
+        # A client should not send a GET request
+        self.send_response(HTTPStatus.BAD_REQUEST)
+        self.end_headers()
+
     def end_headers(self):
         self.send_header("Access-Control-Allow-Methods", "*")
         self.send_header("Access-Control-Allow-Headers", "POST")
@@ -57,7 +62,7 @@ def test_post_handler(selenium):
         from pyodide.http import pyfetch
 
         data = await pyfetch(
-            base_url + "/random-path", method="POST", body="some post data"
+            base_url + "random-path", method="POST", body="some post data"
         )
         return await data.string()
 
