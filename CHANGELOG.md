@@ -1,6 +1,21 @@
-## [0.22.3] - 2022.10.12
+## [Unreleased]
+
+## [0.23.1] - 2022.10.26
+
+- Breaking: altered the way that `PyodideHandle` is received inside the Pyodide
+  function so that it is transparent to the callee: the handle is automatically
+  converted into the wrapped object.
+  [#54](https://github.com/pyodide/pytest-pyodide/pull/54)
+
+## [0.23.0] - 2022.10.24
 
 - `JsException` raise from within pyodide is now unpickled correctly in the host. ([#45](https://github.com/pyodide/pytest-pyodide/issues/45))
+- Improve error messages when unpickling error messages with objects that don't exist in the host environment
+   ([#46](https://github.com/pyodide/pytest-pyodide/issues/46))
+- Added the `PyodideHandle` class which allows returning a reference to a Python
+  object in the Pyodide runtime from a `@run_in_pyodide` function. This is
+  useful for fixtures designed to be used with `@run_in_pyodide`.
+  ([#49](https://github.com/pyodide/pytest-pyodide/issues/49))
 
 ## [0.22.2] - 2022.09.08
 

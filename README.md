@@ -19,10 +19,63 @@ You would also one at least one of the following runtimes,
  - Safari and safaridriver
  - node v14+
 
+## Github Reusable workflow
+
+pytest-pyodide also supports testing on github actions by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process.
+
+In your github actions workflow, call it with as a aseparate job. To pass in your build wheel use an upload-artifact step in your build step.
+
+This will run your tests on the given browser/pyodide version/OS configuration. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders.
+
+```
+jobs:
+  # Build for pyodide 0.21.0
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.2
+    - uses: mymindstorm/setup-emsdk@v11
+      with:
+        version: 3.1.14
+    - run: pip install pyodide-build==0.21.0
+    - run: pyodide build
+    - uses: actions/upload-artifact@v3
+      with:
+        name: pyodide wheel
+        path: dist
+  # this is the job which you add to run pyodide-test
+  test:
+    needs: build
+    uses: pyodide/pytest-pyodide/.github/workflows/main.yaml@main
+    with:
+      build-artifact-name: pyodide wheel
+      build-artifact-path: dist
+      browser: firefox
+      runner: selenium
+      pyodide-version: 0.21.0
+```
+
+If you want to run on multiple browsers / pyodide versions etc., you can either use a matrix strategy and run main.yaml as above, or you can use testall.yaml. This by default tests on all browsers (and node) with multiple configurations. If you want to reduce the configurations you can filter with lists of browsers, runners, pyodide-versions as shown below.
+```
+  test:
+    needs: build
+    uses: pyodide/pytest-pyodide/.github/workflows/testall.yaml@main
+    with:
+      build-artifact-name: pyodide wheel
+      build-artifact-path: dist
+      pyodide-versions: [0.21.0,0.23.0]
+      runners: [selenium,playwright]
+      browsers: [firefox,chrome,node]
+      os: [ubuntu-latest,macos-latest]
+```
+
 ## Usage
 
-1. First you would need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
-   ```
+1. First you need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
+   ```bash
    wget https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2
    tar xjf pyodide-build-0.21.0.tar.bz2
    mv pyodide dist/
@@ -77,10 +130,55 @@ def test_type_of_int(selenium, x):
     assert type(x) is int
 ```
 
-These arguments must be picklable. You can also use fixtures as long as the
-return values of the fixtures are picklable (most commonly, if they are `None`).
-As a special case, the function will see the `selenium` fixture as `None` inside
-the test.
+The first argument to a `@run_in_pyodide` function must be a browser runner,
+generally a `selenium` fixture. The remaining arguments and the return value of
+the `@run_in_pyodide` function must be picklable. The arguments will be pickled
+in the host Python and unpickled in the Pyodide Python. The reverse will happen
+to the return value. The first `selenium` argument will be `None` inside the
+body of the function (it is used internally by the fixture). Note that a
+consequence of this is that the received arguments are copies. Changes made to
+an argument will not be reflected in the host Python:
+```py
+@run_in_pyodide
+def mutate_dict(selenium, x):
+    x["a"] = -1
+    return x
+
+def test_mutate_dict():
+    d = {"a" : 9, "b" : 7}
+    assert mutate_dict(d) == { "a" : -1, "b" : 7 }
+    # d is unchanged because it was implicitly copied into the Pyodide runtime!
+    assert d == {"a" : 9, "b" : 7}
+```
+
+You can also use fixtures as long as the return values of the fixtures are
+picklable (most commonly, if they are `None`). As a special case, the function
+will see the `selenium` fixture as `None` inside the test.
+
+If you need to return a persistent reference to a Pyodide Python object, you can
+use the special `PyodideHandle` class:
+```py
+@run_in_pyodide
+def get_pyodide_handle(selenium):
+    from pytest_pyodide.decorator import PyodideHandle
+    d = { "a" : 2 }
+    return PyodideHandle(d)
+
+@run_in_pyodide
+def set_value(selenium, h, key, value):
+    h[key] = value
+
+@run_in_pyodide
+def get_value(selenium, h, key, value):
+    return h[key]
+
+def test_pyodide_handle(selenium):
+    h = get_pyodide_handle(selenium)
+    assert get_value(selenium, h, "a") == 2
+    set_value(selenium, h, "a", 3)
+    assert get_value(selenium, h, "a") == 3
+```
+This can be used to create fixtures for use with `@run_in_pyodide`.
 
 It is possible to use `run_in_pyodide` as an inner function:
 
@@ -92,10 +190,7 @@ def test_inner_function(selenium):
         return 7
     assert inner_function(selenium_mock, 6) == 7
 ```
-
-Again both the arguments and return value must be pickleable.
-
-Also, the function will not see closure variables at all:
+However, the function will not see closure variables at all:
 
 ```py
 def test_inner_function_closure(selenium):
@@ -107,6 +202,9 @@ def test_inner_function_closure(selenium):
     # Raises `NameError: 'x' is not defined`
     assert inner_function(selenium_mock) == 7
 ```
+Thus, the only value of inner `@run_in_pyodide` functions is to limit the scope
+of the function definition. If you need a closure, you will have to wrap it in a
+second function call.
 
 ## Specifying a browser
 

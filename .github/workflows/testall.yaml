@@ -1,0 +1,70 @@
+name: main
+
+on:
+  workflow_call:
+    inputs:
+      build-artifact-name:
+        required: true
+        type: string
+      build-artifact-path:
+        required: true
+        type: string
+      self-build:
+        required: false
+        type: number
+      pyodide-versions:
+        required: false
+        type: string
+        default: "*"
+      runners:
+        required: false
+        type: string
+        default: '[selenium,playwright]'
+      browsers:
+        required: false
+        type: string
+        default: "*"
+      os:
+        required: false
+        type: string
+        default: '[ubuntu-latest,macos-latest]'
+permissions:
+  contents: read
+jobs:
+  make_test_matrix:
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+      pyodide_versions: ${{ steps.filter.outputs.pyodide_versions }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Filter matrix
+        id: filter
+        run: python .github/workflows/filtermatrix.py "${{ inputs.pyodide-versions }}" "${{ inputs.os }}"  "${{inputs.runners}}" "${{inputs.browsers}}">> $GITHUB_OUTPUT
+      - name: output filter matrix
+        run: echo "FilterMatrix is ${{ steps.filter.outputs.matrix }}"
+  check_matrix:
+    needs: make_test_matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: show matrix
+        run: echo "${{ needs.make_test_matrix.outputs.matrix }}"
+  call-main-workflow:
+    needs: make_test_matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
+    uses: ./.github/workflows/main.yaml
+    with:
+      build-artifact-name: ${{ inputs.build-artifact-name }}
+      build-artifact-path: ${{ inputs.build-artifact-path }}
+      self-build: ${{ inputs.self-build }}
+      pyodide-version: ${{ matrix.pyodide-version }}
+      runner: ${{ matrix.test-config.runner }}
+      browser: ${{ matrix.test-config.browser }}
+      os: ${{ matrix.os }}
+      browser-version: ${{ matrix.test-config.browser-version }}
+      driver-version: ${{ matrix.test-config.driver-version }}
+      refresh: ${{ matrix.test-config.refresh }}
+      runner-version: ${{ matrix.test-config.runner-version }}
