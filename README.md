@@ -169,7 +169,7 @@ def set_value(selenium, h, key, value):
     h[key] = value
 
 @run_in_pyodide
-def get_value(selenium, h, key, value):
+def get_value(selenium, h, key):
     return h[key]
 
 def test_pyodide_handle(selenium):
