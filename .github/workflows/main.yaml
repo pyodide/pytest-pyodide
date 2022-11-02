@@ -36,6 +36,10 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
+      pytest-extra-args:
+        required: false
+        type: string
+        default: ""
       driver-version:
         required: false
         type: string
@@ -165,7 +169,8 @@ jobs:
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
-            --rt ${{ inputs.browser }}
+            --rt ${{ inputs.browser }} \
+            ${{ inputs.pytest-extra-args }}
 
       - uses: codecov/codecov-action@v3
         if: ${{ inputs.self-build==1 && (github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request') }}
