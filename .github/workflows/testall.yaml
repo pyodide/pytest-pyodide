@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dump context
-        run: echo -e "$GITHUB_CONTEXT\n"
+        run: export
   call-main-workflow:
     needs: make_test_matrix
     strategy:
