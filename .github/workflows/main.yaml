@@ -44,6 +44,11 @@ on:
         required: false
         type: string
         default: "0"
+      run-pytest-in-pyodide:
+        required: false
+        type: number
+        default: 0
+
 permissions:
   contents: read
 
@@ -159,6 +164,7 @@ jobs:
           key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
 
       - name: Run tests
+        if: ${{ inputs.run-pytest-in-pyodide==0 }}
         shell: bash -l {0}
         run: |
           STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
@@ -166,6 +172,17 @@ jobs:
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
             --rt ${{ inputs.browser }}
+      - name: Run tests on pyodide
+        if: ${{ inputs.run-pytest-in-pyodide==1 }}
+        shell: bash -l {0}
+        run: |
+          python 
+          STANDALONE_REFRESH=${{ env.STANDALONE_REFRESH }} pytest -v \
+            --cov=pytest_pyodide \
+            --dist-dir=./pyodide-dist/ \
+            --runner=${{ inputs.runner }} \
+            --rt ${{ inputs.browser }} \
+            .github/workflows/pytest_in_pyodide.py
 
       - uses: codecov/codecov-action@v3
         if: ${{ inputs.self-build==1 && (github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request') }}
