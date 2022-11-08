@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dump context
-        run: export
+        run: export && false
   call-main-workflow:
     needs: make_test_matrix
     strategy:
