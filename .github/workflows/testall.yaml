@@ -49,6 +49,14 @@ jobs:
     steps:
       - name: show matrix
         run: echo "${{ needs.make_test_matrix.outputs.matrix }}"
+
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1
+
   call-main-workflow:
     needs: make_test_matrix
     strategy:
