@@ -38,9 +38,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          repo: joemarshall/pytest-pyodide
+          ref: call-pytest-in-pyodide
+          path: _pytest_checkout
       - name: Filter matrix
         id: filter
-        run: python .github/workflows/filtermatrix.py "${{ inputs.pyodide-versions }}" "${{ inputs.os }}"  "${{inputs.runners}}" "${{inputs.browsers}}">> $GITHUB_OUTPUT
+        run: python _pytest_checkout/.github/workflows/filtermatrix.py "${{ inputs.pyodide-versions }}" "${{ inputs.os }}"  "${{inputs.runners}}" "${{inputs.browsers}}">> $GITHUB_OUTPUT
       - name: output filter matrix
         run: echo "FilterMatrix is ${{ steps.filter.outputs.matrix }}"
   check_matrix:
@@ -61,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
-    uses: ./.github/workflows/main.yaml
+    uses: joemarshall/pytest-pyodide/.github/workflows/main.yaml@call-pytest-in-pyodide
     with:
       build-artifact-name: ${{ inputs.build-artifact-name }}
       build-artifact-path: ${{ inputs.build-artifact-path }}
