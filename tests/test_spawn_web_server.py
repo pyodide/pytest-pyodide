@@ -59,12 +59,23 @@ class EchoHandler(DefaultHandler):
 def test_post_handler(selenium):
     @run_in_pyodide
     async def inner_function(selenium, base_url):
-        from pyodide.http import pyfetch
+        from js import fetch, eval, require
+        from pyodide import to_js
 
-        data = await pyfetch(
-            base_url + "random-path", method="POST", body="some post data"
-        )
-        return await data.string()
+        https = require('https')
+        req = https.request({'method': 'POST'})
+        req.write("hi")
+        req.end()
+                            # print(f"Data: {await data.text()}")
+        # return "blaat"
+        #
+        # data = await fetch(
+        #     base_url + "random-path",
+        #     to_js(dict(method="post", body="some post data"))
+        # )
+        print(data.status)
+        print(data.statusText)
+        return await data.text()
 
     with spawn_web_server(".", handler_cls=EchoHandler) as server:
         server_hostname, server_port, _ = server
