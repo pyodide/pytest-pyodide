@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repo: joemarshall/pytest-pyodide
+          repository: joemarshall/pytest-pyodide
           ref: call-pytest-in-pyodide
           path: _pytest_checkout
       - name: Filter matrix
