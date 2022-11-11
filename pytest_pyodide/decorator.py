@@ -190,6 +190,7 @@ def _create_outer_test_function(
 
     # Adjust line numbers to point into our fake function
     lineno = fake_body_for_traceback.__code__.co_firstlineno
+    new_node.end_lineno = 2
     ast.increment_lineno(new_node, lineno)
 
     mod = ast.Module([new_node], type_ignores=[])
