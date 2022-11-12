@@ -179,6 +179,7 @@ def _create_outer_test_function(
 
     # Add extra <selenium_arg_name> argument
     new_node.body = func_body
+    new_node.end_lineno = 2
 
     # Make a best effort to show something that isn't total nonsense in the
     # traceback for the generated function when there is an error.
@@ -190,7 +191,6 @@ def _create_outer_test_function(
 
     # Adjust line numbers to point into our fake function
     lineno = fake_body_for_traceback.__code__.co_firstlineno
-    new_node.end_lineno = 2
     ast.increment_lineno(new_node, lineno)
 
     mod = ast.Module([new_node], type_ignores=[])
@@ -391,7 +391,6 @@ class run_in_pyodide:
             break
 
         self._mod = ast.Module(nodes, type_ignores=[])
-        ast.fix_missing_locations(self._mod)
 
         self._node = node
 
