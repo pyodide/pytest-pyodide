@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.23.2] - 2022-11-14
+
 - Fixes for Python 3.11: there are some bugs with `ast.fix_missing_locations` in
   Python 3.11.0.
   [#60](https://github.com/pyodide/pytest-pyodide/pull/60)
