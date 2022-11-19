@@ -1,12 +1,10 @@
 import ast
 import re
 import sys
+from argparse import BooleanOptionalAction
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
-from argparse import BooleanOptionalAction
-from .pytest_in_pyodide import run_test_in_pyodide,copy_files_to_pyodide,close_test_in_pyodide_servers
-from glob import glob
 
 import pytest
 from _pytest.assertion.rewrite import AssertionRewritingHook, rewrite_asserts
@@ -14,6 +12,11 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+from .pytest_in_pyodide import (
+    close_test_in_pyodide_servers,
+    copy_files_to_pyodide,
+    run_test_in_pyodide,
+)
 from .utils import parse_xfail_browsers
 
 RUNTIMES = ["firefox", "chrome", "safari", "node"]
@@ -48,6 +51,7 @@ def pytest_unconfigure(config):
     if config.option.run_in_pyodide:
         close_test_in_pyodide_servers()
 
+
 def pytest_configure(config):
 
     config.addinivalue_line(
@@ -74,8 +78,6 @@ def pytest_configure(config):
     pytest.pyodide_run_host_test = run_host
     pytest.pyodide_runtimes = runtimes
     pytest.pyodide_dist_dir = config.getoption("--dist-dir")
-    pytest.run_in_pyodide=config.option.run_in_pyodide
-    pytest.run_in_pyodide_config=config
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -153,18 +155,16 @@ def pytest_generate_tests(metafunc: Any) -> None:
         metafunc.parametrize("runtime", pytest.pyodide_runtimes, scope="module")
 
 
-
 def pytest_collection_modifyitems(items: list[Any]) -> None:
     # if we are running tests in pyodide, then run all tests for each runtime
-    if pytest.run_in_pyodide:
-
-        new_items=[]
-        for runtime in pytest.pyodide_runtimes:
-            if runtime!='host':
+    if len(items) > 0 and items[0].config.option.run_in_pyodide:
+        new_items = []
+        for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
+            if runtime != "host":
                 for x in items:
                     new_items.append(x)
-                    new_items[-1].pyodide_runtime=runtime
-        items[:]=new_items
+                    new_items[-1].pyodide_runtime = runtime
+        items[:] = new_items
         return
 
     # Run all Safari standalone tests first
@@ -203,9 +203,10 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
 def pytest_collection(session):
     return None
 
+
 @pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
-    if pytest.run_in_pyodide:
+    if item.config.option.run_in_pyodide:
         if not hasattr(item, "fixturenames"):
             return
         if pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
@@ -213,12 +214,21 @@ def pytest_runtest_setup(item):
         else:
             # pass this test to pyodide runner
             # first: make sure that pyodide has the current folder copied over
-            itemPath=Path(item.path)
-            copy_files=itemPath.parent.glob("**/*")
-            class requestType:
-                config=pytest.run_in_pyodide_config
-                node=item
-            copy_files_to_pyodide(list(copy_files),request=requestType,runtime=item.pyodide_runtime)
+            itemPath = Path(item.path)
+            copy_files = list(itemPath.parent.glob("**/*"))
+            # if we have a pyodide build dist folder with wheels in, copy those over
+            # and install the wheels in pyodide so we can import this package for tests
+            distPath = Path.cwd() / "dist"
+            if distPath.exists():
+                copy_files.extend(list(distPath.glob("*.whl")))
+
+            class RequestType:
+                config = item.config
+                node = item
+
+            copy_files_to_pyodide(
+                copy_files, request=RequestType, runtime=item.pyodide_runtime
+            )
     else:
         if not hasattr(item, "fixturenames"):
             # Some items like DoctestItem has no fixture
@@ -231,10 +241,12 @@ def pytest_runtest_setup(item):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
-    if pytest.run_in_pyodide:
+    if item.config.option.run_in_pyodide:
+
         def __run_in_pyodide(self):
-            run_test_in_pyodide(self.nodeid,self.pyodide_runtime)
-        item.runtest=__run_in_pyodide.__get__(item,item.__class__)
+            run_test_in_pyodide(self.nodeid, self.pyodide_runtime)
+
+        item.runtest = __run_in_pyodide.__get__(item, item.__class__)
         yield
         return
 
