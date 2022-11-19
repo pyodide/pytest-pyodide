@@ -73,6 +73,7 @@ def copy_files_to_pyodide(file_list, request, runtime):
             """
             from pyodide.http import pyfetch
             all_fetches=[]
+            all_wheels=[]
             """
         )
         for file in new_files:
@@ -83,8 +84,7 @@ def copy_files_to_pyodide(file_list, request, runtime):
                 # any fetches
                 selenium.run_async(
                     f"""
-                    import micropip
-                    await micropip.install("{file_url}")
+                    all_wheels.append("{file_url}")
                     """
                 )
             else:
@@ -94,6 +94,13 @@ def copy_files_to_pyodide(file_list, request, runtime):
                     all_fetches.append(pyfetch("{file_url}"))
                     """
                 )
+        # install all wheels with micropip
+        selenium.run_async(
+            """
+            import micropip
+            await micropip.install(all_wheels)
+            """
+        )
         # fetch everything all at once
         selenium.run_async(
             """
