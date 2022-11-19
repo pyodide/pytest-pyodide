@@ -59,13 +59,12 @@ def copy_files_to_pyodide(file_list, request, runtime):
         if x.is_dir():
             continue
         if x not in _copied_files:
-            new_files.append(x)
+            new_files.append(x.resolve())
     if len(new_files) == 0:
         return
-    base_path = Path(".").resolve()
+    base_path = Path.cwd()
     selenium = init_pyodide_runner(request, runtime)
     with spawn_web_server(base_path) as server:
-        # print("SERVER")
         server_hostname, server_port, _ = server
         base_url = f"http://{server_hostname}:{server_port}/"
         # fetch all files into the pyodide
@@ -112,12 +111,10 @@ def copy_files_to_pyodide(file_list, request, runtime):
         )
 
 
-def run_test_in_pyodide(node_tree_id, runtime):
+def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     selenium = _seleniums[runtime][0].get_value()
-    all_args = ["./test_files/" + node_tree_id, "-q", "--color=no"]
-    # copy files to test_files folder in pyodide
-    # and install any wheels copied
-    # _copy_files_to_pyodide(selenium)
+    all_args = ["./test_files/" + node_tree_id, "--color=no"]
+    #    all_args = ["./test_files/" + node_tree_id, "-q", "--color=no"]
     ret_error = selenium.run_async(
         f"""
         import pytest
@@ -128,6 +125,7 @@ def run_test_in_pyodide(node_tree_id, runtime):
         import sys
         sys.stdout.write=write_out
         sys.stderr.write=write_out
+        print("{all_args}")
         retcode=pytest.main({all_args})
         if retcode==0:
             out_buf=""
@@ -136,6 +134,7 @@ def run_test_in_pyodide(node_tree_id, runtime):
     """
     )
     if len(ret_error) != 0:
+        print("ERR:", ret_error, "\n*******************")
         ret_error_lines = ret_error.splitlines()
         fail_error = []
         fail_stdout = []
@@ -155,7 +154,10 @@ def run_test_in_pyodide(node_tree_id, runtime):
             elif recording_stdout:
                 fail_stdout.append(line)
         print("\n".join(fail_stdout))
-        pytest.fail("\n".join(fail_error[1:]), pytrace=False)
+        if not ignore_fail:
+            pytest.fail("\n".join(fail_error[1:]), pytrace=False)
+        return False
+    return True
 
 
 def close_test_in_pyodide_servers():
