@@ -206,6 +206,20 @@ Thus, the only value of inner `@run_in_pyodide` functions is to limit the scope
 of the function definition. If you need a closure, you will have to wrap it in a
 second function call.
 
+## Running non-pyodide tests in Pyodide
+
+This plugin also supports running standard pytest tests on pyodide in a browser. So if you have an existing codebase and
+you want to check if your pyodide build works, just run it like this:
+```
+# make the pyodide wheel in the dist folder
+pyodide build
+# the following code a) copiesthe test directory and subfolders to a pyodide instance, and
+# b) installs any wheels in the dist folder so that this package is available on the pyodide vm
+pytest --run-in-pyodide test_path --runtime <runtime> --dist-dir=<pyodide/dist>
+```
+
+
+
 ## Specifying a browser
 
 You can specify a browser runtime using `--runtime` (`--rt`) commandline option.
@@ -243,9 +257,10 @@ Then use the `--runner` argument to specify to run tests with playwright.
 pytest --runner playwright
 ```
 
+
 ### Custom test marks
 
-Custeom test marks supported by `pytest-pyodide`:
+Custom test marks supported by `pytest-pyodide`:
 
 `pytest.mark.driver_timeout(timeout)`: Set script timeout in WebDriver. If the
 test is known to take a long time, you can extend the deadline with this marker.

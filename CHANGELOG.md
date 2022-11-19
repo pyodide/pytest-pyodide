@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+- Added command line option `--run-in-pyodide`. This will run a set of normal pytest tests in pyodide using the
+  same testing architecture used for running dedicated pyodide tests.
+
 ## [0.23.2] - 2022-11-14
 
 - Fixes for Python 3.11: there are some bugs with `ast.fix_missing_locations` in
