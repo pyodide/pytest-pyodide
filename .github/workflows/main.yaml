@@ -64,6 +64,7 @@ jobs:
             *)
               echo "python=3.10.2" >> $GITHUB_OUTPUT
               echo "pythonexec=python310" >> $GITHUB_OUTPUT
+              echo "Using python 3.10.2 for pyodide ${{inputs.pyodide-version}}"
               ;;
           esac
       - name: Fix runner os
