@@ -96,12 +96,12 @@ jobs:
         run: |
           if [ -n "${{ inputs.runner-version }}" ]
           then
-            python3 -m pip install playwright==${{inputs.runner-version}}
+            python3.10 -m pip install playwright==${{inputs.runner-version}}
           else
-            python3 -m pip install playwright
+            python3.10 -m pip install playwright
           fi
           # TODO: install only browsers that are required
-          python3 -m playwright install --with-deps
+          python3.10 -m playwright install --with-deps
 
       - name: Install firefox
         uses: browser-actions/setup-firefox@latest
@@ -136,20 +136,20 @@ jobs:
         shell: bash -l {0}
         if: inputs.self-build==1
         run: |
-          python3 -m pip install -e .
-          python3 -m pip install pytest-cov
+          python3.10 -m pip install -e .
+          python3.10 -m pip install pytest-cov
           # Currently we only install the package for dependencies.
           # We then uninstall it otherwise tests fails due to pytest hook being
           # registered twice.
-          python3 -m pip uninstall -y pytest-pyodide
+          python3.10 -m pip uninstall -y pytest-pyodide
           which npm && npm install -g npm && npm update
           which npm && npm install node-fetch@2
       - name: Install pytest-pyodide for workflow
         shell: bash -l {0}
         if: inputs.self-build!=1
         run: |
-          python3 -m pip install pytest-pyodide
-          python3 -m pip install pytest-cov
+          python3.10 -m pip install pytest-pyodide
+          python3.10 -m pip install pytest-cov
           which npm && npm install -g npm && npm update
           which npm && npm install node-fetch@2
       - name: Get Pyodide from cache
