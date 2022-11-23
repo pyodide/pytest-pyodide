@@ -1,0 +1,72 @@
+{
+    "os": "ubuntu-latest",
+    "pyodide-version": ["0.21.0"],
+    "test-config": [
+        {
+            "runner": "selenium",
+            "browser": "firefox",
+            "browser-version": "latest",
+            "driver-version": "latest"
+        },
+        {
+            "runner": "selenium",
+            "browser": "chrome",
+            "browser-version": "latest",
+            "driver-version": "latest"
+        },
+        {
+            "runner": "selenium",
+            "browser": "firefox",
+            "browser-version": "latest",
+            "driver-version": "latest"
+        },
+        {
+            "runner": "selenium",
+            "browser": "node",
+            "browser-version": "14"
+        },
+        {
+            "runner": "selenium",
+            "browser": "node",
+            "browser-version": "16"
+        },
+        {
+            "runner": "selenium",
+            "browser": "node",
+            "browser-version": "18"
+        },
+        {
+            "runner": "selenium",
+            "browser": "host"
+        },
+        {
+            "runner": "playwright",
+            "browser": "firefox",
+            "runner-version": "1.22.0"
+        },
+        {
+            "runner": "playwright",
+            "browser": "chrome",
+            "runner-version": "1.22.0"
+        }
+    ],
+    "include": [
+        {
+            "os": "macos-latest",
+            "pyodide-version": "0.21.0",
+            "test-config": {
+                "runner": "selenium",
+                "browser": "safari"
+            }
+        },
+        {
+            "os": "macos-latest",
+            "pyodide-version": "0.21.0",
+            "test-config": {
+                "runner": "selenium",
+                "browser": "safari",
+                "refresh": "1"
+            }
+        }
+    ]
+}
