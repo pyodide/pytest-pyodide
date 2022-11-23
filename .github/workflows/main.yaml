@@ -60,7 +60,7 @@ jobs:
       - name: Get python version for a particular pyodide version
         id: get_python_version
         run: |
-          case "${{inputs.pyodide-version}}"" in
+          case "${{inputs.pyodide-version}}" in
             *)
               echo "python=3.10.2" >> $GITHUB_OUTPUT
               echo "pythonexec=python310" >> $GITHUB_OUTPUT
