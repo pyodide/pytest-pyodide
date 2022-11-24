@@ -132,9 +132,13 @@ jobs:
           # Only one Safari browser instance can be active at any given time
           echo "STANDALONE_REFRESH=${{ inputs.refresh }}" >> $GITHUB_ENV
 
+      - name: Parse repository name
+        id: repo-name
+        run: echo "repo_name=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
+
       - name: Install requirements
         shell: bash -l {0}
-        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' }}
+        if: ${{ steps.repo-name.outputs.repo_name == 'pytest-pyodide' }}
         run: |
           python3.10 -m pip install -e .
           python3.10 -m pip install pytest-cov
@@ -146,7 +150,7 @@ jobs:
           which npm && npm install node-fetch@2
       - name: Install pytest-pyodide for workflow
         shell: bash -l {0}
-        if: ${{ github.event.repo.name != 'pyodide/pytest-pyodide' }}
+        if: ${{ steps.repo-name.outputs.repo_name != 'pytest-pyodide' }}
         run: |
           python3.10 -m pip install pytest-pyodide
           python3.10 -m pip install pytest-cov
