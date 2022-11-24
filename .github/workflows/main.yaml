@@ -159,4 +159,4 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: ${{ steps.check_coverage.outputs.files_exists }}
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
