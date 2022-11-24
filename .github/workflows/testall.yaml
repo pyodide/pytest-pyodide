@@ -1,3 +1,5 @@
+# This is a helper script to run tests with multiple browsers, runners, versions.
+
 name: main
 
 on:
@@ -9,6 +11,10 @@ on:
       build-artifact-path:
         required: true
         type: string
+      os:
+        required: false
+        type: string
+        default: ""
       self-build:
         required: false
         type: number
@@ -24,10 +30,22 @@ on:
         required: false
         type: string
         default: ""
-      os:
+      chrome-versions:
         required: false
         type: string
         default: ""
+      firefox-versions:
+        required: false
+        type: string
+        default: ""
+      node-versions:
+        required: false
+        type: string
+        default: ""
+      playwright-version:
+        required: false
+        type: string
+        default: ""  # latest
 permissions:
   contents: read
 jobs:
@@ -45,6 +63,10 @@ jobs:
             --os ${{ inputs.os }} \
             --runner ${{ inputs.runners }} \
             --browser ${{ iputs.browsers }} \
+            --chrome-version ${{ inputs.chrome-version }} \
+            --firefox-version ${{ inputs.firefox-version }} \
+            --node-version ${{ inputs.node-version }} \
+            --playwright-version ${{ inputs.playwright-version }} \
             >> $GITHUB_OUTPUT
       - name: Output test matrix
         run: echo "Test matrix is ${{ steps.build-matrix.outputs.matrix }}"
@@ -73,4 +95,3 @@ jobs:
       firefox-version: ${{ matrix.test-config.firefox-version }}
       node-version: ${{ matrix.test-config.node-version }}
       playwright-version: ${{ matrix.test-config.playwright-version }}
-      refresh: ${{ matrix.test-config.refresh }}
