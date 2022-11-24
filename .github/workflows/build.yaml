@@ -18,7 +18,7 @@ jobs:
         self-build: 1
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     environment: PyPi-deploy
     steps:
@@ -37,7 +37,7 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3

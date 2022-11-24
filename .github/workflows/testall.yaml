@@ -27,7 +27,7 @@ on:
       os:
         required: false
         type: string
-        default: '[ubuntu-latest,macos-latest]'
+        default: '[ubuntu-20.04,macos-11]'
 permissions:
   contents: read
 jobs:
