@@ -134,7 +134,7 @@ jobs:
 
       - name: Install requirements
         shell: bash -l {0}
-        if: inputs.self-build==1
+        if: ${{ github.event.repo.name == 'pyodide/pytest-pyodide' }}
         run: |
           python3.10 -m pip install -e .
           python3.10 -m pip install pytest-cov
@@ -146,7 +146,7 @@ jobs:
           which npm && npm install node-fetch@2
       - name: Install pytest-pyodide for workflow
         shell: bash -l {0}
-        if: inputs.self-build!=1
+        if: ${{ github.event.repo.name != 'pyodide/pytest-pyodide' }}
         run: |
           python3.10 -m pip install pytest-pyodide
           python3.10 -m pip install pytest-cov
@@ -168,6 +168,6 @@ jobs:
             --rt ${{ inputs.browser }}
 
       - uses: codecov/codecov-action@v3
-        if: ${{ inputs.self-build==1 && (github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request') }}
+        if: ${{ (github.event.repo.name == 'pyodide/pytest-pyodide' || github.event_name == 'pull_request') }}
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
