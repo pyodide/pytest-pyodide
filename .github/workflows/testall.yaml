@@ -66,5 +66,4 @@ jobs:
       os: ${{ matrix.os }}
       browser-version: ${{ matrix.test-config.browser-version }}
       driver-version: ${{ matrix.test-config.driver-version }}
-      refresh: ${{ matrix.test-config.refresh }}
       runner-version: ${{ matrix.test-config.runner-version }}
