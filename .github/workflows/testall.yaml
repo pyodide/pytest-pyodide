@@ -69,7 +69,8 @@ jobs:
       runner: ${{ matrix.test-config.runner }}
       browser: ${{ matrix.test-config.browser }}
       os: ${{ matrix.os }}
-      browser-version: ${{ matrix.test-config.browser-version }}
-      driver-version: ${{ matrix.test-config.driver-version }}
+      chrome-version: ${{ matrix.test-config.chrome-version }}
+      firefox-version: ${{ matrix.test-config.firefox-version }}
+      node-version: ${{ matrix.test-config.node-version }}
+      playwright-version: ${{ matrix.test-config.playwright-version }}
       refresh: ${{ matrix.test-config.refresh }}
-      runner-version: ${{ matrix.test-config.runner-version }}

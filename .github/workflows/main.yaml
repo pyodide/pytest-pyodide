@@ -20,30 +20,42 @@ on:
         required: false
         type: string
         default: "selenium"
-      runner-version:
-        required: false
-        type: string
-        default: ""
       browser:
         required: false
         type: string
         default: "chrome"
-      browser-version:
-        required: false
-        type: string
-        default: "latest"
       os:
         required: false
         type: string
         default: "ubuntu-latest"
-      driver-version:
-        required: false
-        type: string
-        default: "latest"
       refresh:
         required: false
         type: string
         default: "0"
+      chrome-version:
+        required: false
+        type: string
+        default: "latest"
+      firefox-version:
+        required: false
+        type: string
+        default: "latest"
+      node-version:
+        required: false
+        type: string
+        default: "latest"
+      # chromedriver-version:  # autodetected from the chrome version
+      #   required: false
+      #   type: string
+      #   default: "latest"
+      gekcodriver-version:
+        required: false
+        type: string
+        default: "latest"
+      playwright-version:
+        required: false
+        type: string
+        default: ""  # latest
 permissions:
   contents: read
 
@@ -81,7 +93,7 @@ jobs:
         uses: actions/setup-node@v3
         if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
         with:
-          node-version: ${{ inputs.driver-version }}
+          node-version: ${{ inputs.node-version }}
 
       - name: Cache Playwright browsers
         uses: actions/cache@v3
@@ -94,9 +106,9 @@ jobs:
         shell: bash -l {0}
         if: ${{ inputs.runner == 'playwright' }}
         run: |
-          if [ -n "${{ inputs.runner-version }}" ]
+          if [ -n "${{ inputs.playwright-version }}" ]
           then
-            python3.10 -m pip install playwright==${{inputs.runner-version}}
+            python3.10 -m pip install playwright==${{inputs.playwright-version}}
           else
             python3.10 -m pip install playwright
           fi
@@ -107,19 +119,19 @@ jobs:
         uses: browser-actions/setup-firefox@latest
         if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
         with:
-          firefox-version: ${{ inputs.browser-version }}
+          firefox-version: ${{ inputs.firefox-version }}
 
       - name: Install geckodriver
         uses: browser-actions/setup-geckodriver@latest
         if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
         with:
-          geckodriver-version: ${{ inputs.driver-version }}
+          geckodriver-version: ${{ inputs.geckodriver-version }}
 
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
         if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
         with:
-          chrome-version: ${{ inputs.browser-version }}
+          chrome-version: ${{ inputs.chrome-version }}
 
       - name: Install chromedriver
         if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}

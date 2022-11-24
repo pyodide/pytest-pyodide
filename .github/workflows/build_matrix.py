@@ -9,6 +9,7 @@ DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 DEFAULT_CHROME_VERSION = "latest"
 DEFAULT_FIREFOX_VERSION = "latest"
 DEFAULT_NODE_VERSION = "14, 16, 18"
+DEFAULT_PLAYWRIGHT_VERSION = ""  # latest
 
 
 def is_valid(elem: dict[str, str]) -> bool:
@@ -29,23 +30,31 @@ def inject_versions(
     elem: dict[str, str], args: dict[str, list[str]]
 ) -> list[dict[str, str]]:
     """
-    Add versions to test-config
+    Add corresponding versions to test-config
     """
 
-    keys = {
+    versions = {
         "chrome": args["chrome_version"],
         "firefox": args["firefox_version"],
         "node": args["node_version"],
+        "playwright": args["playwright_version"],
     }
 
-    browser = elem["browser"]
-    if browser not in keys:
+    runner = elem["runner"]
+    if runner == "playwright":
+        key = "playwright"
+    elif runner == "selenium":
+        key = elem["browser"]
+    else:
+        raise RuntimeError(f"Invalid runner: {runner}")
+
+    if key not in versions:
         return [elem]
 
     elems = []
-    for version in keys[browser]:
+    for version in versions[key]:
         _elem = elem.copy()
-        _elem.update({f"{browser}-version": version})
+        _elem.update({f"{key}-version": version})
         elems.append(_elem)
 
     return elems
@@ -121,6 +130,12 @@ def parse_args() -> dict[str, list[str]]:
         nargs="?",
         const=DEFAULT_NODE_VERSION,
         default=DEFAULT_NODE_VERSION,
+    )
+    parser.add_argument(
+        "--playwright-version",
+        nargs="?",
+        const=DEFAULT_PLAYWRIGHT_VERSION,
+        default=DEFAULT_PLAYWRIGHT_VERSION,
     )
 
     args = parser.parse_args()
