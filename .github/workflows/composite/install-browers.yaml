@@ -1,0 +1,83 @@
+name: "Install browsers"
+description: "Install browsers to run Pyodide tests"
+inputs:
+  os:
+    required: false
+    type: string
+    default: "ubuntu-latest"
+  runner:
+    required: false
+    type: string
+    default: "selenium"
+  runner-version:
+    required: false
+    type: string
+    default: ""
+  browser:
+    required: false
+    type: string
+    default: "chrome"
+  browser-version:
+    required: false
+    type: string
+    default: "latest"
+  driver-version:
+    required: false
+    type: string
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install node
+      uses: actions/setup-node@v3
+      if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
+      with:
+        node-version: ${{ inputs.driver-version }}
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v3
+      if: ${{ inputs.runner == 'playwright' }}
+      with:
+        path: .cache/ms-playwright
+        key: ${{ runner.os }}-playwright-latest
+
+    - name: Install playwright
+      shell: bash -l {0}
+      if: ${{ inputs.runner == 'playwright' }}
+      run: |
+        if [ -n "${{ inputs.runner-version }}" ]
+        then
+          python3.10 -m pip install playwright==${{inputs.runner-version}}
+        else
+          python3.10 -m pip install playwright
+        fi
+        # TODO: install only browsers that are required
+        python3.10 -m playwright install --with-deps
+
+    - name: Install firefox
+      uses: browser-actions/setup-firefox@latest
+      if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
+      with:
+        firefox-version: ${{ inputs.browser-version }}
+
+    - name: Install geckodriver
+      uses: browser-actions/setup-geckodriver@latest
+      if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
+      with:
+        geckodriver-version: ${{ inputs.driver-version }}
+
+    - name: Install chrome
+      uses: browser-actions/setup-chrome@latest
+      if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
+      with:
+        chrome-version: ${{ inputs.browser-version }}
+
+    - name: Install chromedriver
+      if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
+      uses: nanasess/setup-chromedriver@v1
+
+    - name: Enable Safari Driver
+      if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'safari') && contains(runner.os, 'macos') }}
+      run: |
+        sudo safaridriver --enable
