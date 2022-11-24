@@ -1,124 +1,142 @@
+import argparse
 import itertools
 import json
-import re
-import sys
-from typing import Any
 
-import yaml
+DEFAULT_PYODIDE_VERSION = "0.21.0, 0.21.3"
+DEFAULT_OS = "ubuntu-20.04, macos-11"
+DEFAULT_RUNNER = "selenium, playwright"
+DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
+DEFAULT_CHROME_VERSION = "latest"
+DEFAULT_FIREFOX_VERSION = "latest"
+DEFAULT_NODE_VERSION = "14, 16, 18"
 
-# pyodide versions is a set of versions to test
-# as opposed to other parameters which just filter
-# the configs below
-pyodide_versions = sys.argv[1]
-if pyodide_versions == "*":
-    pyodide_versions = "[0.21.0a3,0.21.0]"
 
-matrix = yaml.safe_load(
+def is_valid(elem: dict[str, str]) -> bool:
     """
-os: [ubuntu-latest]
-pyodide-version: """
-    + pyodide_versions
-    + """
-test-config: [
-    {runner: selenium, browser: firefox, browser-version: latest, driver-version: latest },
-    {runner: selenium, browser: chrome, browser-version: latest, driver-version: latest },
-    {runner: selenium, browser: node, browser-version: 14},
-    {runner: selenium, browser: node, browser-version: 16},
-    {runner: selenium, browser: node, browser-version: 18},
-    {runner: selenium, browser: firefox-no-host, browser-version: latest, driver-version: latest },
-    {
-    runner: selenium, browser: chrome firefox,
-    browser-version: latest, browser-version: latest,
-    browser-version: latest, browser-version: latest,
-    },
-    {runner: selenium, browser: host},
-    # playwright browser versions are pinned to playwright version
-    {runner: playwright, browser: firefox, runner-version: 1.22.0, driver-version: 18},
-    {runner: playwright, browser: chrome, runner-version: 1.22.0, driver-version: 18},
-]
-include:
-    - os: macos-latest
-      pyodide-version: 0.21.0
-      test-config: {runner: selenium, browser: safari}
-    - os: macos-latest
-      pyodide-version: 0.21.0
-      test-config: {runner: selenium, browser: safari, refresh: 1 }
-"""
-)
+    Check if the test-config is valid
+    """
 
-ranges: "dict[str, list[tuple[str, str]]]" = {}
-for key in matrix.keys():
-    if key != "include":
-        ranges[key] = []
-        for v in matrix[key]:
-            ranges[key].append((key, v))
+    if "macos" not in elem["os"] and elem["browser"] == "safari":
+        return False
 
-l = list(ranges.values())
+    if "macos" in elem["os"] and elem["browser"] in ("chrome", "firefox", "node"):
+        return False
 
-config_list: "list[dict[str, Any]]" = []
-for conf in itertools.product(*l):
-    dict_out = {}
-    for (key, v) in conf:
-        dict_out[key] = v
-    config_list.append(dict_out)
-
-if "include" in matrix:
-    for inc_spec in matrix["include"]:
-        config_list.append(inc_spec)
+    return True
 
 
-# split a comma separated string (with optional square brackets) into list
-def parse_filter(s) -> "list[str]|None":
-    if s.find("*") != -1:
-        return None
-    else:
-        return [x.lower() for x in re.findall(r'[^,\'"\[\]]+', s)]
+def inject_versions(
+    elem: dict[str, str], args: dict[str, list[str]]
+) -> list[dict[str, str]]:
+    """
+    Add versions to test-config
+    """
+
+    keys = {
+        "chrome": args["chrome_version"],
+        "firefox": args["firefox_version"],
+        "node": args["node_version"],
+    }
+
+    browser = elem["browser"]
+    if browser not in keys:
+        return [elem]
+
+    elems = []
+    for version in keys[browser]:
+        _elem = elem.copy()
+        _elem.update({f"{browser}-version": version})
+        elems.append(_elem)
+
+    return elems
 
 
-os_filter = parse_filter(sys.argv[2])
-runner_filter = parse_filter(sys.argv[3])
-runtime_filter = parse_filter(sys.argv[4])
+def build_matrix(args: dict[str, list[str]]) -> list[dict[str, str]]:
+    os = args["os"]
+    pyodide_version = args["pyodide_version"]
+    runner = args["runner"]
+    browser = args["browser"]
 
-filtered_configs = []
-for c in config_list:
-    if os_filter is None or c["os"].lower() in os_filter:
-        if runner_filter is None or c["test-config"]["runner"].lower() in runner_filter:
-            if (
-                runtime_filter is None
-                or c["test-config"]["browser"].lower() in runtime_filter
-            ):
-                filtered_configs.append(c)
+    matrix = []
+    for (_os, _pyodide_version, _runner, _browser) in itertools.product(
+        os, pyodide_version, runner, browser
+    ):
+        elem = {
+            "os": _os,
+            "pyodide-version": _pyodide_version,
+            "runner": _runner,
+            "browser": _browser,
+        }
 
-# now output the full list of configurations as json
-# which can be used in the include key in a matrix
-print(f"matrix={json.dumps(filtered_configs)}")
-print(f"pyodide_versions={json.dumps(matrix['pyodide-version'])}")
+        if not is_valid(elem):
+            continue
+
+        elems = inject_versions(elem, args)
+        matrix.extend(elems)
+
+    return matrix
 
 
-def parse_args():
-    import argparse
-
+def parse_args() -> dict[str, list[str]]:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--pyodide-version",
-        nargs="+",
-        default=["0.21.3"],
-        help="Pyodide versions to run test",
+        nargs="?",
+        const=DEFAULT_PYODIDE_VERSION,
+        default=DEFAULT_PYODIDE_VERSION,
     )
     parser.add_argument(
-        "--runners",
-        nargs="+",
-        default=["selenium", "playwright"],
-        help="Runners to run test",
+        "--os",
+        nargs="?",
+        const=DEFAULT_OS,
+        default=DEFAULT_OS,
     )
-    parser.add_argument("--browsers", nargs="+", default=["chrome", "firefox", "node"])
-    parser.add_argument("--node-versions", nargs="+", default=["14", "16", "18"])
-    parser.add_argument()
+    parser.add_argument(
+        "--runner",
+        nargs="?",
+        const=DEFAULT_RUNNER,
+        default=DEFAULT_RUNNER,
+    )
+    parser.add_argument(
+        "--browser",
+        nargs="?",
+        const=DEFAULT_BROWSER,
+        default=DEFAULT_BROWSER,
+    )
+    parser.add_argument(
+        "--chrome-version",
+        nargs="?",
+        const=DEFAULT_CHROME_VERSION,
+        default=DEFAULT_CHROME_VERSION,
+    )
+    parser.add_argument(
+        "--firefox-version",
+        nargs="?",
+        const=DEFAULT_FIREFOX_VERSION,
+        default=DEFAULT_FIREFOX_VERSION,
+    )
+    parser.add_argument(
+        "--node-version",
+        nargs="?",
+        const=DEFAULT_NODE_VERSION,
+        default=DEFAULT_NODE_VERSION,
+    )
+
+    args = parser.parse_args()
+    args_dict: dict[str, list[str]] = {}
+    for k, v in vars(args).items():
+        args_dict[k] = [val.strip() for val in v.split(",")]
+
+    return args_dict
 
 
 def main():
-    pass
+    args = parse_args()
+
+    matrix = build_matrix(args)
+
+    print(f"matrix={json.dumps(matrix)}")
 
 
 if __name__ == "__main__":

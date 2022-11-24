@@ -15,34 +15,39 @@ on:
       pyodide-versions:
         required: false
         type: string
-        default: "*"
+        default: ""
       runners:
         required: false
         type: string
-        default: '[selenium,playwright]'
+        default: ""
       browsers:
         required: false
         type: string
-        default: "*"
+        default: ""
       os:
         required: false
         type: string
-        default: '[ubuntu-20.04,macos-11]'
+        default: ""
 permissions:
   contents: read
 jobs:
   make_test_matrix:
     outputs:
-      matrix: ${{ steps.filter.outputs.matrix }}
-      pyodide_versions: ${{ steps.filter.outputs.pyodide_versions }}
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Filter matrix
-        id: filter
-        run: python .github/workflows/filtermatrix.py "${{ inputs.pyodide-versions }}" "${{ inputs.os }}"  "${{inputs.runners}}" "${{inputs.browsers}}">> $GITHUB_OUTPUT
-      - name: output filter matrix
-        run: echo "FilterMatrix is ${{ steps.filter.outputs.matrix }}"
+      - name: Build test matrix
+        id: build-matrix
+        run: |
+          python .github/workflows/build_matrix.py \
+            --pyodide-version ${{ inputs.pyodide-versions }} \
+            --os ${{ inputs.os }} \
+            --runner ${{ inputs.runners }} \
+            --browser ${{ iputs.browsers }} \
+            >> $GITHUB_OUTPUT
+      - name: Output test matrix
+        run: echo "Test matrix is ${{ steps.build-matrix.outputs.matrix }}"
   check_matrix:
     needs: make_test_matrix
     runs-on: ubuntu-latest
@@ -54,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
+        include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix) }}
     uses: ./.github/workflows/main.yaml
     with:
       build-artifact-name: ${{ inputs.build-artifact-name }}
