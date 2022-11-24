@@ -78,6 +78,7 @@ runs:
       uses: nanasess/setup-chromedriver@v1
 
     - name: Enable Safari Driver
+      shell: bash -l {0}
       if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'safari') && contains(runner.os, 'macos') }}
       run: |
         sudo safaridriver --enable
