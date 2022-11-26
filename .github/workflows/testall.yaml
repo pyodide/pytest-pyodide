@@ -9,9 +9,6 @@ on:
       build-artifact-path:
         required: true
         type: string
-      self-build:
-        required: false
-        type: number
       pyodide-versions:
         required: false
         type: string
@@ -59,7 +56,6 @@ jobs:
     with:
       build-artifact-name: ${{ inputs.build-artifact-name }}
       build-artifact-path: ${{ inputs.build-artifact-path }}
-      self-build: ${{ inputs.self-build }}
       pyodide-version: ${{ matrix.pyodide-version }}
       runner: ${{ matrix.test-config.runner }}
       browser: ${{ matrix.test-config.browser }}
