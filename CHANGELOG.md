@@ -1,3 +1,32 @@
+## [Unreleased]
+
+- Breaking: removed STANDALONE_REFRESH env variable which was used to
+  override `selenium_standalone` fixture with `selenium_standalone_refresh`.
+  [#65](https://github.com/pyodide/pytest-pyodide/pull/65)
+
+## [0.23.2] - 2022-11-14
+
+- Fixes for Python 3.11: there are some bugs with `ast.fix_missing_locations` in
+  Python 3.11.0.
+  [#60](https://github.com/pyodide/pytest-pyodide/pull/60)
+
+## [0.23.1] - 2022.10.26
+
+- Breaking: altered the way that `PyodideHandle` is received inside the Pyodide
+  function so that it is transparent to the callee: the handle is automatically
+  converted into the wrapped object.
+  [#54](https://github.com/pyodide/pytest-pyodide/pull/54)
+
+## [0.23.0] - 2022.10.24
+
+- `JsException` raise from within pyodide is now unpickled correctly in the host. ([#45](https://github.com/pyodide/pytest-pyodide/issues/45))
+- Improve error messages when unpickling error messages with objects that don't exist in the host environment
+   ([#46](https://github.com/pyodide/pytest-pyodide/issues/46))
+- Added the `PyodideHandle` class which allows returning a reference to a Python
+  object in the Pyodide runtime from a `@run_in_pyodide` function. This is
+  useful for fixtures designed to be used with `@run_in_pyodide`.
+  ([#49](https://github.com/pyodide/pytest-pyodide/issues/49))
+
 ## [0.22.2] - 2022.09.08
 
 - Host tests will now run by default. If you want to disable running host tests, add `-no-host` suffix in the `--runtime` option. ([#33](https://github.com/pyodide/pytest-pyodide/pull/33))
