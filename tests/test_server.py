@@ -16,4 +16,5 @@ def test_spawn_web_server_with_params(tmp_path):
         assert res.status == 200
         assert res.headers
         assert res.read() == b"a"
+        assert res.headers["Access-Control-Allow-Origin"] == "*"
         assert res.headers.get("Custom-Header") == "42"
