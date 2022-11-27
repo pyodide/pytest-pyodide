@@ -9,9 +9,6 @@ on:
       build-artifact-path:
         required: true
         type: string
-      self-build:
-        required: false
-        type: number
       pyodide-versions:
         required: false
         type: string
@@ -27,7 +24,7 @@ on:
       os:
         required: false
         type: string
-        default: '[ubuntu-latest,macos-latest]'
+        default: '[ubuntu-20.04,macos-11]'
 permissions:
   contents: read
 jobs:
@@ -59,12 +56,10 @@ jobs:
     with:
       build-artifact-name: ${{ inputs.build-artifact-name }}
       build-artifact-path: ${{ inputs.build-artifact-path }}
-      self-build: ${{ inputs.self-build }}
       pyodide-version: ${{ matrix.pyodide-version }}
       runner: ${{ matrix.test-config.runner }}
       browser: ${{ matrix.test-config.browser }}
       os: ${{ matrix.os }}
       browser-version: ${{ matrix.test-config.browser-version }}
       driver-version: ${{ matrix.test-config.driver-version }}
-      refresh: ${{ matrix.test-config.refresh }}
       runner-version: ${{ matrix.test-config.runner-version }}

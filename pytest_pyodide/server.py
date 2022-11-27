@@ -11,12 +11,14 @@ import tempfile
 
 
 @contextlib.contextmanager
-def spawn_web_server(dist_dir, handler_cls=None):
+def spawn_web_server(dist_dir, extra_headers=None, handler_cls=None):
+    if not extra_headers:
+        extra_headers = {}
     tmp_dir = tempfile.mkdtemp()
     log_path = pathlib.Path(tmp_dir) / "http-server.log"
     q: multiprocessing.Queue[str] = multiprocessing.Queue()
     p = multiprocessing.Process(
-        target=run_web_server, args=(q, log_path, dist_dir, handler_cls)
+        target=run_web_server, args=(q, log_path, dist_dir, extra_headers, handler_cls)
     )
 
     try:
@@ -35,20 +37,7 @@ def spawn_web_server(dist_dir, handler_cls=None):
         shutil.rmtree(tmp_dir)
 
 
-class DefaultHandler(http.server.SimpleHTTPRequestHandler):
-    def log_message(self, format_, *args):
-        print(
-            "[%s] source: %s:%s - %s"
-            % (self.log_date_time_string(), *self.client_address, format_ % args)
-        )
-
-    def end_headers(self):
-        # Enable Cross-Origin Resource Sharing (CORS)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        super().end_headers()
-
-
-def run_web_server(q, log_filepath, dist_dir, handler_cls):
+def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
     """Start the HTTP web server
 
     Parameters
@@ -66,6 +55,24 @@ def run_web_server(q, log_filepath, dist_dir, handler_cls):
     sys.stderr = log_fh
 
     if not handler_cls:
+        class DefaultHandler(http.server.SimpleHTTPRequestHandler):
+            def log_message(self, format_, *args):
+                print(
+                    "[%s] source: %s:%s - %s"
+                    % (self.log_date_time_string(), *self.client_address, format_ % args)
+                )
+
+            def end_headers(self):
+                # Enable Cross-Origin Resource Sharing (CORS)
+                self.send_header("Access-Control-Allow-Origin", "*")
+                for k, v in extra_headers.items():
+                    self.send_header(k, v)
+                if len(extra_headers) > 0:
+                    joined_headers = ",".join(extra_headers.keys())
+                    # if you don't send this, CORS blocks custom headers in javascript
+                    self.send_header("Access-Control-Expose-Headers", joined_headers)
+                super().end_headers()
+
         handler_cls = DefaultHandler
 
     with socketserver.TCPServer(("", 0), handler_cls) as httpd:

@@ -1,5 +1,19 @@
 ## [Unreleased]
 
+- Add support for custom headers in the pytest web server code, by setting
+  the `extra_headers` parameter in the `spawn_web_server` function.
+  [#39](https://github.com/pyodide/pytest-pyodide/pull/39)
+
+- Breaking: removed STANDALONE_REFRESH env variable which was used to
+  override `selenium_standalone` fixture with `selenium_standalone_refresh`.
+  [#65](https://github.com/pyodide/pytest-pyodide/pull/65)
+
+## [0.23.2] - 2022-11-14
+
+- Fixes for Python 3.11: there are some bugs with `ast.fix_missing_locations` in
+  Python 3.11.0.
+  [#60](https://github.com/pyodide/pytest-pyodide/pull/60)
+
 ## [0.23.1] - 2022.10.26
 
 - Breaking: altered the way that `PyodideHandle` is received inside the Pyodide

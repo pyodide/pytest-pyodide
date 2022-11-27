@@ -15,7 +15,7 @@ if pyodide_versions == "*":
 
 matrix = yaml.safe_load(
     """
-os: [ubuntu-latest]
+os: [ubuntu-20.04]
 pyodide-version: """
     + pyodide_versions
     + """
@@ -37,12 +37,9 @@ test-config: [
     {runner: playwright, browser: chrome, runner-version: 1.22.0, driver-version: 18},
 ]
 include:
-    - os: macos-latest
+    - os: macos-11
       pyodide-version: 0.21.0
       test-config: {runner: selenium, browser: safari}
-    - os: macos-latest
-      pyodide-version: 0.21.0
-      test-config: {runner: selenium, browser: safari, refresh: 1 }
 """
 )
 
