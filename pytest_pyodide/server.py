@@ -55,11 +55,16 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
     sys.stderr = log_fh
 
     if not handler_cls:
+
         class DefaultHandler(http.server.SimpleHTTPRequestHandler):
             def log_message(self, format_, *args):
                 print(
                     "[%s] source: %s:%s - %s"
-                    % (self.log_date_time_string(), *self.client_address, format_ % args)
+                    % (
+                        self.log_date_time_string(),
+                        *self.client_address,
+                        format_ % args,
+                    )
                 )
 
             def end_headers(self):
