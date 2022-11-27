@@ -1,6 +1,6 @@
+import http.server
 import urllib.request
 from http import HTTPStatus
-import http.server
 
 from pytest_pyodide.server import spawn_web_server
 
