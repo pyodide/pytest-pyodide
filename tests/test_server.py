@@ -29,8 +29,8 @@ class HelloWorldHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(b"hello world")
 
 
-def test_custom_handler(selenium):
-    with spawn_web_server(".", handler_cls=HelloWorldHandler) as server:
+def test_custom_handler(tmp_path):
+    with spawn_web_server(tmp_path, handler_cls=HelloWorldHandler) as server:
         hostname, port, _ = server
         res = urllib.request.urlopen(f"http://{hostname}:{port}/index.txt")
         assert res.status == 200
