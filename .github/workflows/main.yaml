@@ -48,80 +48,29 @@ jobs:
       DISPLAY: :99
     steps:
       - uses: actions/checkout@v3
-      - name: Cache Pyodide
-        uses: actions/cache@v3
-        id: cache-pyodide
+      - uses: actions/setup-python@v3
         with:
-          path: pyodide-dist
-          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
-      - name: Download Pyodide
-        shell: bash -l {0}
-        if: steps.cache-pyodide.outputs.cache-hit != 'true'
-        run: |
-          wget -q https://github.com/pyodide/pyodide/releases/download/${{ inputs.pyodide-version }}/pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
-          tar xjf pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
-          mv pyodide pyodide-dist/
+          python-version: 3.10.2
+
+      - uses: pyodide/pyodide-actions/download-pyodide@v1
+        with:
+          version: ${{ inputs.pyodide-version }}
+          to: pyodide-dist
+
+      - uses: pyodide/pyodide-actions/install-browser@v1
+        with:
+          runner: ${{ inputs.runner }}
+          browser: ${{ inputs.browser }}
+          browser-version: ${{ inputs.browser-version }}
+          driver-version: ${{ inputs.driver-version }}
+          playwright-version: ${{ inputs.runner-version }}
+
       - name: Download build artifacts from calling package
         if: ${{ inputs.build-artifact-name != 'none' }}
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.build-artifact-name }}
           path: ${{ inputs.build-artifact-path }}
-      - uses: actions/setup-python@v3
-        with:
-          python-version: 3.10.2
-      - name: Install node
-        uses: actions/setup-node@v3
-        if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
-        with:
-          node-version: ${{ inputs.driver-version }}
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v3
-        if: ${{ inputs.runner == 'playwright' }}
-        with:
-          path: .cache/ms-playwright
-          key: ${{ runner.os }}-playwright-latest
-
-      - name: Install playwright
-        shell: bash -l {0}
-        if: ${{ inputs.runner == 'playwright' }}
-        run: |
-          if [ -n "${{ inputs.runner-version }}" ]
-          then
-            python3.10 -m pip install playwright==${{inputs.runner-version}}
-          else
-            python3.10 -m pip install playwright
-          fi
-          # TODO: install only browsers that are required
-          python3.10 -m playwright install --with-deps
-
-      - name: Install firefox
-        uses: browser-actions/setup-firefox@latest
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
-        with:
-          firefox-version: ${{ inputs.browser-version }}
-
-      - name: Install geckodriver
-        uses: browser-actions/setup-geckodriver@latest
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
-        with:
-          geckodriver-version: ${{ inputs.driver-version }}
-
-      - name: Install chrome
-        uses: browser-actions/setup-chrome@latest
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
-        with:
-          chrome-version: ${{ inputs.browser-version }}
-
-      - name: Install chromedriver
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
-        uses: nanasess/setup-chromedriver@v1
-
-      - name: Enable Safari Driver
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'safari') && contains(runner.os, 'macos') }}
-        run: |
-          sudo safaridriver --enable
 
       - name: Install pytest-pyodide
         shell: bash -l {0}
@@ -138,11 +87,6 @@ jobs:
           fi
           which npm && npm install -g npm && npm update
           which npm && npm install node-fetch@2
-      - name: Get Pyodide from cache
-        uses: actions/cache@v3
-        with:
-          path: pyodide-dist
-          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
       - name: Run tests
         shell: bash -l {0}
         run: |
