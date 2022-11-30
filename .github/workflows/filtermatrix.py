@@ -40,6 +40,14 @@ include:
     - os: macos-11
       pyodide-version: 0.21.0
       test-config: {runner: selenium, browser: safari}
+      # the following two tests check that the fallback browser behaviour works
+      # okay (this is because ubuntu 22.04 doesn't support getting python 3.10.2)
+    - os: ubuntu-latest
+      pyodide-version: 0.21.0
+      test-config: {runner: selenium, browser: node, browser-version: 18}
+    - os: ubuntu-22.04
+      pyodide-version: 0.21.0
+      test-config: {runner: selenium, browser: node, browser-version: 18}
 """
 )
 
