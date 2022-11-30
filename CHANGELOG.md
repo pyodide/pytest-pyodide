@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+- Add auto-setting of python version and runner version based on pyodide version.
+  [#66](https://github.com/pyodide/pytest-pyodide/pull/66)
+
 - Add support for custom headers in the pytest web server code, by setting
   the `extra_headers` parameter in the `spawn_web_server` function.
   [#39](https://github.com/pyodide/pytest-pyodide/pull/39)
