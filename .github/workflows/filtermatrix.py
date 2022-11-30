@@ -40,9 +40,6 @@ include:
     - os: macos-11
       pyodide-version: 0.21.0
       test-config: {runner: selenium, browser: safari}
-    - os: macos-11
-      pyodide-version: 0.21.0
-      test-config: {runner: selenium, browser: safari, refresh: 1 }
 """
 )
 
