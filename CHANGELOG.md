@@ -8,6 +8,11 @@
   override `selenium_standalone` fixture with `selenium_standalone_refresh`.
   [#65](https://github.com/pyodide/pytest-pyodide/pull/65)
 
+- Add support for a custom `SimpleHTTPRequestHandler` class in the pytest
+  webserver code, by passing the `handler_cls` parameter in the 
+  `spawn_web_server` function.
+  [#47](https://github.com/pyodide/pytest-pyodide/pull/47)
+
 ## [0.23.2] - 2022-11-14
 
 - Fixes for Python 3.11: there are some bugs with `ast.fix_missing_locations` in
