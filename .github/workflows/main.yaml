@@ -41,16 +41,72 @@ permissions:
   contents: read
 
 jobs:
+  # separate job needed to setup the correct version of python and github os for pyodide version
+  get_versions:
+    runs-on: ubuntu-latest
+    name: Set python/os version (${{inputs.pyodide-version}},${{inputs.os}})
+    outputs:
+      os: ${{ steps.fix_runner_os.outputs.os }}
+      python: ${{ steps.get_python_version.outputs.python }}
+      pythonexec: ${{ steps.get_python_version.outputs.pythonexec }}
+    steps:
+      - name: Get python version for a particular pyodide version
+        id: get_python_version
+        run: |
+          case "${{inputs.pyodide-version}}" in
+            *)
+              echo "python=3.10.2" >> $GITHUB_OUTPUT
+              echo "pythonexec=python310" >> $GITHUB_OUTPUT
+              echo "Using python 3.10.2 for pyodide ${{inputs.pyodide-version}}"
+              ;;
+          esac
+      - name: Fix runner os
+        id: fix_runner_os
+        run: |
+          if [[ "${{ steps.get_python_version.outputs.python }}" == "3.10.2"  && "${{inputs.os}}" == ubuntu* && "${{inputs.os}}" != ubuntu-20.04 ]]
+          then
+            echo "Fixing ubuntu version ${{ inputs.os }} to ubuntu-20.04 for python 3.10.2"
+            echo "os=ubuntu-20.04" >> $GITHUB_OUTPUT
+          else
+            echo "Using existing OS: ${{inputs.os}} for python ${{ steps.get_python_version.outputs.python }}"
+            echo "os=${{inputs.os}}" >> $GITHUB_OUTPUT
+          fi
   test:
-    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ inputs.os }},pyodide:${{ inputs.pyodide-version}})
-    runs-on: ${{ inputs.os }}
+    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ needs.get_versions.outputs.os }},pyodide:${{ inputs.pyodide-version}})
+    needs: get_versions
+    runs-on: ${{ needs.get_versions.outputs.os }}
     env:
       DISPLAY: :99
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: 3.10.2
+          python-version: ${{ needs.get_versions.outputs.python }}
+      - name: Install node
+        uses: actions/setup-node@v3
+        if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
+        with:
+          node-version: ${{ inputs.driver-version }}
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        if: ${{ inputs.runner == 'playwright' }}
+        with:
+          path: .cache/ms-playwright
+          key: ${{ runner.os }}-playwright-latest
+
+      - name: Install playwright
+        shell: bash -l {0}
+        if: ${{ inputs.runner == 'playwright' }}
+        run: |
+          if [ -n "${{ inputs.runner-version }}" ]
+          then
+            ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright==${{inputs.runner-version}}
+          else
+            ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright
+          fi
+          # TODO: install only browsers that are required
+          ${{needs.get_versions.outputs.pythonexec}} -m playwright install --with-deps
 
       - uses: pyodide/pyodide-actions/download-pyodide@v1
         with:
@@ -75,15 +131,15 @@ jobs:
       - name: Install pytest-pyodide
         shell: bash -l {0}
         run: |
-          python3.10 -m pip install pytest-cov
+          ${{needs.get_versions.outputs.pythonexec}} -m pip install pytest-cov
           if [ -d "pytest_pyodide" ]; then
             # Currently we only install the package for dependencies.
             # We then uninstall it otherwise tests fails due to pytest hook being
             # registered twice.
-              python3.10 -m pip install -e .
-              python3.10 -m pip uninstall -y pytest-pyodide
+              ${{needs.get_versions.outputs.pythonexec}} -m pip install -e .
+              ${{needs.get_versions.outputs.pythonexec}} -m pip uninstall -y pytest-pyodide
           else
-              python3.10 -m pip install pytest-pyodide
+              ${{needs.get_versions.outputs.pythonexec}} -m pip install pytest-pyodide
           fi
           which npm && npm install -g npm && npm update
           which npm && npm install node-fetch@2
