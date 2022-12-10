@@ -41,35 +41,47 @@ permissions:
   contents: read
 
 jobs:
+  # separate job needed to setup the correct version of python and github os for pyodide version
+  get_versions:
+    runs-on: ubuntu-latest
+    name: Set python/os version (${{inputs.pyodide-version}},${{inputs.os}})
+    outputs:
+      os: ${{ steps.fix_runner_os.outputs.os }}
+      python: ${{ steps.get_python_version.outputs.python }}
+      pythonexec: ${{ steps.get_python_version.outputs.pythonexec }}
+    steps:
+      - name: Get python version for a particular pyodide version
+        id: get_python_version
+        run: |
+          case "${{inputs.pyodide-version}}" in
+            *)
+              echo "python=3.10.2" >> $GITHUB_OUTPUT
+              echo "pythonexec=python310" >> $GITHUB_OUTPUT
+              echo "Using python 3.10.2 for pyodide ${{inputs.pyodide-version}}"
+              ;;
+          esac
+      - name: Fix runner os
+        id: fix_runner_os
+        run: |
+          if [[ "${{ steps.get_python_version.outputs.python }}" == "3.10.2"  && "${{inputs.os}}" == ubuntu* && "${{inputs.os}}" != ubuntu-20.04 ]]
+          then
+            echo "Fixing ubuntu version ${{ inputs.os }} to ubuntu-20.04 for python 3.10.2"
+            echo "os=ubuntu-20.04" >> $GITHUB_OUTPUT
+          else
+            echo "Using existing OS: ${{inputs.os}} for python ${{ steps.get_python_version.outputs.python }}"
+            echo "os=${{inputs.os}}" >> $GITHUB_OUTPUT
+          fi
   test:
-    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ inputs.os }},pyodide:${{ inputs.pyodide-version}})
-    runs-on: ${{ inputs.os }}
+    name: test ${{ inputs.browser }} ( ${{ inputs.runner }},${{ needs.get_versions.outputs.os }},pyodide:${{ inputs.pyodide-version}})
+    needs: get_versions
+    runs-on: ${{ needs.get_versions.outputs.os }}
     env:
       DISPLAY: :99
     steps:
       - uses: actions/checkout@v3
-      - name: Cache Pyodide
-        uses: actions/cache@v3
-        id: cache-pyodide
-        with:
-          path: pyodide-dist
-          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
-      - name: Download Pyodide
-        shell: bash -l {0}
-        if: steps.cache-pyodide.outputs.cache-hit != 'true'
-        run: |
-          wget -q https://github.com/pyodide/pyodide/releases/download/${{ inputs.pyodide-version }}/pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
-          tar xjf pyodide-build-${{ inputs.pyodide-version }}.tar.bz2
-          mv pyodide pyodide-dist/
-      - name: Download build artifacts from calling package
-        if: ${{ inputs.build-artifact-name != 'none' }}
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ inputs.build-artifact-name }}
-          path: ${{ inputs.build-artifact-path }}
       - uses: actions/setup-python@v3
         with:
-          python-version: 3.10.2
+          python-version: ${{ needs.get_versions.outputs.python }}
       - name: Install node
         uses: actions/setup-node@v3
         if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
@@ -89,60 +101,48 @@ jobs:
         run: |
           if [ -n "${{ inputs.runner-version }}" ]
           then
-            python3.10 -m pip install playwright==${{inputs.runner-version}}
+            ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright==${{inputs.runner-version}}
           else
-            python3.10 -m pip install playwright
+            ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright
           fi
           # TODO: install only browsers that are required
-          python3.10 -m playwright install --with-deps
+          ${{needs.get_versions.outputs.pythonexec}} -m playwright install --with-deps
 
-      - name: Install firefox
-        uses: browser-actions/setup-firefox@latest
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
+      - uses: pyodide/pyodide-actions/download-pyodide@v1
         with:
-          firefox-version: ${{ inputs.browser-version }}
+          version: ${{ inputs.pyodide-version }}
+          to: pyodide-dist
 
-      - name: Install geckodriver
-        uses: browser-actions/setup-geckodriver@latest
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'firefox') }}
+      - uses: pyodide/pyodide-actions/install-browser@v1
         with:
-          geckodriver-version: ${{ inputs.driver-version }}
+          runner: ${{ inputs.runner }}
+          browser: ${{ inputs.browser }}
+          browser-version: ${{ inputs.browser-version }}
+          driver-version: ${{ inputs.driver-version }}
+          playwright-version: ${{ inputs.runner-version }}
 
-      - name: Install chrome
-        uses: browser-actions/setup-chrome@latest
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
+      - name: Download build artifacts from calling package
+        if: ${{ inputs.build-artifact-name != 'none' }}
+        uses: actions/download-artifact@v3
         with:
-          chrome-version: ${{ inputs.browser-version }}
-
-      - name: Install chromedriver
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'chrome') }}
-        uses: nanasess/setup-chromedriver@v1
-
-      - name: Enable Safari Driver
-        if: ${{ inputs.runner == 'selenium' && contains(inputs.browser, 'safari') && contains(runner.os, 'macos') }}
-        run: |
-          sudo safaridriver --enable
+          name: ${{ inputs.build-artifact-name }}
+          path: ${{ inputs.build-artifact-path }}
 
       - name: Install pytest-pyodide
         shell: bash -l {0}
         run: |
-          python3.10 -m pip install pytest-cov
+          ${{needs.get_versions.outputs.pythonexec}} -m pip install pytest-cov
           if [ -d "pytest_pyodide" ]; then
             # Currently we only install the package for dependencies.
             # We then uninstall it otherwise tests fails due to pytest hook being
             # registered twice.
-              python3.10 -m pip install -e .
-              python3.10 -m pip uninstall -y pytest-pyodide
+              ${{needs.get_versions.outputs.pythonexec}} -m pip install -e .
+              ${{needs.get_versions.outputs.pythonexec}} -m pip uninstall -y pytest-pyodide
           else
-              python3.10 -m pip install pytest-pyodide
+              ${{needs.get_versions.outputs.pythonexec}} -m pip install pytest-pyodide
           fi
           which npm && npm install -g npm && npm update
           which npm && npm install node-fetch@2
-      - name: Get Pyodide from cache
-        uses: actions/cache@v3
-        with:
-          path: pyodide-dist
-          key: pyodide-${{ inputs.pyodide-version }}-${{ hashFiles('.github/**/*.yaml') }}
       - name: Run tests
         shell: bash -l {0}
         run: |
