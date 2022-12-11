@@ -213,7 +213,7 @@ you want to check if your pyodide build works, just run it like this:
 ```
 # make the pyodide wheel in the dist folder
 pyodide build
-# the following code 
+# the following code
 # a) copies the test directory and subfolders to a Pyodide instance, and
 # b) installs any wheels in the dist folder so that this package is available on the Pyodide VM
 pytest --run-in-pyodide test_path --runtime <runtime> --dist-dir=<pyodide/dist>
