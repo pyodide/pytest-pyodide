@@ -8,8 +8,8 @@ def test_dist_dir(pytester):
     pytester.makepyfile(
         f"""
         import pytest
-        def test_dist_dir(request):
-            assert request.config.option.getoption("--dist-dir") == {dist_dir!r}
+        def test_option(request):
+            assert request.config.getoption("--dist-dir") == {dist_dir!r}
         """
     )
 
@@ -22,8 +22,8 @@ def test_runner(pytester, runner):
     pytester.makepyfile(
         f"""
         import pytest
-        def test_dist_dir(request):
-            assert request.config.option.getoption("--runner") == {runner!r}
+        def test_option(request):
+            assert request.config.getoption("--runner") == {runner!r}
         """
     )
 
@@ -38,10 +38,56 @@ def test_invalid_runner(pytester):
     pytester.makepyfile(
         f"""
         import pytest
-        def test_dist_dir(request):
-            assert request.config.option.getoption("--runner") == {runner!r}
+        def test_option(request):
+            assert request.config.getoption("--runner") == {runner!r}
         """
     )
 
     result = pytester.runpytest("--runner", runner)
+    result.assert_outcomes(failed=1)
+
+
+@pytest.mark.parametrize(
+    "runtime",
+    [
+        "chrome",
+        "firefox",
+        "safari",
+        "node",
+        "chrome-no-host",
+        "firefox-no-host",
+        "safari-no-host",
+        "node-no-host",
+        "firefox chrome",
+    ],
+)
+def test_runtime(pytester, runtime):
+
+    runtimes = runtime.split()
+
+    pytester.makepyfile(
+        f"""
+        import pytest
+        def test_option(request):
+            assert request.config.getoption("--runtime") == {runtimes!r}
+        """
+    )
+
+    result = pytester.runpytest("--runtime", *runtimes)
+    result.assert_outcomes(passed=1)
+
+
+def test_invalid_runtime(pytester):
+
+    runtimes = ["blah"]
+
+    pytester.makepyfile(
+        f"""
+        import pytest
+        def test_option(request):
+            assert request.config.getoption("--runtime") == {runtimes!r}
+        """
+    )
+
+    result = pytester.runpytest("--runtime", *runtimes)
     result.assert_outcomes(failed=1)
