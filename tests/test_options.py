@@ -48,7 +48,7 @@ def test_invalid_runner(pytester):
 
 
 @pytest.mark.parametrize(
-    "runtime",
+    "_runtime",
     [
         "chrome",
         "firefox",
@@ -61,9 +61,9 @@ def test_invalid_runner(pytester):
         "firefox chrome",
     ],
 )
-def test_runtime(pytester, runtime):
+def test_runtime(pytester, _runtime):
 
-    runtimes = runtime.split()
+    runtimes = _runtime.split()
 
     pytester.makepyfile(
         f"""
