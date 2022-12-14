@@ -71,5 +71,5 @@ def test_runtime(pytester, _runtime):
         """
     )
 
-    result = pytester.runpytest("--runtime", *runtimes)
+    result = pytester.runpytest("--runtime", _runtime)
     result.assert_outcomes(passed=1)
