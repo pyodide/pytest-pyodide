@@ -26,11 +26,6 @@ test-config: [
     {runner: selenium, browser: node, browser-version: 16},
     {runner: selenium, browser: node, browser-version: 18},
     {runner: selenium, browser: firefox-no-host, browser-version: latest, driver-version: latest },
-    {
-    runner: selenium, browser: chrome firefox,
-    browser-version: latest, browser-version: latest,
-    browser-version: latest, browser-version: latest,
-    },
     {runner: selenium, browser: host},
     # playwright browser versions are pinned to playwright version
     {runner: playwright, browser: firefox, runner-version: 1.22.0, driver-version: 18},
@@ -40,6 +35,14 @@ include:
     - os: macos-11
       pyodide-version: 0.21.0
       test-config: {runner: selenium, browser: safari}
+      # the following two tests check that the fallback browser behaviour works
+      # okay (this is because ubuntu 22.04 doesn't support getting python 3.10.2)
+    - os: ubuntu-latest
+      pyodide-version: 0.21.0
+      test-config: {runner: selenium, browser: node, browser-version: 18}
+    - os: ubuntu-22.04
+      pyodide-version: 0.21.0
+      test-config: {runner: selenium, browser: node, browser-version: 18}
 """
 )
 
