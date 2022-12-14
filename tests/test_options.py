@@ -67,7 +67,7 @@ def test_runtime(pytester, _runtime):
         f"""
         import pytest
         def test_option():
-            assert pytest.pyodide_runtimes == {runtimes!r}
+            assert pytest.pyodide_runtimes == set({runtimes!r})
         """
     )
 
