@@ -56,18 +56,18 @@ def test_invalid_runner(pytester):
         "firefox",
         "safari",
         "node",
-        "firefox chrome",
+        "firefox,chrome",
     ],
 )
 def test_runtime(pytester, _runtime):
 
-    runtimes = _runtime.split()
+    runtimes = _runtime.split(",")
 
     pytester.makepyfile(
         f"""
         import pytest
-        def test_option(request):
-            assert request.config.getoption("--runtime") == {runtimes!r}
+        def test_option():
+            assert pytest.pyodide_runtimes == {runtimes!r}
         """
     )
 

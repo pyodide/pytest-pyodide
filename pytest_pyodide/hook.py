@@ -18,12 +18,15 @@ RUNTIMES_AND_HOST = RUNTIMES + ["host"]
 RUNTIMES_NO_HOST = [f"{runtime}-no-host" for runtime in RUNTIMES]
 
 
-def _filter_runtimes(runtime: list[str]) -> tuple[bool, set[str]]:
+def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     # Always run host test, unless 'no-host' is given.
     run_host = True
 
+    # "chrome, firefox, node" ==> ["chrome", "firefox", "node"]
+    runtimes = [rt.strip() for rt in runtime.split(",")]
+
     # remove duplicates
-    runtime_set = set(runtime)
+    runtime_set = set(runtimes)
 
     runtime_filtered = set()
     for rt in runtime_set:
@@ -89,10 +92,8 @@ def pytest_addoption(parser):
         "--rt",
         "--runtime",
         dest="runtime",
-        nargs="+",
-        default=["node"],
-        choices=RUNTIMES_AND_HOST + RUNTIMES_NO_HOST,
-        help="Select runtime (default: %(default)s)",
+        default="node",
+        help="Select runtimes to run tests (default: %(default)s)",
     )
 
 
