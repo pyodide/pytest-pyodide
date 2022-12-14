@@ -33,6 +33,10 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
+      pytest-extra-args:
+        required: false
+        type: string
+        default: ""
       driver-version:
         required: false
         type: string
@@ -150,7 +154,8 @@ jobs:
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
-            --rt ${{ inputs.browser }}
+            --rt=${{ inputs.browser }} \
+            ${{ inputs.pytest-extra-args }}
       - name: Check for coverage file
         id: check_coverage
         uses: andstor/file-existence-action@v2
