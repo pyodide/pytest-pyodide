@@ -57,6 +57,8 @@ def test_invalid_runner(pytester):
         "safari",
         "node",
         "firefox,chrome",
+        "chrome-no-host",
+        "host",
     ],
 )
 def test_runtime(pytester, _runtime):
@@ -73,3 +75,25 @@ def test_runtime(pytester, _runtime):
 
     result = pytester.runpytest("--runtime", _runtime)
     result.assert_outcomes(passed=1)
+
+
+@pytest.mark.parametrize(
+    "_runtime",
+    [
+        "invalid",
+    ],
+)
+def test_invalid_runtime(pytester, _runtime):
+
+    runtimes = _runtime.split(",")
+
+    pytester.makepyfile(
+        f"""
+        import pytest
+        def test_option():
+            assert pytest.pyodide_runtimes == set({runtimes!r})
+        """
+    )
+
+    result = pytester.runpytest("--runtime", _runtime)
+    result.assert_outcomes(errors=1)
