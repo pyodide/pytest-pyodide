@@ -7,3 +7,7 @@ geckodriver.log
 
 # pyenv
 .python-version
+
+# codecov
+.coverage
+coverage.xml

@@ -21,10 +21,12 @@ RUNTIMES_NO_HOST = [f"{runtime}-no-host" for runtime in RUNTIMES]
 def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     """Preprocess the given runtime commandline parameter
 
-    >>> _filter_runtimes("chrome, firefox, node")
-    >>> (False, {"chrome", "firefox", "node"})
+    >>> _filter_runtimes("chrome")
+    (True, {'chrome'})
+    >>> _filter_runtimes("chrome-no-host")
+    (False, {'chrome'})
     >>> _filter_runtimes("chrome-no-host, host, firefox")
-    >>> (True, {"chrome", "firefox"})
+    (True, ...)
     """
 
     # Always run host test, unless 'no-host' is given.
@@ -44,7 +46,7 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
 
         runtime_filtered.add(rt)
 
-    # If '--rt chrome-no-host --rt host' is given, we run host tests.
+    # If '--rt "chrome-no-host, host"' is given, we run host tests.
     run_host = run_host or ("host" in runtime_filtered)
 
     runtime_filtered.discard("host")

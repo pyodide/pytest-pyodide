@@ -57,8 +57,6 @@ def test_invalid_runner(pytester):
         "safari",
         "node",
         "firefox,chrome",
-        "chrome-no-host",
-        "host",
     ],
 )
 def test_runtime(pytester, _runtime):
