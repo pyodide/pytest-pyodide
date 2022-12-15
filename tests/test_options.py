@@ -56,20 +56,44 @@ def test_invalid_runner(pytester):
         "firefox",
         "safari",
         "node",
-        "firefox chrome",
+        "firefox,chrome",
     ],
 )
 def test_runtime(pytester, _runtime):
 
-    runtimes = _runtime.split()
+    runtimes = _runtime.split(",")
 
     pytester.makepyfile(
         f"""
         import pytest
-        def test_option(request):
-            assert request.config.getoption("--runtime") == {runtimes!r}
+        def test_option():
+            assert pytest.pyodide_runtimes == set({runtimes!r})
         """
     )
 
-    result = pytester.runpytest("--runtime", *runtimes)
+    result = pytester.runpytest("--runtime", _runtime)
     result.assert_outcomes(passed=1)
+
+
+@pytest.mark.parametrize(
+    "_runtime",
+    [
+        "invalid",
+    ],
+)
+def test_invalid_runtime(pytester, _runtime):
+
+    runtimes = _runtime.split(",")
+
+    pytester.makepyfile(
+        f"""
+        import pytest
+        def test_option():
+            assert pytest.pyodide_runtimes == set({runtimes!r})
+        """
+    )
+
+    # TODO: catch internal errors directly?
+    with pytest.raises(ValueError, match="Pytest terminal summary report not found"):
+        result = pytester.runpytest("--runtime", _runtime)
+        result.assert_outcomes(errors=1)
