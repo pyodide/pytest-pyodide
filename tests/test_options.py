@@ -95,4 +95,5 @@ def test_invalid_runtime(pytester, _runtime):
 
     # TODO: catch internal errors directly?
     with pytest.raises(ValueError, match="Pytest terminal summary report not found"):
-        pytester.runpytest("--runtime", _runtime)
+        result = pytester.runpytest("--runtime", _runtime)
+        result.assert_outcomes(errors=1)
