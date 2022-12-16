@@ -4,7 +4,7 @@ import sys
 from argparse import BooleanOptionalAction
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from _pytest.assertion.rewrite import AssertionRewritingHook, rewrite_asserts
@@ -12,9 +12,9 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
-from .pytest_in_pyodide import (
-    close_test_in_pyodide_servers,
-    copy_files_to_pyodide,
+from .run_tests_inside_pyodide import (
+    close_inside_pyodide_browsers,
+    copy_files_to_emscripten_fs,
     run_test_in_pyodide,
 )
 from .utils import parse_xfail_browsers
@@ -49,7 +49,7 @@ def _filter_runtimes(runtime: list[str]) -> tuple[bool, set[str]]:
 
 def pytest_unconfigure(config):
     if config.option.run_in_pyodide:
-        close_test_in_pyodide_servers()
+        close_inside_pyodide_browsers()
 
 
 def pytest_configure(config):
@@ -226,8 +226,10 @@ def pytest_runtest_setup(item):
                 config = item.config
                 node = item
 
-            copy_files_to_pyodide(
-                copy_files, request=RequestType, runtime=item.pyodide_runtime
+            copy_files_to_emscripten_fs(
+                copy_files,
+                request=cast(pytest.FixtureRequest, RequestType),
+                runtime=item.pyodide_runtime,
             )
     else:
         if not hasattr(item, "fixturenames"):

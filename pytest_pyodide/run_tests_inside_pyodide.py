@@ -35,7 +35,11 @@ class ContextManagerUnwrapper:
             self.value = None
 
 
-def init_pyodide_runner(request, runtime):
+def start_pyodide_in_browser(request: pytest.FixtureRequest, runtime: str):
+    """Start a browser running with pyodide, ready to run pytest
+    calls. If the same runtime is already running, it will
+    just return that.
+    """
     global _playwright_browsers
     from .fixture import playwright_browsers, selenium_common
 
@@ -61,7 +65,14 @@ def init_pyodide_runner(request, runtime):
     return _seleniums[runtime][0].get_value()
 
 
-def copy_files_to_pyodide(file_list, request, runtime):
+def copy_files_to_emscripten_fs(
+    file_list: list[Path], request: pytest.FixtureRequest, runtime: str
+):
+    """
+    Copies files in file_list to the emscripten file system. Files
+    go into the test_files subfolder on emscripten. They are transferred
+    using pyfetch and a web-server.
+    """
     new_files = []
     for x in file_list:
         if x.is_dir():
@@ -71,7 +82,7 @@ def copy_files_to_pyodide(file_list, request, runtime):
     if len(new_files) == 0:
         return
     base_path = Path.cwd()
-    selenium = init_pyodide_runner(request, runtime)
+    selenium = start_pyodide_in_browser(request, runtime)
     with spawn_web_server(base_path) as server:
         server_hostname, server_port, _ = server
         base_url = f"http://{server_hostname}:{server_port}/"
@@ -80,8 +91,8 @@ def copy_files_to_pyodide(file_list, request, runtime):
         selenium.run(
             """
             from pyodide.http import pyfetch
-            all_fetches=[]
-            all_wheels=[]
+            all_fetches = []
+            all_wheels = []
             """
         )
         for file in new_files:
@@ -112,15 +123,15 @@ def copy_files_to_pyodide(file_list, request, runtime):
         # fetch everything all at once
         selenium.run_async(
             """
-            import asyncio,os,os.path
+            import asyncio, os, os.path
+
             for coro in asyncio.as_completed(all_fetches):
-                response=await coro
-                bare_path="/".join(response.url.split("/")[3:])
-                write_path="./test_files/"+bare_path
-                #print("Writing: "+bare_path)
-                os.makedirs(os.path.dirname(write_path),exist_ok=True)
-                with open(write_path,"wb") as fp:
-                    byte_data=await response.bytes()
+                response = await coro
+                bare_path = "/".join(response.url.split("/")[3:])
+                write_path = "./test_files/" + bare_path
+                os.makedirs(os.path.dirname(write_path), exist_ok=True)
+                with open(write_path, "wb") as fp:
+                    byte_data = await response.bytes()
                     fp.write(byte_data)
             """
         )
@@ -133,20 +144,23 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     ret_error = selenium.run_async(
         f"""
         import pytest
-        out_buf=""
+
+        out_buf = ""
+
         def write_out(line):
             global out_buf
-            out_buf+=line
-        import sys
-        sys.stdout.write=write_out
-        sys.stderr.write=write_out
-        print("{all_args}")
-        retcode=pytest.main({all_args})
-        if retcode==0:
-            out_buf=""
-        out_buf
+            out_buf += line
 
-    """
+        import sys
+
+        sys.stdout.write = write_out
+        sys.stderr.write = write_out
+        print("{all_args}")
+        retcode = pytest.main({all_args})
+        if retcode == 0:
+            out_buf = ""
+        out_buf
+        """
     )
     if len(ret_error) != 0:
         print("ERR:", ret_error, "\n*******************")
@@ -175,7 +189,13 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     return True
 
 
-def close_test_in_pyodide_servers():
+def close_inside_pyodide_browsers():
+    """Close the browsers that are currently open with
+    pyodide runtime initialised.
+
+    This is done at the end of testing so that we can run more
+    than one test without launching browsers each time.
+    """
     global _seleniums
     for x in _seleniums.values():
         x[0].close()
