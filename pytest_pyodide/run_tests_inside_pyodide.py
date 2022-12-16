@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, ContextManager
 
 import pytest
 
@@ -10,12 +10,18 @@ _copied_files = []
 _playwright_browsers = None
 
 
-# class to take a generator (e.g. a pytest fixture or something)
-# and unwrap it so that it can be used for the whole of the module
-class Degenerator:
-    def __init__(self, gen):
-        self.gen = gen
-        self.value = gen.__enter__()
+class ContextManagerUnwrapper:
+    """Class to take a context manager (e.g. a pytest fixture or something)
+    and unwrap it so that it can be used for the whole of the module.
+
+    This is a bit of a hack, but it allows us to use some of our pytest fixtures
+    without having to be inside a pytest context. Avoids significant duplication
+    of the standard pytest_pyodide code here.
+    """
+
+    def __init__(self, ctx_manager: ContextManager):
+        self.ctx_manager = ctx_manager
+        self.value = ctx_manager.__enter__()
 
     def get_value(self):
         return self.value
@@ -24,8 +30,8 @@ class Degenerator:
         self.close()
 
     def close(self):
-        if self.gen is not None:
-            self.gen.__exit__(None, None, None)
+        if self.ctx_manager is not None:
+            self.ctx_manager.__exit__(None, None, None)
             self.value = None
 
 
@@ -37,10 +43,12 @@ def init_pyodide_runner(request, runtime):
         _playwright_browsers = playwright_browsers(request)
     if runtime in _seleniums:
         return _seleniums[runtime][0].get_value()
-    web_server_main = Degenerator(spawn_web_server(request.config.option.dist_dir))
+    web_server_main = ContextManagerUnwrapper(
+        spawn_web_server(request.config.option.dist_dir)
+    )
     # open pyodide
     _seleniums[runtime] = [
-        Degenerator(
+        ContextManagerUnwrapper(
             selenium_common(
                 request,
                 runtime,
