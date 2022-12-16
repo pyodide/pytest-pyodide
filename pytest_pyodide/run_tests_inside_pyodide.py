@@ -1,3 +1,6 @@
+import re
+import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, ContextManager
 
@@ -137,6 +140,30 @@ def copy_files_to_emscripten_fs(
         )
 
 
+def _remove_pytest_capture_title(
+    capture_element: ET.Element | None, title_name: str
+) -> str | None:
+    """
+    pytest captures (even in xml) have a title line
+    like ------ Capture out -------
+
+    This helper removes that line.
+    """
+    if not capture_element:
+        return None
+    capture_text = capture_element.text
+    if not capture_text:
+        return None
+    lines = capture_text.splitlines()
+    if lines[0].find(" " + title_name + " "):
+        ret_data = "\n".join(lines[1:])
+        if re.search(r"\S", ret_data):
+            return ret_data
+        else:
+            return None
+    return "\n".join(lines)
+
+
 def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     """This runs a single test (identified by node_tree_id) inside
     the pyodide runtime. How it does it is by calling pytest on the
@@ -148,58 +175,48 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     roughly the same as they would when you are running pytest locally.
     """
     selenium = _seleniums[runtime][0].get_value()
-    all_args = ["./test_files/" + node_tree_id, "--color=no"]
-    ret_error = selenium.run_async(
+    all_args = [
+        "./test_files/" + node_tree_id,
+        "--color=no",
+        "--junitxml",
+        "test_output.xml",
+        "-o",
+        "junit_logging=out-err",
+    ]
+    ret_xml = selenium.run_async(
         f"""
         import pytest
-
-        out_buf = ""
-
-        def write_out(line):
-            global out_buf
-            out_buf += line
-
-        import sys
-
-        sys.stdout.write = write_out
-        sys.stderr.write = write_out
-        print("{all_args}")
         retcode = pytest.main({all_args})
-        if retcode == 0:
-            out_buf = ""
-        out_buf
+
+        output_xml=""
+        with open("test_output.xml","r") as f:
+            output_xml=f.read()
+        output_xml
         """
     )
-    # This reformats the error as it is output by pytest inside
-    # pyodide, so that we don't see all the setup / teardown stuff,
-    # and also so that colouring, stdout / stderr capturing works
-    # as you would expect.
-    #
-    # Without this reformatting, you get a whole load too much stuff printed
-    # out in the case of a test fail.
-    if len(ret_error) != 0:
-        print("ERR:", ret_error, "\n*******************")
-        ret_error_lines = ret_error.splitlines()
-        fail_error = []
-        fail_stdout = []
-        recording_error = False
-        recording_stdout = False
-        for line in ret_error_lines:
-            if line.find(" FAILURES ") != -1:
-                recording_error = True
-            elif line.find("Captured stdout") != -1:
-                recording_stdout = True
-                recording_error = False
-            elif line.find("========= short test summary") != -1:
-                recording_error = False
-                recording_stdout = False
-            elif recording_error:
-                fail_error.append(line)
-            elif recording_stdout:
-                fail_stdout.append(line)
-        print("\n".join(fail_stdout))
+
+    # get the error from junitxml
+    with open("test.xml", "w") as f:
+        f.write(ret_xml)
+    root = ET.fromstring(ret_xml)
+    fails = root.findall("*/testcase[failure]")
+    for fail in fails:
+        stdout = fail.find("./system-out")
+        stderr = fail.find("./system-err")
+        failure = fail.find("failure")
+        if failure and failure.text:
+            fail_txt = failure.text
+        else:
+            fail_txt = ""
+        stdout_text = _remove_pytest_capture_title(stdout, "Captured Out")
+        stderr_text = _remove_pytest_capture_title(stderr, "Captured Err")
+        if stdout:
+            print(stdout_text)
+        if stderr_text:
+            sys.stderr.write(stderr_text)
         if not ignore_fail:
-            pytest.fail("\n".join(fail_error[1:]), pytrace=False)
+
+            pytest.fail(fail_txt, pytrace=False)
         return False
     return True
 
