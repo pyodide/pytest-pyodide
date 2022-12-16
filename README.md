@@ -211,7 +211,7 @@ second function call.
 This plugin also supports running standard pytest tests on pyodide in a browser. So if you have an existing codebase and
 you want to check if your pyodide build works, just run it like this:
 ```
-# make the pyodide wheel in the dist folder
+# Make the emscripten/wasm32  wheel in the dist folder
 pyodide build
 # the following code
 # a) copies the test directory and subfolders to a Pyodide instance, and
