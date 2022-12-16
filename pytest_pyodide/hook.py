@@ -13,7 +13,7 @@ from _pytest.python import (
 )
 
 from .run_tests_inside_pyodide import (
-    close_inside_pyodide_browsers,
+    close_pyodide_browsers,
     copy_files_to_emscripten_fs,
     run_test_in_pyodide,
 )
@@ -49,7 +49,7 @@ def _filter_runtimes(runtime: list[str]) -> tuple[bool, set[str]]:
 
 def pytest_unconfigure(config):
     if config.option.run_in_pyodide:
-        close_inside_pyodide_browsers()
+        close_pyodide_browsers()
 
 
 def pytest_configure(config):

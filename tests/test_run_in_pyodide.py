@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from pytest_pyodide.run_tests_inside_pyodide import (
-    close_inside_pyodide_browsers,
+    close_pyodide_browsers,
     copy_files_to_emscripten_fs,
     run_test_in_pyodide,
 )
@@ -16,7 +16,7 @@ def pytest_in_pyodide_servers():
     try:
         yield
     finally:
-        close_inside_pyodide_browsers()
+        close_pyodide_browsers()
 
 
 def test_fail_test(pytest_in_pyodide_servers, request, runtime):

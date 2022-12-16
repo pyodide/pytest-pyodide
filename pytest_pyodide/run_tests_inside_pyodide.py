@@ -221,7 +221,7 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     return True
 
 
-def close_inside_pyodide_browsers():
+def close_pyodide_browsers():
     """Close the browsers that are currently open with
     pyodide runtime initialised.
 
