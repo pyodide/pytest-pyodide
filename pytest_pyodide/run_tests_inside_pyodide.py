@@ -138,9 +138,17 @@ def copy_files_to_emscripten_fs(
 
 
 def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
+    """This runs a single test (identified by node_tree_id) inside
+    the pyodide runtime. How it does it is by calling pytest on the
+    browser pyodide with the full node ID, which is the same
+    as it is locally except for the test_files folder base.
+
+    It also has a little bit of cunning which reformats the output
+    from the pyodide call to pytest, so that test failures should look
+    roughly the same as they would when you are running pytest locally.
+    """
     selenium = _seleniums[runtime][0].get_value()
     all_args = ["./test_files/" + node_tree_id, "--color=no"]
-    #    all_args = ["./test_files/" + node_tree_id, "-q", "--color=no"]
     ret_error = selenium.run_async(
         f"""
         import pytest
@@ -162,6 +170,13 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
         out_buf
         """
     )
+    # This reformats the error as it is output by pytest inside
+    # pyodide, so that we don't see all the setup / teardown stuff,
+    # and also so that colouring, stdout / stderr capturing works
+    # as you would expect.
+    #
+    # Without this reformatting, you get a whole load too much stuff printed
+    # out in the case of a test fail.
     if len(ret_error) != 0:
         print("ERR:", ret_error, "\n*******************")
         ret_error_lines = ret_error.splitlines()
