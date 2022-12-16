@@ -243,10 +243,10 @@ def pytest_runtest_setup(item):
 def pytest_runtest_call(item):
     if item.config.option.run_in_pyodide:
 
-        def __run_in_pyodide(self):
+        def _run_in_pyodide(self):
             run_test_in_pyodide(self.nodeid, self.pyodide_runtime)
 
-        item.runtest = __run_in_pyodide.__get__(item, item.__class__)
+        item.runtest = _run_in_pyodide.__get__(item, item.__class__)
         yield
         return
 
