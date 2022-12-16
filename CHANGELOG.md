@@ -13,6 +13,7 @@
 
 - Added command line option `--run-in-pyodide`. This will run a set of normal pytest tests in pyodide using the
   same testing architecture used for running dedicated pyodide tests.
+  [#62](https://github.com/pyodide/pytest-pyodide/pull/62)
 
 - Add support for a custom `SimpleHTTPRequestHandler` class in the pytest
   webserver code, by passing the `handler_cls` parameter in the
