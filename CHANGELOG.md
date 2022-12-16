@@ -15,6 +15,9 @@
   same testing architecture used for running dedicated pyodide tests.
   [#62](https://github.com/pyodide/pytest-pyodide/pull/62)
 
+- Breaking: `--runtime` commandline flag now requires runtimes to be comma-separated.
+  [#76](https://github.com/pyodide/pytest-pyodide/pull/76)
+
 - Add support for a custom `SimpleHTTPRequestHandler` class in the pytest
   webserver code, by passing the `handler_cls` parameter in the
   `spawn_web_server` function.

@@ -26,11 +26,6 @@ test-config: [
     {runner: selenium, browser: node, browser-version: 16},
     {runner: selenium, browser: node, browser-version: 18},
     {runner: selenium, browser: firefox-no-host, browser-version: latest, driver-version: latest },
-    {
-    runner: selenium, browser: chrome firefox,
-    browser-version: latest, browser-version: latest,
-    browser-version: latest, browser-version: latest,
-    },
     {runner: selenium, browser: host},
     # playwright browser versions are pinned to playwright version
     {runner: playwright, browser: firefox, runner-version: 1.22.0, driver-version: 18},
