@@ -20,7 +20,9 @@ def pytest_in_pyodide_servers():
 
 
 def test_fail_test(pytest_in_pyodide_servers, request, runtime):
-    in_pyodide_tests = (Path(__file__).parent / "in_pyodide_tests.py").resolve()
+    in_pyodide_tests = (
+        Path(__file__).parent / "datafiles/in_pyodide_tests.py"
+    ).resolve()
     in_pyodide_tests = in_pyodide_tests.relative_to(Path.cwd())
     copy_files_to_pyodide([in_pyodide_tests], request, runtime)
     success = run_test_in_pyodide(
@@ -30,7 +32,9 @@ def test_fail_test(pytest_in_pyodide_servers, request, runtime):
 
 
 def test_succeed_test(pytest_in_pyodide_servers, request, runtime):
-    in_pyodide_tests = (Path(__file__).parent / "in_pyodide_tests.py").resolve()
+    in_pyodide_tests = (
+        Path(__file__).parent / "datafiles/in_pyodide_tests.py"
+    ).resolve()
     in_pyodide_tests = in_pyodide_tests.relative_to(Path.cwd())
     copy_files_to_pyodide([in_pyodide_tests], request, runtime)
     run_test_in_pyodide(f"{in_pyodide_tests}::test_success", runtime, ignore_fail=False)
@@ -38,7 +42,9 @@ def test_succeed_test(pytest_in_pyodide_servers, request, runtime):
 
 def test_running_in_pyodide(pytest_in_pyodide_servers, request, runtime):
     print(request.node.nodeid)
-    in_pyodide_tests = (Path(__file__).parent / "in_pyodide_tests.py").resolve()
+    in_pyodide_tests = (
+        Path(__file__).parent / "datafiles/in_pyodide_tests.py"
+    ).resolve()
     in_pyodide_tests = in_pyodide_tests.relative_to(Path.cwd())
     copy_files_to_pyodide([in_pyodide_tests], request, runtime)
     run_test_in_pyodide(
