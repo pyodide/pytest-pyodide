@@ -1,16 +1,20 @@
 import ast
+import functools
 import pickle
 import sys
 from base64 import b64decode, b64encode
 from collections.abc import Callable, Collection
 from copy import deepcopy
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Protocol
 
 import pytest
 
+from .copy_files_to_pyodide import copy_files_to_emscripten_fs
 from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
 from .pyodide import JsException
+from .runner import _BrowserBaseRunner
 from .utils import package_is_built as _package_is_built
 
 
@@ -409,3 +413,42 @@ class run_in_pyodide:
         wrapper = _create_outer_test_function(self._run_test, self._node)
 
         return wrapper
+
+
+def copy_files_to_pyodide(file_list, install_wheels=True):
+    """A decorator that copies files across to pyodide"""
+
+    def wrap(fn):
+        @functools.wraps(fn)
+        def wrapped_f(*args, **argv):
+            # get selenium from args
+            selenium = None
+            for a in args:
+                if isinstance(a, _BrowserBaseRunner):
+                    selenium = a
+            for a in argv.values():
+                if isinstance(a, _BrowserBaseRunner):
+                    selenium = a
+            if not selenium:
+                raise RuntimeError(
+                    "copy_pyodide_files needs a selenium argument to your test fixture"
+                )
+            clean_file_list = []
+            for x in file_list:
+                if type(x) == tuple and len(x) == 2:
+                    x1, x2 = x
+                    x1 = Path(x1)
+                    x2 = Path(x2)
+                    clean_file_list.append((x1, x2))
+                else:
+                    raise RuntimeError(
+                        "copy_pyodide_files needs tuples of (src path,dest path)"
+                    )
+            copy_files_to_emscripten_fs(
+                clean_file_list, selenium, install_wheels=install_wheels
+            )
+            return fn(*args, **argv)
+
+        return wrapped_f
+
+    return wrap

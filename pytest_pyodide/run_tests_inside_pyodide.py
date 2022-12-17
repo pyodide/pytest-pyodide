@@ -1,7 +1,6 @@
 import re
 import sys
 import xml.etree.ElementTree as ET
-from pathlib import Path
 from typing import Any, ContextManager
 
 import pytest
@@ -9,7 +8,6 @@ import pytest
 from .server import spawn_web_server
 
 _seleniums: dict[str, list[Any]] = {}
-_copied_files = []
 _playwright_browsers = None
 
 
@@ -38,7 +36,7 @@ class ContextManagerUnwrapper:
             self.value = None
 
 
-def start_pyodide_in_browser(request: pytest.FixtureRequest, runtime: str):
+def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
     """Start a browser running with pyodide, ready to run pytest
     calls. If the same runtime is already running, it will
     just return that.
@@ -66,78 +64,6 @@ def start_pyodide_in_browser(request: pytest.FixtureRequest, runtime: str):
         web_server_main,
     ]
     return _seleniums[runtime][0].get_value()
-
-
-def copy_files_to_emscripten_fs(
-    file_list: list[Path], request: pytest.FixtureRequest, runtime: str
-):
-    """
-    Copies files in file_list to the emscripten file system. Files
-    go into the test_files subfolder on emscripten. They are transferred
-    using pyfetch and a web-server.
-    """
-    new_files = []
-    for x in file_list:
-        if x.is_dir():
-            continue
-        if x not in _copied_files:
-            new_files.append(x.resolve())
-    if len(new_files) == 0:
-        return
-    base_path = Path.cwd()
-    selenium = start_pyodide_in_browser(request, runtime)
-    with spawn_web_server(base_path) as server:
-        server_hostname, server_port, _ = server
-        base_url = f"http://{server_hostname}:{server_port}/"
-        # fetch all files into the pyodide
-        # n.b. this might be slow for big packages
-        selenium.run(
-            """
-            from pyodide.http import pyfetch
-            all_fetches = []
-            all_wheels = []
-            """
-        )
-        for file in new_files:
-            _copied_files.append(file)
-            file_url = base_url + str(file.relative_to(base_path))
-            if file.suffix == ".whl":
-                # wheel - install the wheel on the pyodide side before
-                # any fetches
-                selenium.run_async(
-                    f"""
-                    all_wheels.append("{file_url}")
-                    """
-                )
-            else:
-                # add file to fetches
-                selenium.run_async(
-                    f"""
-                    all_fetches.append(pyfetch("{file_url}"))
-                    """
-                )
-        # install all wheels with micropip
-        selenium.run_async(
-            """
-            import micropip
-            await micropip.install(all_wheels)
-            """
-        )
-        # fetch everything all at once
-        selenium.run_async(
-            """
-            import asyncio, os, os.path
-
-            for coro in asyncio.as_completed(all_fetches):
-                response = await coro
-                bare_path = "/".join(response.url.split("/")[3:])
-                write_path = "./test_files/" + bare_path
-                os.makedirs(os.path.dirname(write_path), exist_ok=True)
-                with open(write_path, "wb") as fp:
-                    byte_data = await response.bytes()
-                    fp.write(byte_data)
-            """
-        )
 
 
 def _remove_pytest_capture_title(
@@ -176,7 +102,7 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     """
     selenium = _seleniums[runtime][0].get_value()
     all_args = [
-        "./test_files/" + node_tree_id,
+        node_tree_id,
         "--color=no",
         "--junitxml",
         "test_output.xml",
@@ -194,7 +120,6 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
         output_xml
         """
     )
-
     # get the error from junitxml
     with open("test.xml", "w") as f:
         f.write(ret_xml)

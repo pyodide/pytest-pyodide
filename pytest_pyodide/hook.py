@@ -12,9 +12,10 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+from .copy_files_to_pyodide import copy_files_to_emscripten_fs
 from .run_tests_inside_pyodide import (
     close_pyodide_browsers,
-    copy_files_to_emscripten_fs,
+    get_browser_pyodide,
     run_test_in_pyodide,
 )
 from .utils import parse_xfail_browsers
@@ -228,7 +229,7 @@ def pytest_runtest_setup(item):
             pytest.skip(reason="pyodide specific test, can't run in pyodide")
         else:
             # Pass this test to pyodide runner
-            # First: make sure that pyodide has the current folder copied over
+            # First: make sure that pyodide has the test folder copied over
             item_path = Path(item.path)
             copy_files = list(item_path.parent.glob("**/*"))
             # If we have a pyodide build dist folder with wheels in, copy those over
@@ -237,14 +238,21 @@ def pytest_runtest_setup(item):
             if dist_path.exists():
                 copy_files.extend(list(dist_path.glob("*.whl")))
 
+            copy_files_with_destinations = []
+            for src in copy_files:
+                dest = Path("test_files") / src.relative_to(Path.cwd())
+                copy_files_with_destinations.append((src, dest))
+
             class RequestType:
                 config = item.config
                 node = item
 
-            copy_files_to_emscripten_fs(
-                copy_files,
+            selenium = get_browser_pyodide(
                 request=cast(pytest.FixtureRequest, RequestType),
                 runtime=item.pyodide_runtime,
+            )
+            copy_files_to_emscripten_fs(
+                copy_files_with_destinations, selenium, install_wheels=True
             )
     else:
         if not hasattr(item, "fixturenames"):

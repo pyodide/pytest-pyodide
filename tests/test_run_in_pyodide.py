@@ -2,51 +2,45 @@ from pathlib import Path
 
 import pytest
 
+from pytest_pyodide.copy_files_to_pyodide import copy_files_to_emscripten_fs
 from pytest_pyodide.run_tests_inside_pyodide import (
     close_pyodide_browsers,
-    copy_files_to_emscripten_fs,
+    get_browser_pyodide,
     run_test_in_pyodide,
 )
 
 
-# this fixture just makes sure that the servers for testing pyodide are
-# closed at the end of the test run
+# fixture to copy the test file across
 @pytest.fixture(scope="module")
-def pytest_in_pyodide_servers():
+def remote_test_file(request, runtime):
     try:
-        yield
+        datafile_path = (
+            Path(__file__).parent / "datafiles/in_pyodide_tests.py"
+        ).resolve()
+        datafile_path = datafile_path.relative_to(Path.cwd())
+        dest_path = Path("test_files", datafile_path)
+        print(dest_path, datafile_path)
+        selenium = get_browser_pyodide(request, runtime)
+        copy_files_to_emscripten_fs(
+            [(datafile_path, dest_path)], selenium, install_wheels=False
+        )
+        yield dest_path
     finally:
         close_pyodide_browsers()
 
 
-def test_fail_test(pytest_in_pyodide_servers, request, runtime):
-    in_pyodide_tests = (
-        Path(__file__).parent / "datafiles/in_pyodide_tests.py"
-    ).resolve()
-    in_pyodide_tests = in_pyodide_tests.relative_to(Path.cwd())
-    copy_files_to_emscripten_fs([in_pyodide_tests], request, runtime)
+def test_fail_test(remote_test_file, runtime):
     success = run_test_in_pyodide(
-        f"{in_pyodide_tests}::test_fail", runtime, ignore_fail=True
+        f"{remote_test_file}::test_fail", runtime, ignore_fail=True
     )
     assert success is False
 
 
-def test_succeed_test(pytest_in_pyodide_servers, request, runtime):
-    in_pyodide_tests = (
-        Path(__file__).parent / "datafiles/in_pyodide_tests.py"
-    ).resolve()
-    in_pyodide_tests = in_pyodide_tests.relative_to(Path.cwd())
-    copy_files_to_emscripten_fs([in_pyodide_tests], request, runtime)
-    run_test_in_pyodide(f"{in_pyodide_tests}::test_success", runtime, ignore_fail=False)
+def test_succeed_test(remote_test_file, runtime):
+    run_test_in_pyodide(f"{remote_test_file}::test_success", runtime, ignore_fail=False)
 
 
-def test_running_in_pyodide(pytest_in_pyodide_servers, request, runtime):
-    print(request.node.nodeid)
-    in_pyodide_tests = (
-        Path(__file__).parent / "datafiles/in_pyodide_tests.py"
-    ).resolve()
-    in_pyodide_tests = in_pyodide_tests.relative_to(Path.cwd())
-    copy_files_to_emscripten_fs([in_pyodide_tests], request, runtime)
+def test_running_in_pyodide(remote_test_file, runtime):
     run_test_in_pyodide(
-        f"{in_pyodide_tests}::test_check_in_pyodide", runtime, ignore_fail=False
+        f"{remote_test_file}::test_check_in_pyodide", runtime, ignore_fail=False
     )
