@@ -433,7 +433,10 @@ def copy_files_to_pyodide(file_list, install_wheels=True):
                     "copy_pyodide_files needs a selenium argument to your test fixture"
                 )
             copy_files_to_emscripten_fs(
-                file_list, selenium, install_wheels=install_wheels
+                file_list,
+                selenium,
+                install_wheels=install_wheels,
+                recurse_directories=True,
             )
             return fn(*args, **argv)
 
