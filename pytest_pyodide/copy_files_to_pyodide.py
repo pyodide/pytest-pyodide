@@ -1,13 +1,17 @@
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 from typing import Any
 
 from .server import spawn_web_server
 
-_copied_files: dict[Any, list[Path]] = {}
+_copied_files: dict[Any, MutableSequence[tuple[Path, str]]] = {}
 
 
 def copy_files_to_emscripten_fs(
-    file_list: list[tuple[Path, Path]], selenium: Any, install_wheels=True
+    file_list: Sequence[Path | str | tuple[Path | str, Path | str]],
+    selenium: Any,
+    install_wheels=True,
+    recurse_directories=True,
 ):
     """
     Copies files in file_list to the emscripten file system. Files
@@ -18,16 +22,57 @@ def copy_files_to_emscripten_fs(
     if selenium not in _copied_files:
         _copied_files[selenium] = []
     new_files = []
-    for src, dest_path in file_list:
+    for list_entry in file_list:
+        if isinstance(list_entry, tuple):
+            src, dest_path = Path(list_entry[0]), Path(list_entry[1])
+        else:
+            src = Path(list_entry).resolve()
+            dest_path = Path(list_entry).relative_to(Path.cwd())
+        # check if it is a glob
+        last_folder = ""
+        last_remaining = str(src)
+        glob_pattern = None
+        glob_base = None
+        for i, c in enumerate(str(src)):
+            if c in ["*", "[", "]"]:
+                glob_pattern = str(last_remaining)
+                glob_base = Path(last_folder)
+                print(glob_pattern)
+                break
+            if c == "/":
+                last_folder = str(src)[:i]
+                last_remaining = str(src)[i + 1 :]
         if src.is_dir():
-            continue
-        src = src.resolve()
-        if not src.is_relative_to(Path.cwd()):
-            raise RuntimeError(
-                "Can only copy files to pyodide that are below the current directory"
-            )
-        if src not in _copied_files[selenium]:
-            new_files.append((src, str(dest_path)))
+            # copy all files in directory
+            if recurse_directories:
+                glob_pattern = "**/*"
+                glob_base = src
+            else:
+                glob_pattern = "./*"
+                glob_base = src
+        if glob_base and glob_pattern:
+            # Multiple files to copy
+            glob_base = glob_base.resolve()
+            if not glob_base.is_relative_to(Path.cwd()):
+                raise RuntimeError(
+                    "Can only copy files to pyodide that are below the current directory"
+                )
+            for f in glob_base.glob(glob_pattern):
+                if f.is_dir():
+                    continue
+                relative_path = f.relative_to(glob_base)
+                file_dest = Path(dest_path, relative_path)
+                if (f, str(file_dest)) not in _copied_files[selenium]:
+                    new_files.append((f, str(file_dest)))
+        else:
+            # Single file to copy
+            src = src.resolve()
+            if not src.is_relative_to(Path.cwd()):
+                raise RuntimeError(
+                    "Can only copy files to pyodide that are below the current directory"
+                )
+            if (src, str(dest_path)) not in _copied_files[selenium]:
+                new_files.append((src, str(dest_path)))
     if len(new_files) == 0:
         return
     base_path = Path.cwd()
@@ -55,7 +100,7 @@ def copy_files_to_emscripten_fs(
             """
         )
         for file, dest in new_files:
-            _copied_files[selenium].append(file)
+            _copied_files[selenium].append((file, dest))
             file_url = base_url + str(file.relative_to(base_path))
             if file.suffix == ".whl" and install_wheels:
                 # wheel - install the wheel on the pyodide side before

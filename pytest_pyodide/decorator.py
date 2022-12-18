@@ -6,7 +6,6 @@ from base64 import b64decode, b64encode
 from collections.abc import Callable, Collection
 from copy import deepcopy
 from io import BytesIO
-from pathlib import Path
 from typing import Any, Protocol
 
 import pytest
@@ -433,19 +432,8 @@ def copy_files_to_pyodide(file_list, install_wheels=True):
                 raise RuntimeError(
                     "copy_pyodide_files needs a selenium argument to your test fixture"
                 )
-            clean_file_list = []
-            for x in file_list:
-                if type(x) == tuple and len(x) == 2:
-                    x1, x2 = x
-                    x1 = Path(x1)
-                    x2 = Path(x2)
-                    clean_file_list.append((x1, x2))
-                else:
-                    raise RuntimeError(
-                        "copy_pyodide_files needs tuples of (src path,dest path)"
-                    )
             copy_files_to_emscripten_fs(
-                clean_file_list, selenium, install_wheels=install_wheels
+                file_list, selenium, install_wheels=install_wheels
             )
             return fn(*args, **argv)
 
