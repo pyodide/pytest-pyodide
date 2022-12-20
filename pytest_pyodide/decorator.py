@@ -414,7 +414,7 @@ class run_in_pyodide:
         return wrapper
 
 
-def copy_files_to_pyodide(file_list, install_wheels=True):
+def copy_files_to_pyodide(file_list, install_wheels=True, recurse_directories=True):
     """A decorator that copies files across to pyodide"""
 
     def wrap(fn):
@@ -436,7 +436,7 @@ def copy_files_to_pyodide(file_list, install_wheels=True):
                 file_list,
                 selenium,
                 install_wheels=install_wheels,
-                recurse_directories=True,
+                recurse_directories=recurse_directories,
             )
             return fn(*args, **argv)
 

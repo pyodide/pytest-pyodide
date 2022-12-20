@@ -40,7 +40,7 @@ def copy_files_to_emscripten_fs(
                 print(glob_pattern)
                 break
             if c == "/":
-                last_folder = str(src)[:i]
+                last_folder = str(src)[: i + 1]
                 last_remaining = str(src)[i + 1 :]
         if src.is_dir():
             # copy all files in directory
@@ -52,6 +52,7 @@ def copy_files_to_emscripten_fs(
                 glob_base = src
         if glob_base and glob_pattern:
             # Multiple files to copy
+            print(glob_base, glob_base.resolve())
             glob_base = glob_base.resolve()
             if not glob_base.is_relative_to(Path.cwd()):
                 raise RuntimeError(
