@@ -75,19 +75,18 @@ def _remove_pytest_capture_title(
 
     This helper removes that line.
     """
-    if not capture_element:
+    if capture_element is None:
         return None
     capture_text = capture_element.text
     if not capture_text:
         return None
     lines = capture_text.splitlines()
-    if lines[0].find(" " + title_name + " "):
-        ret_data = "\n".join(lines[1:])
-        if re.search(r"\S", ret_data):
-            return ret_data
-        else:
-            return None
-    return "\n".join(lines)
+    assert lines[0].find(" " + title_name + " ")
+    ret_data = "\n".join(lines[1:])
+    if re.search(r"\S", ret_data):
+        return ret_data
+    else:
+        return None
 
 
 def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
@@ -121,26 +120,23 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
         """
     )
     # get the error from junitxml
-    with open("test.xml", "w") as f:
-        f.write(ret_xml)
     root = ET.fromstring(ret_xml)
     fails = root.findall("*/testcase[failure]")
     for fail in fails:
         stdout = fail.find("./system-out")
         stderr = fail.find("./system-err")
         failure = fail.find("failure")
-        if failure and failure.text:
+        if failure is not None and failure.text:
             fail_txt = failure.text
         else:
             fail_txt = ""
         stdout_text = _remove_pytest_capture_title(stdout, "Captured Out")
         stderr_text = _remove_pytest_capture_title(stderr, "Captured Err")
-        if stdout:
+        if stdout_text is not None:
             print(stdout_text)
-        if stderr_text:
+        if stderr_text is not None:
             sys.stderr.write(stderr_text)
         if not ignore_fail:
-
             pytest.fail(fail_txt, pytrace=False)
         return False
     return True

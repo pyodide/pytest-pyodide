@@ -1,5 +1,6 @@
 # these tests are run using the run-in-pyodide option from test_run_in_pyodide.py
 # test_fail is expected to fail obviously!
+import sys
 
 
 def test_success():
@@ -8,6 +9,7 @@ def test_success():
 
 def test_fail():
     print("Oh dear")
+    sys.stderr.write("Oops, this is gonna fail")
     assert 1 == 0
 
 

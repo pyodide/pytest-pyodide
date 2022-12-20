@@ -36,6 +36,11 @@ def test_fail_test(remote_test_file, runtime):
     assert success is False
 
 
+@pytest.mark.xfail
+def test_xfail_test(remote_test_file, runtime):
+    run_test_in_pyodide(f"{remote_test_file}::test_fail", runtime, ignore_fail=False)
+
+
 def test_succeed_test(remote_test_file, runtime):
     run_test_in_pyodide(f"{remote_test_file}::test_success", runtime, ignore_fail=False)
 
