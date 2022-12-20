@@ -56,7 +56,7 @@ def copy_files_to_emscripten_fs(
             glob_base = glob_base.resolve()
             if not glob_base.is_relative_to(Path.cwd()):
                 raise RuntimeError(
-                    "Can only copy files to pyodide that are below the current directory"
+                    "Can only copy directories to pyodide that are below the current directory"
                 )
             for f in glob_base.glob(glob_pattern):
                 if f.is_dir():

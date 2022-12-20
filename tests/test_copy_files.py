@@ -1,4 +1,7 @@
+import os
+import tempfile
 from pathlib import Path
+from subprocess import run
 
 import pytest
 
@@ -90,7 +93,7 @@ def test_bad_copy_files_decorator(selenium):
         def should_throw_fn(selenium):
             pass
 
-        should_throw_fn()
+        should_throw_fn(selenium)
         pytest.fail(
             "Copy files to pyodide should fail if source is above current directory"
         )
@@ -102,7 +105,7 @@ def test_bad_copy_files_decorator(selenium):
         def should_throw_fn2(selenium):
             pass
 
-        should_throw_fn2()
+        should_throw_fn2(selenium)
         pytest.fail(
             "Copy files to pyodide should fail if source is above current directory"
         )
@@ -121,3 +124,23 @@ def test_no_selenium_failure():
     except RuntimeError:
         return
     pytest.fail("Copy files to pyodide should fail if no selenium parameter exists")
+
+
+def test_copy_files_run_install_wheel(selenium):
+    with tempfile.TemporaryDirectory(None, dir=Path.cwd()) as td:
+        old_dir = Path.cwd()
+        try:
+            os.chdir(td)
+            run(["pip", "download", "pyodide_http"])
+            wheels = list(Path(".").glob("pyodide_http*.whl"))
+            assert len(wheels) > 0
+            wheel_path = wheels[0]
+
+            @copy_files_to_pyodide([(wheel_path, wheel_path)])
+            def install_package_and_try_import(selenium):
+                selenium.run("""import pyodide_http""")
+
+            install_package_and_try_import(selenium)
+            wheel_path.unlink()
+        finally:
+            os.chdir(old_dir)
