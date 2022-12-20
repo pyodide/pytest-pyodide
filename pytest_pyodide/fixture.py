@@ -19,6 +19,10 @@ from .utils import parse_driver_timeout, set_webdriver_script_timeout
 
 @pytest.fixture(scope="module")
 def playwright_browsers(request):
+    return _playwright_browsers(request)
+
+
+def _playwright_browsers(request):
     if request.config.option.runner.lower() != "playwright":
         yield {}
     else:

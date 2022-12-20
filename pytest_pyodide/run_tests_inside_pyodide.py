@@ -8,7 +8,8 @@ import pytest
 from .server import spawn_web_server
 
 _seleniums: dict[str, list[Any]] = {}
-_playwright_browsers = None
+_playwright_browser_list = None
+_playwright_browser_generator = None
 
 
 class ContextManagerUnwrapper:
@@ -41,11 +42,15 @@ def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
     calls. If the same runtime is already running, it will
     just return that.
     """
-    global _playwright_browsers
-    from .fixture import playwright_browsers, selenium_common
+    global _playwright_browser_generator
+    from .fixture import _playwright_browsers, selenium_common
 
-    if request.config.option.runner.lower == "playwright":
-        _playwright_browsers = playwright_browsers(request)
+    if (
+        request.config.option.runner.lower() == "playwright"
+        and _playwright_browser_generator is None
+    ):
+        _playwright_browser_generator = _playwright_browsers(request)
+        _playwright_browser_list = _playwright_browser_generator.__next__()
     if runtime in _seleniums:
         return _seleniums[runtime][0].get_value()
     web_server_main = ContextManagerUnwrapper(
@@ -58,7 +63,7 @@ def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
                 request,
                 runtime,
                 web_server_main.get_value(),
-                browsers=_playwright_browsers,
+                browsers=_playwright_browser_list,
             )
         ),
         web_server_main,
@@ -149,7 +154,11 @@ def close_pyodide_browsers():
     This is done at the end of testing so that we can run more
     than one test without launching browsers each time.
     """
-    global _seleniums
+    global _seleniums, _playwright_browser_list, _playwright_browser_generator
     for x in _seleniums.values():
         x[0].close()
     del _seleniums
+    if _playwright_browser_generator is not None:
+        _playwright_browser_generator.__next__()
+        _playwright_browser_generator = None
+    _playwright_browser_list = None
