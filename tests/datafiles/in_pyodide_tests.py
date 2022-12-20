@@ -19,3 +19,7 @@ def test_check_in_pyodide():
         dir(pyodide)
     except ImportError:
         assert "Not in pyodide" == 0
+
+
+def test_this_doesnt_run(selenium):
+    assert "Pyodide specific tests shouldn't be run inside pyodide" == 0

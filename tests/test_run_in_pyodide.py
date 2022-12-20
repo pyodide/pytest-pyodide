@@ -44,3 +44,9 @@ def test_running_in_pyodide(remote_test_file, runtime):
     run_test_in_pyodide(
         f"{remote_test_file}::test_check_in_pyodide", runtime, ignore_fail=False
     )
+
+
+def test_pyodide_tests_skipped_inside_pyodide(remote_test_file, runtime):
+    run_test_in_pyodide(
+        f"{remote_test_file}::test_this_doesnt_run", runtime, ignore_fail=False
+    )
