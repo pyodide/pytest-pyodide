@@ -42,7 +42,7 @@ def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
     calls. If the same runtime is already running, it will
     just return that.
     """
-    global _playwright_browser_generator
+    global _playwright_browser_generator, _playwright_browser_list
     from .fixture import _playwright_browsers, selenium_common
 
     if (
