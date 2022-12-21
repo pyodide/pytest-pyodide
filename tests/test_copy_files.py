@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 from pathlib import Path
 from subprocess import run
@@ -131,7 +132,7 @@ def test_copy_files_run_install_wheel(selenium):
         old_dir = Path.cwd()
         try:
             os.chdir(td)
-            run(["pip", "download", "pyodide_http"])
+            run([sys.executable, "-m", "pip", "download", "pyodide_http"])
             wheels = list(Path(".").glob("pyodide_http*.whl"))
             assert len(wheels) > 0
             wheel_path = wheels[0]

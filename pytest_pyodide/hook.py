@@ -269,7 +269,15 @@ def pytest_runtest_call(item):
     if item.config.option.run_in_pyodide:
 
         def _run_in_pyodide(self):
-            run_test_in_pyodide(self.nodeid, self.pyodide_runtime)
+            class RequestType:
+                config = item.config
+                node = item
+
+            selenium = get_browser_pyodide(
+                request=cast(pytest.FixtureRequest, RequestType),
+                runtime=item.pyodide_runtime,
+            )
+            run_test_in_pyodide(self.nodeid, selenium)
 
         item.runtest = _run_in_pyodide.__get__(item, item.__class__)
         yield

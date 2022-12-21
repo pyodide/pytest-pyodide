@@ -94,7 +94,7 @@ def _remove_pytest_capture_title(
         return None
 
 
-def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
+def run_test_in_pyodide(node_tree_id, selenium, ignore_fail=False):
     """This runs a single test (identified by node_tree_id) inside
     the pyodide runtime. How it does it is by calling pytest on the
     browser pyodide with the full node ID, which is the same
@@ -104,7 +104,6 @@ def run_test_in_pyodide(node_tree_id, runtime, ignore_fail=False):
     from the pyodide call to pytest, so that test failures should look
     roughly the same as they would when you are running pytest locally.
     """
-    selenium = _seleniums[runtime][0].get_value()
     all_args = [
         node_tree_id,
         "--color=no",
@@ -158,7 +157,3 @@ def close_pyodide_browsers():
     for x in _seleniums.values():
         x[0].close()
     del _seleniums
-    if _playwright_browser_generator is not None:
-        _playwright_browser_generator.__next__()
-        _playwright_browser_generator = None
-    _playwright_browser_list = None
