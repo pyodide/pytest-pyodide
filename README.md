@@ -206,6 +206,30 @@ Thus, the only value of inner `@run_in_pyodide` functions is to limit the scope
 of the function definition. If you need a closure, you will have to wrap it in a
 second function call.
 
+## Copying files to Pyodide
+
+You can copy files to the pyodide filesystem using the `copy_files_to_pyodide` decorator. This takes two arguments - a list of `(src,destination)` pairs. These can be any of: 1) A filename, 2) A folder name, which is copied to the destination path (along with all subdirectories if `recurse_directories` is True), 3) A glob pattern, which will fetch all files matching the pattern and copy them to a destination directory, whilst preserving the folder structure.
+
+If you set `install_wheels` to True, any `.whl` files will be installed on pyodide. This is useful for installing your package.
+
+```py
+@copy_files_to_pyodide(file_list=[(src,dest)],install_wheels=True,recurse_directories=True)
+```
+
+
+## Running non-pyodide tests in Pyodide
+
+This plugin also supports running standard pytest tests on pyodide in a browser. So if you have an existing codebase and
+you want to check if your pyodide build works, just run it like this:
+```
+# Make the emscripten/wasm32  wheel in the dist folder
+pyodide build
+# the following code
+# a) copies the test_path directory and subfolders to a Pyodide instance, and
+# b) installs any wheels in the dist subfolder so that this package is available on the Pyodide VM
+pytest --run-in-pyodide test_path --runtime <runtime> --dist-dir=<pyodide/dist>
+```
+
 ## Specifying a browser
 
 You can specify a browser runtime using `--runtime` (`--rt`) commandline option.
@@ -243,9 +267,10 @@ Then use the `--runner` argument to specify to run tests with playwright.
 pytest --runner playwright
 ```
 
+
 ### Custom test marks
 
-Custeom test marks supported by `pytest-pyodide`:
+Custom test marks supported by `pytest-pyodide`:
 
 `pytest.mark.driver_timeout(timeout)`: Set script timeout in WebDriver. If the
 test is known to take a long time, you can extend the deadline with this marker.

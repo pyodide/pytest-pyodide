@@ -11,6 +11,10 @@
   override `selenium_standalone` fixture with `selenium_standalone_refresh`.
   [#65](https://github.com/pyodide/pytest-pyodide/pull/65)
 
+- Added command line option `--run-in-pyodide`. This will run a set of normal pytest tests in pyodide using the
+  same testing architecture used for running dedicated pyodide tests.
+  [#62](https://github.com/pyodide/pytest-pyodide/pull/62)
+
 - Breaking: `--runtime` commandline flag now requires runtimes to be comma-separated.
   [#76](https://github.com/pyodide/pytest-pyodide/pull/76)
 

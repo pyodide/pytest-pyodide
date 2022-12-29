@@ -1,9 +1,10 @@
 import ast
 import re
 import sys
+from argparse import BooleanOptionalAction
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from _pytest.assertion.rewrite import AssertionRewritingHook, rewrite_asserts
@@ -11,6 +12,12 @@ from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
 
+from .copy_files_to_pyodide import copy_files_to_emscripten_fs
+from .run_tests_inside_pyodide import (
+    close_pyodide_browsers,
+    get_browser_pyodide,
+    run_test_in_pyodide,
+)
 from .utils import parse_xfail_browsers
 
 RUNTIMES = ["firefox", "chrome", "safari", "node"]
@@ -58,6 +65,11 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     return run_host, runtime_filtered
 
 
+def pytest_unconfigure(config):
+    if config.option.run_in_pyodide:
+        close_pyodide_browsers()
+
+
 def pytest_configure(config):
 
     config.addinivalue_line(
@@ -102,6 +114,12 @@ def pytest_addoption(parser):
         choices=["selenium", "playwright"],
         help="Select testing frameworks, selenium or playwright (default: %(default)s)",
     )
+    group.addoption(
+        "--run-in-pyodide",
+        action=BooleanOptionalAction,
+        help="Run standard pytest tests, but in pyodide",
+    )
+
     group.addoption(
         "--rt",
         "--runtime",
@@ -154,6 +172,17 @@ def pytest_generate_tests(metafunc: Any) -> None:
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
+    # if we are running tests in pyodide, then run all tests for each runtime
+    if len(items) > 0 and items[0].config.option.run_in_pyodide:
+        new_items = []
+        for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
+            if runtime != "host":
+                for x in items:
+                    new_items.append(x)
+                    new_items[-1].pyodide_runtime = runtime
+        items[:] = new_items
+        return
+
     # Run all Safari standalone tests first
     # Since Safari doesn't support more than one simultaneous session, we run all
     # selenium_standalone Safari tests first. We preserve the order of other
@@ -188,18 +217,66 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
-    if not hasattr(item, "fixturenames"):
-        # Some items like DoctestItem has no fixture
-        return
+    if item.config.option.run_in_pyodide:
+        if not hasattr(item, "fixturenames"):
+            return
+        if pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
+            pytest.skip(reason="pyodide specific test, can't run in pyodide")
+        else:
+            # Pass this test to pyodide runner
+            # First: make sure that pyodide has the test folder copied over
+            item_path = Path(item.path)
+            copy_files = list(item_path.parent.rglob("*"))
+            # If we have a pyodide build dist folder with wheels in, copy those over
+            # and install the wheels in pyodide so we can import this package for tests
+            dist_path = Path.cwd() / "dist"
+            if dist_path.exists():
+                copy_files.extend(list(dist_path.glob("*.whl")))
 
-    if not pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
-        pytest.skip(reason="Non-host test")
-    elif not pytest.pyodide_run_host_test and "runtime" not in item.fixturenames:  # type: ignore[truthy-bool]
-        pytest.skip("Host test")
+            copy_files_with_destinations = []
+            for src in copy_files:
+                dest = Path("test_files") / src.relative_to(Path.cwd())
+                copy_files_with_destinations.append((src, dest))
+
+            class RequestType:
+                config = item.config
+                node = item
+
+            selenium = get_browser_pyodide(
+                request=cast(pytest.FixtureRequest, RequestType),
+                runtime=item.pyodide_runtime,
+            )
+            copy_files_to_emscripten_fs(
+                copy_files_with_destinations, selenium, install_wheels=True
+            )
+    else:
+        if not hasattr(item, "fixturenames"):
+            # Some items like DoctestItem have no fixture
+            return
+        if not pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
+            pytest.skip(reason="Non-host test")
+        elif not pytest.pyodide_run_host_test and "runtime" not in item.fixturenames:  # type: ignore[truthy-bool]
+            pytest.skip("Host test")
 
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
+    if item.config.option.run_in_pyodide:
+
+        def _run_in_pyodide(self):
+            class RequestType:
+                config = item.config
+                node = item
+
+            selenium = get_browser_pyodide(
+                request=cast(pytest.FixtureRequest, RequestType),
+                runtime=item.pyodide_runtime,
+            )
+            run_test_in_pyodide(self.nodeid, selenium)
+
+        item.runtest = _run_in_pyodide.__get__(item, item.__class__)
+        yield
+        return
 
     browser = None
     for fixture in item._fixtureinfo.argnames:
