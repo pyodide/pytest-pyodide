@@ -430,7 +430,7 @@ def copy_files_to_pyodide(file_list, install_wheels=True, recurse_directories=Tr
                     selenium = a
             if not selenium:
                 raise RuntimeError(
-                    "copy_pyodide_files needs a selenium argument to your test fixture"
+                    "copy_files_to_pyodide needs a selenium argument to your test fixture"
                 )
             copy_files_to_emscripten_fs(
                 file_list,
