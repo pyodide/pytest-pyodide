@@ -231,7 +231,7 @@ def pytest_runtest_setup(item):
             # Pass this test to pyodide runner
             # First: make sure that pyodide has the test folder copied over
             item_path = Path(item.path)
-            copy_files = list(item_path.parent.glob("**/*"))
+            copy_files = list(item_path.parent.rglob("*"))
             # If we have a pyodide build dist folder with wheels in, copy those over
             # and install the wheels in pyodide so we can import this package for tests
             dist_path = Path.cwd() / "dist"
