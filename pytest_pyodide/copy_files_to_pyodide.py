@@ -17,7 +17,16 @@ def copy_files_to_emscripten_fs(
     Copies files in file_list to the emscripten file system. Files
     are passed as a list of source Path / install Path pairs.
 
-    If install_wheels is True, any wheels copied are installed.
+
+    Parameters:
+        file_list (Sequence[Path|str|tuple[Path | str, Path | str]]): A list of files, directories or glob patterns to copy as (src,destination) pairs. Destination is relative to the current
+        directory on pyodide. If a single filename is passed for an entry, the destination is chosen relative to the current working directory.
+
+        selenium : The pytest selenium fixture which hosts the pyodide to copy to.
+
+        install_wheels (bool): If True, any wheels in the copy list are installed instead of copied.
+
+        recurse_directories (bool): If this is True, subdirectories of directories in file_list will be copied.
     """
     if selenium not in _copied_files:
         _copied_files[selenium] = []

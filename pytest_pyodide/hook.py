@@ -216,11 +216,6 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_collection(session):
-    return None
-
-
-@pytest.hookimpl(tryfirst=True)
 def pytest_runtest_setup(item):
     if item.config.option.run_in_pyodide:
         if not hasattr(item, "fixturenames"):

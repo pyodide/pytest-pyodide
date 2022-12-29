@@ -1,15 +1,12 @@
 import re
 import sys
 import xml.etree.ElementTree as ET
-from typing import Any, ContextManager
+from dataclasses import dataclass
+from typing import ContextManager
 
 import pytest
 
 from .server import spawn_web_server
-
-_seleniums: dict[str, list[Any]] = {}
-_playwright_browser_list = None
-_playwright_browser_generator = None
 
 
 class ContextManagerUnwrapper:
@@ -37,6 +34,17 @@ class ContextManagerUnwrapper:
             self.value = None
 
 
+@dataclass
+class _SeleniumInstance:
+    selenium: ContextManagerUnwrapper
+    server: ContextManagerUnwrapper
+
+
+_seleniums: dict[str, _SeleniumInstance] = {}
+_playwright_browser_list = None
+_playwright_browser_generator = None
+
+
 def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
     """Start a browser running with pyodide, ready to run pytest
     calls. If the same runtime is already running, it will
@@ -52,13 +60,13 @@ def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
         _playwright_browser_generator = _playwright_browsers(request)
         _playwright_browser_list = _playwright_browser_generator.__next__()
     if runtime in _seleniums:
-        return _seleniums[runtime][0].get_value()
+        return _seleniums[runtime].selenium.get_value()
     web_server_main = ContextManagerUnwrapper(
         spawn_web_server(request.config.option.dist_dir)
     )
     # open pyodide
-    _seleniums[runtime] = [
-        ContextManagerUnwrapper(
+    _seleniums[runtime] = _SeleniumInstance(
+        selenium=ContextManagerUnwrapper(
             selenium_common(
                 request,
                 runtime,
@@ -66,9 +74,10 @@ def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
                 browsers=_playwright_browser_list,
             )
         ),
-        web_server_main,
-    ]
-    return _seleniums[runtime][0].get_value()
+        server=web_server_main,
+    )
+
+    return _seleniums[runtime].selenium.get_value()
 
 
 def _remove_pytest_capture_title(
@@ -155,5 +164,5 @@ def close_pyodide_browsers():
     """
     global _seleniums, _playwright_browser_list, _playwright_browser_generator
     for x in _seleniums.values():
-        x[0].close()
+        x.selenium.close()
     del _seleniums

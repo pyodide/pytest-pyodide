@@ -1,8 +1,4 @@
-import os
-import sys
-import tempfile
 from pathlib import Path
-from subprocess import run
 
 import pytest
 
@@ -114,34 +110,23 @@ def test_bad_copy_files_decorator(selenium):
         pass
 
 
-def test_no_selenium_failure():
-    try:
+def test_copy_files_fails_if_no_selenium():
+    with pytest.raises(RuntimeError):
 
         @copy_files_to_pyodide([(__file__, "test2.py")])
         def should_throw_fn():
             pass
 
         should_throw_fn()
-    except RuntimeError:
-        return
-    pytest.fail("Copy files to pyodide should fail if no selenium parameter exists")
 
 
 def test_copy_files_run_install_wheel(selenium):
-    with tempfile.TemporaryDirectory(None, dir=Path.cwd()) as td:
-        old_dir = Path.cwd()
-        try:
-            os.chdir(td)
-            run([sys.executable, "-m", "pip", "download", "pyodide_http"])
-            wheels = list(Path(".").glob("pyodide_http*.whl"))
-            assert len(wheels) > 0
-            wheel_path = wheels[0]
+    wheel_path = (
+        Path(__file__).parent
+    ) / "datafiles/pyodide_http-0.2.0-py3-none-any.whl"
 
-            @copy_files_to_pyodide([(wheel_path, wheel_path)])
-            def install_package_and_try_import(selenium):
-                selenium.run("""import pyodide_http""")
+    @copy_files_to_pyodide([(wheel_path, "pyodide_http-0.2.0-py3-none-any.whl")])
+    def install_package_and_try_import(selenium):
+        selenium.run("""import pyodide_http""")
 
-            install_package_and_try_import(selenium)
-            wheel_path.unlink()
-        finally:
-            os.chdir(old_dir)
+    install_package_and_try_import(selenium)
