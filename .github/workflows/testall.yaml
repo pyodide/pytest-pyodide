@@ -58,12 +58,12 @@ jobs:
           MATRIX=$(python utils/build_test_matrix.py \
             "${{ inputs.pyodide-versions }}" \
             --os="${{ inputs.os }}" \
-            --runner="${{ inputs.runners }}" \
-            --browser="${{ inputs.browsers }}" \
-            --chrome-version="${{ inputs.chrome-versions }}" \
-            --firefox-version="${{ inputs.firefox-versions }}" \
-            --node-version="${{ inputs.node-versions }}" \
-            --playwright-version="${{ inputs.playwright-versions }}" \
+            --runner "${{ inputs.runners }}" \
+            --browser "${{ inputs.browsers }}" \
+            --chrome-version "${{ inputs.chrome-versions }}" \
+            --firefox-version "${{ inputs.firefox-versions }}" \
+            --node-version "${{ inputs.node-versions }}" \
+            --playwright-version "${{ inputs.playwright-versions }}" \
           )
           echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
           echo "Test matrix is ${MATRIX}"
