@@ -59,7 +59,7 @@ jobs:
             "${{ inputs.pyodide-versions }}" \
             --os="${{ inputs.os }}" \
             --runner="${{ inputs.runners }}" \
-            --browser="${{ iputs.browsers }}" \
+            --browser="${{ inputs.browsers }}" \
             --chrome-version="${{ inputs.chrome-versions }}" \
             --firefox-version="${{ inputs.firefox-versions }}" \
             --node-version="${{ inputs.node-versions }}" \
