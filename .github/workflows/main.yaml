@@ -13,6 +13,10 @@ on:
         required: false
         type: string
         default: "0.21.0"
+      os:
+        required: false
+        type: string
+        default: "ubuntu-latest"
       runner:
         required: false
         type: string
@@ -21,31 +25,7 @@ on:
         required: false
         type: string
         default: "chrome"
-      os:
-        required: false
-        type: string
-        default: "ubuntu-latest"
-      refresh:
-        required: false
-        type: string
-        default: "0"
-      chrome-version:
-        required: false
-        type: string
-        default: "latest"
-      firefox-version:
-        required: false
-        type: string
-        default: "latest"
-      node-version:
-        required: false
-        type: string
-        default: "latest"
-      # chromedriver-version:  # autodetected from the chrome version
-      #   required: false
-      #   type: string
-      #   default: "latest"
-      gekcodriver-version:
+      browser-version:
         required: false
         type: string
         default: "latest"
@@ -53,7 +33,6 @@ on:
         required: false
         type: string
         default: ""  # latest
-        default: "ubuntu-latest"
       pytest-extra-args:
         required: false
         type: string
@@ -139,7 +118,6 @@ jobs:
           runner: ${{ inputs.runner }}
           browser: ${{ inputs.browser }}
           browser-version: ${{ inputs.browser-version }}
-          driver-version: ${{ inputs.driver-version }}
           playwright-version: ${{ inputs.runner-version }}
 
       - name: Download build artifacts from calling package
