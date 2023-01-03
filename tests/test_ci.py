@@ -68,7 +68,7 @@ def test_build_configs():
             "os": ["ubuntu-latest", "macos-latest"],
             "pyodide-version": ["0.21.0"],
             "runner": ["selenium", "playwright"],
-            "browser": ["firefox", "chrome", "node", "safari"],
+            "browser": ["firefox", "chrome", "node", "safari", "host"],
             "chrome_version": ["1.0", "2.0"],
             "firefox_version": ["3.0", "4.0"],
             "node_version": ["5.0", "6.0"],
@@ -78,3 +78,5 @@ def test_build_configs():
 
     for config in configs:
         assert is_valid_config(config)
+
+        print(config)

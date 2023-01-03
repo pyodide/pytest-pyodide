@@ -84,11 +84,32 @@ def inject_versions(config: TestConfig, args: dict[str, list[str]]):
             "chrome": args.get("chrome_version", []),
             "firefox": args.get("firefox_version", []),
             "node": args.get("node_version", []),
-            "safari": ["HOST_VERSION"],  # We just use host safari version
+            "safari": ["__IGNORED__"],  # This value will be ignored
+            "host": ["__IGNORED__"],  # This value will be ignored
         }[config.runtime]
         key = "browser_version"
 
     return _inject_versions_inner(config, versions, key)
+
+
+def remove_duplicate_configs(configs: list[TestConfig]) -> list[TestConfig]:
+    """
+    Remove duplicate configs.
+    For example, if runtime is `host`, runner value will not be used.
+    """
+    _configs = []
+
+    host_config = False
+    for config in configs:
+        if config.runtime == "host":
+            if host_config:
+                continue
+
+            host_config = True
+
+        _configs.append(dataclasses.replace(config))
+
+    return _configs
 
 
 def build_configs(args: dict[str, list[str]]) -> list[TestConfig]:
@@ -109,7 +130,7 @@ def build_configs(args: dict[str, list[str]]) -> list[TestConfig]:
         config_with_versions = inject_versions(config, args)
         matrix.extend(config_with_versions)
 
-    return matrix
+    return remove_duplicate_configs(matrix)
 
 
 def parse_args() -> dict[str, list[str]]:
