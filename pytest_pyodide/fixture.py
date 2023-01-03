@@ -19,6 +19,10 @@ from .utils import parse_driver_timeout, set_webdriver_script_timeout
 
 @pytest.fixture(scope="module")
 def playwright_browsers(request):
+    yield from _playwright_browsers(request)
+
+
+def _playwright_browsers(request):
     if request.config.option.runner.lower() != "playwright":
         yield {}
     else:
@@ -122,9 +126,6 @@ def selenium_standalone_refresh(selenium):
     """
     Experimental standalone fixture which refreshes a page instead of
     instantiating a new webdriver session.
-
-    by setting STANDALONE_REFRESH env variable,
-    selenium_standalone_refresh fixture will override selenium_standalone
     """
     selenium.clean_logs()
 
@@ -135,10 +136,6 @@ def selenium_standalone_refresh(selenium):
     selenium.initialize_pyodide()
     selenium.save_state()
     selenium.restore_state()
-
-
-if os.environ.get("STANDALONE_REFRESH"):
-    selenium_standalone = selenium_standalone_refresh  # type: ignore[assignment] # noqa: F811
 
 
 @pytest.fixture(scope="module")

@@ -1,7 +1,13 @@
 .pyc
 __pycache__
 *.egg-info
-dist/
+dist
+geckodriver.log
+.hypothesis
 
 # pyenv
 .python-version
+
+# codecov
+.coverage
+coverage.xml
