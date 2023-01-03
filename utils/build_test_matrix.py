@@ -161,50 +161,42 @@ def parse_args() -> dict[str, list[str]]:
 
     parser.add_argument(
         "--os",
-        nargs="?",
-        const=DEFAULT_OS,
-        default=DEFAULT_OS,
     )
     parser.add_argument(
         "--runner",
-        nargs="?",
-        const=DEFAULT_RUNNER,
-        default=DEFAULT_RUNNER,
     )
     parser.add_argument(
         "--browser",
-        nargs="?",
-        const=DEFAULT_BROWSER,
-        default=DEFAULT_BROWSER,
     )
     parser.add_argument(
         "--chrome-version",
-        nargs="?",
-        const=DEFAULT_CHROME_VERSION,
-        default=DEFAULT_CHROME_VERSION,
     )
     parser.add_argument(
         "--firefox-version",
-        nargs="?",
-        const=DEFAULT_FIREFOX_VERSION,
-        default=DEFAULT_FIREFOX_VERSION,
     )
     parser.add_argument(
         "--node-version",
-        nargs="?",
-        const=DEFAULT_NODE_VERSION,
-        default=DEFAULT_NODE_VERSION,
     )
     parser.add_argument(
         "--playwright-version",
-        nargs="?",
-        const=DEFAULT_PLAYWRIGHT_VERSION,
-        default=DEFAULT_PLAYWRIGHT_VERSION,
     )
+
+    defaults: dict[str, str] = {
+        "os": DEFAULT_OS,
+        "runner": DEFAULT_RUNNER,
+        "browser": DEFAULT_BROWSER,
+        "chrome_version": DEFAULT_CHROME_VERSION,
+        "firefox_version": DEFAULT_FIREFOX_VERSION,
+        "node_version": DEFAULT_NODE_VERSION,
+        "playwright_version": DEFAULT_PLAYWRIGHT_VERSION,
+    }
 
     args = parser.parse_args()
     args_dict: dict[str, list[str]] = {}
     for k, v in vars(args).items():
+        if not v:
+            v = defaults[k]
+
         args_dict[k] = [val.strip() for val in v.split(",")]
 
     validate_args(args_dict)
