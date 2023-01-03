@@ -133,6 +133,18 @@ def build_configs(args: dict[str, list[str]]) -> list[TestConfig]:
     return remove_duplicate_configs(matrix)
 
 
+def validate_args(args: dict[str, list[str]]):
+    runners = args["runner"]
+    for runner in runners:
+        if runner not in ("selenium", "playwright"):
+            raise ValueError(f"Invalid runner: {runner}")
+
+    browsers = args["browser"]
+    for browser in browsers:
+        if browser not in ("chrome", "firefox", "node", "safari", "host"):
+            raise ValueError(f"Invalid browser: {browser}")
+
+
 def parse_args() -> dict[str, list[str]]:
     parser = argparse.ArgumentParser()
 
@@ -174,6 +186,7 @@ def parse_args() -> dict[str, list[str]]:
     for k, v in vars(args).items():
         args_dict[k] = [val.strip() for val in v.split(",")]
 
+    validate_args(args_dict)
     return args_dict
 
 
