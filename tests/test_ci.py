@@ -10,6 +10,7 @@ from build_test_matrix import (
     build_configs,
     inject_versions,
     is_valid_config,
+    remove_duplicate_configs,
 )
 
 
@@ -60,6 +61,30 @@ def test_build_matrix_inject_versions():
     assert len(configs) == 2
     assert configs[0].playwright_version == "5.0"
     assert configs[1].playwright_version == "6.0"
+
+
+def test_remove_duplicate_configs():
+
+    configs = [
+        TestConfig("0.21.0", "ubuntu-latest", "selenium", "firefox"),
+        TestConfig("0.21.0", "ubuntu-latest", "selenium", "firefox"),
+    ]
+
+    assert len(remove_duplicate_configs(configs)) == 1
+
+    configs = [
+        TestConfig("0.21.0", "ubuntu-latest", "selenium", "firefox"),
+        TestConfig("0.21.0", "ubuntu-latest", "selenium", "chrome"),
+    ]
+
+    assert len(remove_duplicate_configs(configs)) == 2
+
+    configs = [
+        TestConfig("0.21.0", "ubuntu-latest", "selenium", "host"),
+        TestConfig("0.21.0", "ubuntu-latest", "playwright", "host"),
+    ]
+
+    assert len(remove_duplicate_configs(configs)) == 1
 
 
 def test_build_configs():

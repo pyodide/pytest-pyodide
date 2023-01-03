@@ -56,6 +56,10 @@ def is_valid_config(config: TestConfig) -> bool:
     if "macos" in config.os and config.runner == "playwright":
         return False
 
+    # TODO: Node is actually a runner rather than a runtime, but we treat it as a runtime conventionally...
+    if config.runner == "playwright" and config.runtime == "node":
+        return False
+
     return True
 
 
@@ -95,19 +99,22 @@ def inject_versions(config: TestConfig, args: dict[str, list[str]]):
 def remove_duplicate_configs(configs: list[TestConfig]) -> list[TestConfig]:
     """
     Remove duplicate configs.
-    For example, if runtime is `host`, runner value will not be used.
     """
     _configs = []
 
     host_config = False
     for config in configs:
+        if config in _configs:
+            continue
+
+        # If runtime is `host`, runner value will not be used. So we only need to keep one config
         if config.runtime == "host":
             if host_config:
                 continue
 
             host_config = True
 
-        _configs.append(dataclasses.replace(config))
+        _configs.append(config)
 
     return _configs
 
