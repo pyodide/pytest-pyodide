@@ -11,7 +11,7 @@ import yaml
 # the configs below
 pyodide_versions = sys.argv[1]
 if pyodide_versions == "*":
-    pyodide_versions = "[0.21.0a3,0.21.0]"
+    pyodide_versions = "[0.22.0,0.21.0]"
 
 matrix = yaml.safe_load(
     """
