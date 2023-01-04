@@ -291,7 +291,7 @@ Following versions of pytest-pyodide and Pyodide are tested in CI. Other version
 | pytest-pyodide | Tested Pyodide versions |
 |----------------|-------------------------|
 | 0.23.*         | 0.21.0                  |
-| 0.24.0         | 0.21.0, 0.22.0          |
+| 0.50.0         | 0.21.0, 0.22.0          |
 
 
 ## License
