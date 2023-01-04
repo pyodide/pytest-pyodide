@@ -1,4 +1,4 @@
-## [Unreleased]
+## [0.50.0] - 2023-01-05
 
 - Add auto-setting of python version and runner version based on pyodide version.
   [#66](https://github.com/pyodide/pytest-pyodide/pull/66)
