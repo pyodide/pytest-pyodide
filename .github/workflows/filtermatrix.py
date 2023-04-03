@@ -58,7 +58,7 @@ l = list(ranges.values())
 config_list: "list[dict[str, Any]]" = []
 for conf in itertools.product(*l):
     dict_out = {}
-    for (key, v) in conf:
+    for key, v in conf:
         dict_out[key] = v
     config_list.append(dict_out)
 

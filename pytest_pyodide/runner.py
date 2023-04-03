@@ -405,7 +405,6 @@ class _PlaywrightBaseRunner(_BrowserBaseRunner):
 
 
 class SeleniumFirefoxRunner(_SeleniumBaseRunner):
-
     browser = "firefox"
 
     def get_driver(self):
@@ -419,7 +418,6 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
 
 
 class SeleniumChromeRunner(_SeleniumBaseRunner):
-
     browser = "chrome"
 
     def get_driver(self):
@@ -437,7 +435,6 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
 
 
 class SeleniumSafariRunner(_SeleniumBaseRunner):
-
     browser = "safari"
     script_timeout = 30
 
