@@ -71,7 +71,6 @@ def pytest_unconfigure(config):
 
 
 def pytest_configure(config):
-
     config.addinivalue_line(
         "markers",
         "skip_refcount_check: Don't run refcount checks",
