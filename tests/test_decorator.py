@@ -222,11 +222,11 @@ async def test_run_in_pyodide_async(selenium):
 def test_hypothesis(selenium_standalone, obj):
     try:
         from pyodide.ffi import to_js
-    except:
+    except ImportError:
         try:
             from pyodide import to_js
-        except:
-            raise Exception("Could not import to_js")
+        except ImportError:
+            raise Exception("Could not import to_js") from None
 
     to_js(obj)
 
