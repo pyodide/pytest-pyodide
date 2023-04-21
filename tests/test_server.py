@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 import requests
 
-from pytest_pyodide.server import _default_templates, spawn_web_server
+from pytest_pyodide.server import DefaultHandler, _default_templates, spawn_web_server
 
 
 def test_spawn_web_server_with_params(tmp_path):
@@ -32,6 +32,34 @@ def test_spawn_web_server_default_templates(tmp_path):
             assert res.headers
             assert res.content == content
             assert res.headers["Access-Control-Allow-Origin"] == "*"
+
+
+class CustomTemplateHandler(DefaultHandler):
+    def get_template(self, path: str) -> bytes | None:
+        if path == "/index.txt":
+            return b"hello world"
+
+        return super().get_template(path)
+
+
+def test_spawn_web_server_custom_templates(tmp_path):
+    default_templates = _default_templates()
+
+    with spawn_web_server(tmp_path, handler_cls=CustomTemplateHandler) as (
+        hostname,
+        port,
+        _,
+    ):
+        for path, content in default_templates.items():
+            res = requests.get(f"http://{hostname}:{port}{path}")
+            assert res.ok
+            assert res.headers
+            assert res.content == content
+            assert res.headers["Access-Control-Allow-Origin"] == "*"
+
+        res = requests.get(f"http://{hostname}:{port}/index.txt")
+        assert res.ok
+        assert res.content == b"hello world"
 
 
 class HelloWorldHandler(http.server.SimpleHTTPRequestHandler):
