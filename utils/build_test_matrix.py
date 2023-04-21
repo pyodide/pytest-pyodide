@@ -66,7 +66,6 @@ def is_valid_config(config: TestConfig) -> bool:
 def _inject_versions_inner(
     config: TestConfig, versions: list[str], key: str
 ) -> list[TestConfig]:
-
     configs_with_versions = []
     for version in versions:
         _config = dataclasses.replace(config)
@@ -126,7 +125,7 @@ def build_configs(args: dict[str, list[str]]) -> list[TestConfig]:
     browser = args["browser"]
 
     matrix = []
-    for (_os, _pyodide_version, _runner, _browser) in itertools.product(
+    for _os, _pyodide_version, _runner, _browser in itertools.product(
         os, pyodide_version, runner, browser
     ):
         config = TestConfig(_pyodide_version, _os, _runner, _browser)
@@ -209,7 +208,7 @@ def main():
     configs: list[TestConfig] = build_configs(args)
 
     test_matrix = [dataclasses.asdict(config) for config in configs]
-    print(json.dumps(test_matrix, indent=2))
+    print(json.dumps(test_matrix))
 
 
 if __name__ == "__main__":

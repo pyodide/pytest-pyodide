@@ -64,7 +64,6 @@ def test_build_matrix_inject_versions():
 
 
 def test_remove_duplicate_configs():
-
     configs = [
         TestConfig("0.21.0", "ubuntu-latest", "selenium", "firefox"),
         TestConfig("0.21.0", "ubuntu-latest", "selenium", "firefox"),
