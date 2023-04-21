@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import http.server
 import multiprocessing
 import os
@@ -8,18 +9,17 @@ import shutil
 import socketserver
 import sys
 import tempfile
-import functools
-from io import StringIO
+from io import BytesIO
 
 
 @functools.cache
-def _default_templates() -> dict[str, str]:
+def _default_templates() -> dict[str, bytes]:
     templates_dir = pathlib.Path(__file__).parent / "_templates"
-    
+
     templates = {}
     for template_file in templates_dir.glob("*.html"):
-        templates[f"/{template_file.name}"] = template_file.read_text()
-    
+        templates[f"/{template_file.name}"] = template_file.read_bytes()
+
     return templates
 
 
@@ -68,7 +68,6 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
     sys.stderr = log_fh
 
     if not handler_cls:
-
         default_templates = _default_templates()
 
         class DefaultHandler(http.server.SimpleHTTPRequestHandler):
@@ -81,9 +80,8 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
                         format_ % args,
                     )
                 )
-            
-            def do_GET(self):
 
+            def do_GET(self):
                 if self.path in default_templates:
                     body = default_templates[self.path]
                     self.send_response(200)
@@ -91,7 +89,7 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
                     self.send_header("Content-Length", str(len(body)))
                     self.end_headers()
 
-                    return StringIO(body)
+                    self.copyfile(BytesIO(body), self.wfile)
                 else:
                     return super().do_GET()
 
