@@ -71,6 +71,7 @@ def test_inner_function(selenium):
 
 
 def test_inner_function_js_exception(selenium):
+
     @run_in_pyodide
     def inner_function(selenium):
         from pyodide.code import run_js
@@ -220,7 +221,13 @@ async def test_run_in_pyodide_async(selenium):
 )
 @run_in_pyodide
 def test_hypothesis(selenium_standalone, obj):
-    from pyodide import to_js
+    try:
+        from pyodide.ffi import to_js
+    except:
+        try:
+            from pyodide import to_js
+        except:
+            raise Exception("Could not import to_js")
 
     to_js(obj)
 
