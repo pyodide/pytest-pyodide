@@ -8,6 +8,19 @@ import shutil
 import socketserver
 import sys
 import tempfile
+import functools
+from io import StringIO
+
+
+@functools.cache
+def _default_templates() -> dict[str, str]:
+    templates_dir = pathlib.Path(__file__).parent / "_templates"
+    
+    templates = {}
+    for template_file in templates_dir.glob("*.html"):
+        templates[f"/{template_file.name}"] = template_file.read_text()
+    
+    return templates
 
 
 @contextlib.contextmanager
@@ -56,6 +69,8 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
 
     if not handler_cls:
 
+        default_templates = _default_templates()
+
         class DefaultHandler(http.server.SimpleHTTPRequestHandler):
             def log_message(self, format_, *args):
                 print(
@@ -66,6 +81,19 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
                         format_ % args,
                     )
                 )
+            
+            def do_GET(self):
+
+                if self.path in default_templates:
+                    body = default_templates[self.path]
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+
+                    return StringIO(body)
+                else:
+                    return super().do_GET()
 
             def end_headers(self):
                 # Enable Cross-Origin Resource Sharing (CORS)

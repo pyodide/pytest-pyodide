@@ -150,7 +150,7 @@ class _BrowserBaseRunner:
 
     def prepare_driver(self):
         if self.script_type == "classic":
-            self.goto(f"{self.base_url}/test.html")
+            self.goto(f"{self.base_url}/defaeult_test.html")
         elif self.script_type == "module":
             self.goto(f"{self.base_url}/module_test.html")
         else:
