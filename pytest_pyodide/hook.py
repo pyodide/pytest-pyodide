@@ -219,7 +219,7 @@ def pytest_runtest_setup(item):
     if item.config.option.run_in_pyodide:
         if not hasattr(item, "fixturenames"):
             return
-        if pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
+        if pytest.pyodide_runtimes and "runtime" in item.fixturenames:
             pytest.skip(reason="pyodide specific test, can't run in pyodide")
         else:
             # Pass this test to pyodide runner
@@ -252,9 +252,9 @@ def pytest_runtest_setup(item):
         if not hasattr(item, "fixturenames"):
             # Some items like DoctestItem have no fixture
             return
-        if not pytest.pyodide_runtimes and "runtime" in item.fixturenames:  # type: ignore[truthy-bool]
+        if not pytest.pyodide_runtimes and "runtime" in item.fixturenames:
             pytest.skip(reason="Non-host test")
-        elif not pytest.pyodide_run_host_test and "runtime" not in item.fixturenames:  # type: ignore[truthy-bool]
+        elif not pytest.pyodide_run_host_test and "runtime" not in item.fixturenames:
             pytest.skip("Host test")
 
 
