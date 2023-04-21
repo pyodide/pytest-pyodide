@@ -23,15 +23,37 @@ strict_equality = true
 ignore_missing_imports = true
 # this
 
-[tool.pycln]
-all = true
+[tool.ruff]
+select = [
+  "B0",     # bugbear (all B0* checks enabled by default)
+  "B904",   # bugbear (Within an except clause, raise exceptions with raise ... from err)
+  "B905",   # bugbear (zip() without an explicit strict= parameter set.)
+  "C9",     # mccabe complexity
+  "E",      # pycodestyles
+  "W",      # pycodestyles
+  "F",      # pyflakes
+  "I",      # isort
+  "PGH",    # pygrep-hooks
+  "PLC",    # pylint conventions
+  "PLE",    # pylint errors
+  "UP",     # pyupgrade
+]
+ignore = ["E402", "E501", "E731", "E741"]
+# line-length = 219  # E501: Recommended goal is 88 to match black
+target-version = "py310"
 
-[tool.isort]
-profile = "black"
-known_first_party = [
+[tool.ruff.isort]
+known-first-party = [
   "pyodide",
   "pyodide_js",
   "micropip",
   "pyodide_build",
   "_pyodide",
+  "js",
 ]
+known-third-party = [
+  "build",
+]
+
+[tool.ruff.mccabe]
+max-complexity = 31  # C901: Recommended goal is 10

@@ -82,7 +82,7 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
 
     with socketserver.TCPServer(("", 0), handler_cls) as httpd:
         host, port = httpd.server_address
-        print(f"Starting webserver at http://{host}:{port}")
+        print(f"Starting webserver at http://{host}:{port}")  # type: ignore[str-bytes-safe]
         httpd.server_name = "test-server"  # type: ignore[attr-defined]
         httpd.server_port = port  # type: ignore[attr-defined]
         q.put(port)
@@ -95,5 +95,5 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
             except queue.Empty:
                 pass
 
-        httpd.service_actions = service_actions  # type: ignore[assignment]
+        httpd.service_actions = service_actions  # type: ignore[method-assign]
         httpd.serve_forever()
