@@ -71,7 +71,6 @@ def test_inner_function(selenium):
 
 
 def test_inner_function_js_exception(selenium):
-
     @run_in_pyodide
     def inner_function(selenium):
         from pyodide.code import run_js
