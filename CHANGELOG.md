@@ -1,10 +1,10 @@
 ## [0.51.0] - Unreleased
 
-- The Github resuable workflow `testall.yaml` does not accept asterisks ("*") in parameters.
+- The Github reusable workflow `testall.yaml` does not accept asterisks ("*") in parameters.
   If you want to use the default value, you can omit the parameter.
   [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
 
-- The Github resuable workflow `testall.yaml` now receives parameters without square brackets.
+- The Github reusable workflow `testall.yaml` now receives parameters without square brackets.
   [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
 
 ## [0.50.0] - 2023-01-05
