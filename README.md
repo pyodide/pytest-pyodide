@@ -66,10 +66,10 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
     with:
       build-artifact-name: pyodide wheel
       build-artifact-path: dist
-      pyodide-versions: [0.21.0,0.23.0]
-      runners: [selenium,playwright]
-      browsers: [firefox,chrome,node]
-      os: [ubuntu-latest,macos-latest]
+      pyodide-versions: "0.21.3, 0.22.0"
+      runners: "selenium, playwright"
+      browsers: "firefox, chrome, node"
+      os: "ubuntu-latest, macos-latest"
 ```
 
 ## Usage
