@@ -95,5 +95,5 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
             except queue.Empty:
                 pass
 
-        httpd.service_actions = service_actions  # type: ignore[assignment]
+        httpd.service_actions = service_actions  # type: ignore[method-assign]
         httpd.serve_forever()

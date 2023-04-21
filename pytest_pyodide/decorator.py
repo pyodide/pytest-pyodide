@@ -377,7 +377,7 @@ class run_in_pyodide:
                 continue
 
             # We also want the function definition for the current test
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 continue
 
             if node.lineno < func_line_no:
