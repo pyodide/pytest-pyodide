@@ -15,6 +15,7 @@ jobs:
       with:
         build-artifact-name: none
         build-artifact-path: none
+        pyodide-versions: "0.23.1,0.22.0,0.21.3"
 
   deploy:
     runs-on: ubuntu-20.04
