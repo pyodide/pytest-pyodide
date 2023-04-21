@@ -11,11 +11,10 @@ on:
       build-artifact-path:
         required: true
         type: string
-      os:
-        required: false
-        type: string
-        default: ""
       pyodide-versions:
+        required: true
+        type: string
+      os:
         required: false
         type: string
         default: ""
@@ -77,9 +76,9 @@ jobs:
     with:
       build-artifact-name: ${{ inputs.build-artifact-name }}
       build-artifact-path: ${{ inputs.build-artifact-path }}
-      pyodide-version: ${{ matrix.pyodide-version }}
+      pyodide-version: ${{ matrix.pyodide_version }}
       os: ${{ matrix.os }}
-      runner: ${{ matrix.test-config.runner }}
-      browser: ${{ matrix.test-config.browser }}
-      browser-version: ${{ matrix.test-config.browser-version }}
-      playwright-version: ${{ matrix.test-config.playwright-version }}
+      runner: ${{ matrix.runner }}
+      browser: ${{ matrix.browser }}
+      browser-version: ${{ matrix.browser_version }}
+      playwright-version: ${{ matrix.playwright_version }}
