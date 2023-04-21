@@ -2,7 +2,6 @@ import pytest
 
 
 def test_dist_dir(pytester):
-
     dist_dir = "dist"
 
     pytester.makepyfile(
@@ -32,7 +31,6 @@ def test_runner(pytester, runner):
 
 
 def test_invalid_runner(pytester):
-
     runner = "blah"
 
     pytester.makepyfile(
@@ -60,7 +58,6 @@ def test_invalid_runner(pytester):
     ],
 )
 def test_runtime(pytester, _runtime):
-
     runtimes = _runtime.split(",")
 
     pytester.makepyfile(
@@ -82,7 +79,6 @@ def test_runtime(pytester, _runtime):
     ],
 )
 def test_invalid_runtime(pytester, _runtime):
-
     runtimes = _runtime.split(",")
 
     pytester.makepyfile(

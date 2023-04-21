@@ -238,7 +238,6 @@ def selenium(request, selenium_module_scope):
 
 @pytest.fixture(scope="function")
 def console_html_fixture(request, runtime, web_server_main, playwright_browsers):
-
     if runtime == "node":
         pytest.skip("no support in node")
 
