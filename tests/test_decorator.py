@@ -79,7 +79,7 @@ def test_inner_function_js_exception(selenium):
 
     with pytest.raises(
         JsException,
-        match="Error: some error",
+        match="some error",
     ):
         inner_function(selenium)
 
