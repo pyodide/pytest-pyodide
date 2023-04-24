@@ -75,7 +75,7 @@ def test_inner_function_js_exception(selenium):
     def inner_function(selenium):
         from pyodide.code import run_js
 
-        run_js("throw 'some error'")
+        run_js("throw new Error('some error');")
 
     with pytest.raises(
         JsException,
