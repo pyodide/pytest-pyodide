@@ -7,4 +7,4 @@ Other versions may work, however with no guarantee.
 |----------------|-------------------------|
 | 0.23.*         | 0.21.0                  |
 | 0.50.0         | 0.22.0, 0.21.3          |
-| main branch    | 0.32.1, 0.22.0, 0.21.3  |
+| main branch    | 0.23.1, 0.22.0, 0.21.3  |
