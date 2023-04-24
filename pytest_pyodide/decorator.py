@@ -61,7 +61,7 @@ class Unpickler(pickle.Unpickler):
         Catch exceptions that only exist in the pyodide environment and
         convert them to exception in the host.
         """
-        if module == "pyodide" and name == "JsException":
+        if module in ("pyodide", "pyodide.ffi") and name == "JsException":
             return JsException
         else:
             return super().find_class(module, name)
