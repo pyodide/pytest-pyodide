@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 
 from .runner import (
+    CHROME_FLAGS,
+    FIREFOX_FLAGS,
     NodeRunner,
     PlaywrightChromeRunner,
     PlaywrightFirefoxRunner,
@@ -38,11 +40,9 @@ def _playwright_browsers(request):
         with sync_playwright() as p:
             try:
                 chromium = p.chromium.launch(
-                    args=[
-                        "--js-flags=--expose-gc",
-                    ],
+                    args=CHROME_FLAGS,
                 )
-                firefox = p.firefox.launch()
+                firefox = p.firefox.launch(args=FIREFOX_FLAGS)
                 # webkit = p.webkit.launch()
             except Exception as e:
                 pytest.exit(f"playwright failed to launch\n{e}", returncode=1)
