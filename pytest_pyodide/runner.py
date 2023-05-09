@@ -4,6 +4,11 @@ from pathlib import Path
 
 import pexpect
 
+CHROME_FLAGS: list[str] = ["--js-flags=--expose-gc"]
+FIREFOX_FLAGS: list[str] = []
+NODE_FLAGS: list[str] = []
+
+
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
 
@@ -413,6 +418,8 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
 
         options = Options()
         options.add_argument("--headless")
+        for flag in FIREFOX_FLAGS:
+            options.add_argument(flag)
 
         return Firefox(executable_path="geckodriver", options=options)
 
@@ -427,7 +434,8 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
-        options.add_argument("--js-flags=--expose-gc")
+        for flag in CHROME_FLAGS:
+            options.add_argument(flag)
         return Chrome(options=options)
 
     def collect_garbage(self):
@@ -471,14 +479,14 @@ class NodeRunner(_BrowserBaseRunner):
         self.p.sendline("stty -icanon")
 
         node_version = pexpect.spawn("node --version").read().decode("utf-8")
-        node_extra_args = ""
+        extra_args = NODE_FLAGS[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
         if node_version.startswith("v14"):
-            node_extra_args = "--experimental-wasm-bigint"
+            extra_args.append("--experimental-wasm-bigint")
 
         self.p.sendline(
-            f"node --expose-gc {node_extra_args} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
+            f"node --expose-gc {' '.join(extra_args)} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
         )
 
         try:
