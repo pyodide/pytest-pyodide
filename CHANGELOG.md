@@ -1,3 +1,7 @@
+## [0.51.0] - 2023-05-10
+
+- Added test templates files in the package.
+  [#87](https://github.com/pyodide/pytest-pyodide/pull/87)
 ## [0.50.0] - 2023-01-05
 
 - Add auto-setting of python version and runner version based on pyodide version.
