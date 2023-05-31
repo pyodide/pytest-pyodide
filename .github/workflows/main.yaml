@@ -132,6 +132,12 @@ jobs:
           name: ${{ inputs.build-artifact-name }}
           path: ${{ inputs.build-artifact-path }}
 
+      - name: install pyodide-py
+        run: |
+          shell: bash -l {0}
+          ${{needs.get_versions.outputs.pythonexec}} -m pip install pyodide-py=={{inputs.pyodide-version}}
+
+
       - name: Install pytest-pyodide
         shell: bash -l {0}
         run: |
