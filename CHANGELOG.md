@@ -3,6 +3,7 @@
 - Removed problematic `JsException` unpickle special case. This was fixed by
   [pyodide/pyodide#3387](https://github.com/pyodide/pyodide/pull/3387).
   Drops support for Pyodide version `0.21.x`.
+  [#91](https://github.com/pyodide/pytest-pyodide/pull/91)
 
 ## [0.51.0] - 2023-05-10
 
