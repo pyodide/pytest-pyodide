@@ -1,3 +1,9 @@
+## Unreleased
+
+- Removed problematic `JsException` unpickle special case. This was fixed by
+  [pyodide/pyodide#3387](https://github.com/pyodide/pyodide/pull/3387).
+  Drops support for Pyodide version `0.21.x`.
+
 ## [0.51.0] - 2023-05-10
 
 - Added test templates files in the package.
