@@ -12,7 +12,7 @@ on:
       pyodide-version:
         required: false
         type: string
-        default: "0.21.0"
+        default: "0.23.2"
       runner:
         required: false
         type: string
