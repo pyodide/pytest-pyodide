@@ -135,7 +135,7 @@ jobs:
       - name: install pyodide-py
         shell: bash -l {0}
         run: |
-          ${{needs.get_versions.outputs.pythonexec}} -m pip install pyodide-py=={{inputs.pyodide-version}}
+          ${{needs.get_versions.outputs.pythonexec}} -m pip install pyodide-py==${{inputs.pyodide-version}}
 
 
       - name: Install pytest-pyodide
