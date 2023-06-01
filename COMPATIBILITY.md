@@ -8,4 +8,4 @@ Other versions may work, however with no guarantee.
 | 0.23.*         | 0.21.0                  |
 | 0.50.0         | 0.22.0, 0.21.3          |
 | 0.51.0         | 0.23.2, 0.22.0, 0.21.3  |
-| main branch    | 0.23.2, 0.22.0, 0.21.3  |
+| main branch    | 0.23.2, 0.22.0          |

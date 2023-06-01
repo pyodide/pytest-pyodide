@@ -11,7 +11,7 @@ import yaml
 # the configs below
 pyodide_versions = sys.argv[1]
 if pyodide_versions == "*":
-    pyodide_versions = "[0.22.0,0.21.0]"
+    pyodide_versions = "[0.23.2,0.22.0]"
 
 matrix = yaml.safe_load(
     """
@@ -33,15 +33,15 @@ test-config: [
 ]
 include:
     - os: macos-11
-      pyodide-version: 0.21.0
+      pyodide-version: 0.23.2
       test-config: {runner: selenium, browser: safari}
       # the following two tests check that the fallback browser behaviour works
       # okay (this is because ubuntu 22.04 doesn't support getting python 3.10.2)
     - os: ubuntu-latest
-      pyodide-version: 0.21.0
+      pyodide-version: 0.23.2
       test-config: {runner: selenium, browser: node, browser-version: 18}
     - os: ubuntu-22.04
-      pyodide-version: 0.21.0
+      pyodide-version: 0.23.2
       test-config: {runner: selenium, browser: node, browser-version: 18}
 """
 )

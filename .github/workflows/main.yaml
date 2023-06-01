@@ -12,7 +12,7 @@ on:
       pyodide-version:
         required: false
         type: string
-        default: "0.21.0"
+        default: "0.23.2"
       runner:
         required: false
         type: string
@@ -131,6 +131,12 @@ jobs:
         with:
           name: ${{ inputs.build-artifact-name }}
           path: ${{ inputs.build-artifact-path }}
+
+      - name: install pyodide-py
+        shell: bash -l {0}
+        run: |
+          ${{needs.get_versions.outputs.pythonexec}} -m pip install pyodide-py==${{inputs.pyodide-version}}
+
 
       - name: Install pytest-pyodide
         shell: bash -l {0}

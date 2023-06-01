@@ -1,9 +1,9 @@
 import pytest
 from hypothesis import given, settings
 
+from pyodide.ffi import JsException
 from pytest_pyodide.decorator import run_in_pyodide
 from pytest_pyodide.hypothesis import any_strategy, std_hypothesis_settings
-from pytest_pyodide.pyodide import JsException
 from pytest_pyodide.utils import parse_driver_timeout
 
 
