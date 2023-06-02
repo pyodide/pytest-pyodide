@@ -1,4 +1,4 @@
-## Unreleased
+## [0.52.0] - 2023-06-01
 
 - Removed `JsException` unpickle special case. This was fixed by
   [pyodide/pyodide#3387](https://github.com/pyodide/pyodide/pull/3387).
