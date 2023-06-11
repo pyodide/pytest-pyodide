@@ -112,18 +112,19 @@ jobs:
           # TODO: install only browsers that are required
           ${{needs.get_versions.outputs.pythonexec}} -m playwright install --with-deps
 
-      - uses: pyodide/pyodide-actions/download-pyodide@v1
+      - uses: pyodide/pyodide-actions/download-pyodide@v1.1.0
         with:
           version: ${{ inputs.pyodide-version }}
           to: pyodide-dist
 
-      - uses: pyodide/pyodide-actions/install-browser@v1
+      - uses: pyodide/pyodide-actions/install-browser@v1.1.0
         with:
           runner: ${{ inputs.runner }}
           browser: ${{ inputs.browser }}
           browser-version: ${{ inputs.browser-version }}
           driver-version: ${{ inputs.driver-version }}
           playwright-version: ${{ inputs.runner-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download build artifacts from calling package
         if: ${{ inputs.build-artifact-name != 'none' }}
