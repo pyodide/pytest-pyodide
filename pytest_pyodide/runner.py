@@ -415,13 +415,14 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
     def get_driver(self):
         from selenium.webdriver import Firefox
         from selenium.webdriver.firefox.options import Options
+        from selenium.webdriver.firefox.service import Service
 
         options = Options()
         options.add_argument("--headless")
         for flag in FIREFOX_FLAGS:
             options.add_argument(flag)
 
-        return Firefox(executable_path="geckodriver", options=options)
+        return Firefox(service=Service("geckodriver"), options=options)
 
 
 class SeleniumChromeRunner(_SeleniumBaseRunner):
