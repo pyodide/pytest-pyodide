@@ -1,3 +1,10 @@
+## [0.52.1] - 2023-06-10
+
+- Removed use of `executable_path` from selenium driver construction to make
+  pytest-pyodide compatible with Selenium v4.10.
+  [#93](https://github.com/pyodide/pytest-pyodide/pull/93)
+
+
 ## [0.52.0] - 2023-06-01
 
 - Removed `JsException` unpickle special case. This was fixed by
