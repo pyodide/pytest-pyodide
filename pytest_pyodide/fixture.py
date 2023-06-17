@@ -52,8 +52,11 @@ def _playwright_browsers(request):
             try:
                 for runtime in runtimes:
                     if runtime not in supported_browsers:
-                        pytest.exit(f"Unsupported runtime for playwright: {runtime}", returncode=1)
-                    
+                        pytest.exit(
+                            f"Unsupported runtime for playwright: {runtime}",
+                            returncode=1,
+                        )
+
                     attr_name, flags = supported_browsers[runtime]
                     browsers[runtime] = getattr(p, attr_name).launch(args=flags)
 

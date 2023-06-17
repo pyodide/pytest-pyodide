@@ -22,5 +22,5 @@ def test_playwright_browsers(playwright_browsers, request):
         pytest.skip("this test should only run when playwright is specified")
 
     runtimes = pytest.pyodide_runtimes
-    
+
     assert set(playwright_browsers.keys()) == set(runtimes)
