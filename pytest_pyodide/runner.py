@@ -180,10 +180,21 @@ class _BrowserBaseRunner:
     def initialize_pyodide(self):
         self.run_js(
             """
+            let isPyProxy;
             if(pyodide.ffi) {
-                globalThis.isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
+                isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
             } else {
-                globalThis.isPyProxy = pyodide.isPyProxy;
+                isPyProxy = pyodide.isPyProxy;
+            }
+            pyodide.$handleTestResult = function() {
+                if(result && result.toJs){
+                    let converted_result = result.toJs();
+                    if(isPyProxy(converted_result)){
+                        converted_result = undefined;
+                    }
+                    result.destroy();
+                    return converted_result;
+                }
             }
             """
         )
@@ -210,15 +221,7 @@ class _BrowserBaseRunner:
         return self.run_js(
             f"""
             let result = pyodide.runPython({code!r});
-            if(result && result.toJs){{
-                let converted_result = result.toJs();
-                if(isPyProxy(converted_result)){{
-                    converted_result = undefined;
-                }}
-                result.destroy();
-                return converted_result;
-            }}
-            return result;
+            return pyodide.$handleTestResult(result);
             """
         )
 
@@ -227,15 +230,7 @@ class _BrowserBaseRunner:
             f"""
             await pyodide.loadPackagesFromImports({code!r})
             let result = await pyodide.runPythonAsync({code!r});
-            if(result && result.toJs){{
-                let converted_result = result.toJs();
-                if(isPyProxy(converted_result)){{
-                    converted_result = undefined;
-                }}
-                result.destroy();
-                return converted_result;
-            }}
-            return result;
+            return pyodide.$handleTestResult(result);
             """
         )
 
