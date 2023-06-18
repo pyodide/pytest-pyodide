@@ -178,6 +178,16 @@ class _BrowserBaseRunner:
         )
 
     def initialize_pyodide(self):
+        self.run_js(
+            """
+            let isPyProxy;
+            if(pyodide.ffi) {
+                isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
+            } else {
+                isPyProxy = pyodide.isPyProxy;
+            }
+            """
+        )
         self.run_js(INITIALIZE_SCRIPT)
         from .decorator import initialize_decorator
 
@@ -203,7 +213,7 @@ class _BrowserBaseRunner:
             let result = pyodide.runPython({code!r});
             if(result && result.toJs){{
                 let converted_result = result.toJs();
-                if(pyodide.isPyProxy(converted_result)){{
+                if(isPyProxy(converted_result)){{
                     converted_result = undefined;
                 }}
                 result.destroy();
@@ -220,7 +230,7 @@ class _BrowserBaseRunner:
             let result = await pyodide.runPythonAsync({code!r});
             if(result && result.toJs){{
                 let converted_result = result.toJs();
-                if(pyodide.isPyProxy(converted_result)){{
+                if(isPyProxy(converted_result)){{
                     converted_result = undefined;
                 }}
                 result.destroy();
