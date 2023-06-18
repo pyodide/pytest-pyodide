@@ -180,11 +180,10 @@ class _BrowserBaseRunner:
     def initialize_pyodide(self):
         self.run_js(
             """
-            let isPyProxy;
             if(pyodide.ffi) {
-                isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
+                globalThis.isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
             } else {
-                isPyProxy = pyodide.isPyProxy;
+                globalThis.isPyProxy = pyodide.isPyProxy;
             }
             """
         )
