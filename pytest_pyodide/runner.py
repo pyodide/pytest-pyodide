@@ -186,15 +186,16 @@ class _BrowserBaseRunner:
             } else {
                 isPyProxy = pyodide.isPyProxy;
             }
-            pyodide.$handleTestResult = function() {
-                if(result && result.toJs){
-                    let converted_result = result.toJs();
-                    if(isPyProxy(converted_result)){
-                        converted_result = undefined;
-                    }
-                    result.destroy();
-                    return converted_result;
+            pyodide.$handleTestResult = function(result) {
+                if(!(result && result.toJs)){
+                    return result;
                 }
+                let converted_result = result.toJs();
+                if(isPyProxy(converted_result)){
+                    converted_result = undefined;
+                }
+                result.destroy();
+                return converted_result;
             }
             """
         )
