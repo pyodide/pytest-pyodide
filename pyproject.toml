@@ -1,8 +1,50 @@
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-# Evable versioning via setuptools_scm
-[tool.setuptools_scm]
+[project]
+name = "pytest-pyodide"
+author = "Pyodide developers"
+description = "Pytest plugin for testing applications that use Pyodide"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Framework :: Pytest"
+]
+dynamic = ["version"]
+requires-python = ">=3.10"
+dependencies = [
+  "pexpect",
+  "pytest",
+  "pytest-asyncio",
+  "hypothesis",
+  "selenium",
+  "playwright",
+  "pyodide-tblib", # Forked to add https://github.com/ionelmc/python-tblib/pull/66
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest-cov",
+  "build",
+  "requests",
+]
+
+# pytest will look up `pytest11` entrypoints to find plugins
+# See: https://docs.pytest.org/en/7.1.x/how-to/writing_plugins.html#making-your-plugin-installable-by-others
+[project.entry-points."pytest11"]
+pytest_pyodide = "pytest_pyodide.fixture"
+pytest_pyodide_hook = "pytest_pyodide.hook"
+
+[project.urls]
+Homepage = "https://github.com/pyodide/pytest-pyodide"
+Repository = "https://github.com/pyodide/pytest-pyodide"
+Changelog = "https://github.com/pyodide/pytest-pyodide/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.mypy]
 python_version = "3.10"
@@ -57,3 +99,7 @@ known-third-party = [
 
 [tool.ruff.mccabe]
 max-complexity = 31  # C901: Recommended goal is 10
+
+[tool.pytest]
+asyncio_mode = "strict"
+addopts = "--tb=short --doctest-modules --cov=pytest_pyodide --cov-report xml"
