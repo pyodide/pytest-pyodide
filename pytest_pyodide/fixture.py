@@ -50,7 +50,7 @@ def _playwright_browsers(request):
                 # "webkit": (),
             }
             try:
-                for runtime in runtimes:
+                for runtime in runtimes:  # type: ignore[attr-defined]
                     if runtime not in supported_browsers:
                         pytest.exit(
                             f"Unsupported runtime for playwright: {runtime}",
