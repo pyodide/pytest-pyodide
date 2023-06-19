@@ -1,7 +1,7 @@
 import contextlib
 import os
 from pathlib import Path
-from typing import Any, Type
+from typing import Any
 
 import pytest
 
@@ -87,7 +87,7 @@ def selenium_common(
     server_hostname, server_port, server_log = web_server_main
     runner_type = request.config.option.runner.lower()
 
-    runner_set: dict[tuple[str, str], Type[_BrowserBaseRunner]] = {
+    runner_set: dict[tuple[str, str], type[_BrowserBaseRunner]] = {
         ("selenium", "firefox"): SeleniumFirefoxRunner,
         ("selenium", "chrome"): SeleniumChromeRunner,
         ("selenium", "safari"): SeleniumSafariRunner,
