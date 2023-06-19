@@ -178,6 +178,27 @@ class _BrowserBaseRunner:
         )
 
     def initialize_pyodide(self):
+        self.run_js(
+            """
+            let isPyProxy;
+            if(pyodide.ffi) {
+                isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
+            } else {
+                isPyProxy = pyodide.isPyProxy;
+            }
+            pyodide.$handleTestResult = function(result) {
+                if(!(result && result.toJs)){
+                    return result;
+                }
+                let converted_result = result.toJs();
+                if(isPyProxy(converted_result)){
+                    converted_result = undefined;
+                }
+                result.destroy();
+                return converted_result;
+            }
+            """
+        )
         self.run_js(INITIALIZE_SCRIPT)
         from .decorator import initialize_decorator
 
@@ -201,15 +222,7 @@ class _BrowserBaseRunner:
         return self.run_js(
             f"""
             let result = pyodide.runPython({code!r});
-            if(result && result.toJs){{
-                let converted_result = result.toJs();
-                if(pyodide.isPyProxy(converted_result)){{
-                    converted_result = undefined;
-                }}
-                result.destroy();
-                return converted_result;
-            }}
-            return result;
+            return pyodide.$handleTestResult(result);
             """
         )
 
@@ -218,15 +231,7 @@ class _BrowserBaseRunner:
             f"""
             await pyodide.loadPackagesFromImports({code!r})
             let result = await pyodide.runPythonAsync({code!r});
-            if(result && result.toJs){{
-                let converted_result = result.toJs();
-                if(pyodide.isPyProxy(converted_result)){{
-                    converted_result = undefined;
-                }}
-                result.destroy();
-                return converted_result;
-            }}
-            return result;
+            return pyodide.$handleTestResult(result);
             """
         )
 
