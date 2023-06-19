@@ -1,7 +1,7 @@
 import contextlib
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Type
 
 import pytest
 
@@ -87,7 +87,7 @@ def selenium_common(
     server_hostname, server_port, server_log = web_server_main
     runner_type = request.config.option.runner.lower()
 
-    runner_set: dict[tuple[str, str], _BrowserBaseRunner] = {
+    runner_set: dict[tuple[str, str], Type[_BrowserBaseRunner]] = {
         ("selenium", "firefox"): SeleniumFirefoxRunner,
         ("selenium", "chrome"): SeleniumChromeRunner,
         ("selenium", "safari"): SeleniumSafariRunner,
@@ -97,7 +97,7 @@ def selenium_common(
         ("playwright", "node"): NodeRunner,
     }
 
-    runner_cls = runner_set.get((runner_type, runtime))  # type: ignore[assignment]
+    runner_cls = runner_set.get((runner_type, runtime))
     if runner_cls is None:
         raise AssertionError(f"Unknown runner or browser: {runner_type} / {runtime}")
 
