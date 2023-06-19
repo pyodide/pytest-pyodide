@@ -1,3 +1,14 @@
+## [0.52.2] - 2023-06-18
+
+- Added compatibility for a lock file named `pyodide-lock.json` in addition to
+  `repodata.json`.
+  [#96](https://github.com/pyodide/pytest-pyodide/pull/96)
+
+- Don't use the deprecated `pyodide.isPyProxy` API when `pyodide.ffi.PyProxy` is
+  available.
+  [#97](https://github.com/pyodide/pytest-pyodide/pull/96)
+
+
 ## [0.52.1] - 2023-06-10
 
 - Removed use of `executable_path` from selenium driver construction to make
