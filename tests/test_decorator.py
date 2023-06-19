@@ -1,9 +1,9 @@
 import pytest
 from hypothesis import given, settings
 
+from pyodide.ffi import JsException
 from pytest_pyodide.decorator import run_in_pyodide
 from pytest_pyodide.hypothesis import any_strategy, std_hypothesis_settings
-from pytest_pyodide.pyodide import JsException
 from pytest_pyodide.utils import parse_driver_timeout
 
 
@@ -75,11 +75,11 @@ def test_inner_function_js_exception(selenium):
     def inner_function(selenium):
         from pyodide.code import run_js
 
-        run_js("throw 'some error'")
+        run_js("throw new Error('some error');")
 
     with pytest.raises(
         JsException,
-        match="Error: some error",
+        match="some error",
     ):
         inner_function(selenium)
 
@@ -220,7 +220,13 @@ async def test_run_in_pyodide_async(selenium):
 )
 @run_in_pyodide
 def test_hypothesis(selenium_standalone, obj):
-    from pyodide import to_js
+    try:
+        from pyodide.ffi import to_js
+    except ImportError:
+        try:
+            from pyodide import to_js
+        except ImportError:
+            raise Exception("Could not import to_js") from None
 
     to_js(obj)
 

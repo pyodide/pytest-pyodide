@@ -1,4 +1,4 @@
-## [0.51.0] - Unreleased
+## Unreleased
 
 - The Github reusable workflow `testall.yaml` does not accept asterisks ("*") in parameters.
   If you want to use the default value, you can omit the parameter.
@@ -6,6 +6,38 @@
 
 - The Github reusable workflow `testall.yaml` now receives parameters without square brackets.
   [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
+
+## [0.52.2] - 2023-06-18
+
+- Added compatibility for a lock file named `pyodide-lock.json` in addition to
+  `repodata.json`.
+  [#96](https://github.com/pyodide/pytest-pyodide/pull/96)
+
+- Don't use the deprecated `pyodide.isPyProxy` API when `pyodide.ffi.PyProxy` is
+  available.
+  [#97](https://github.com/pyodide/pytest-pyodide/pull/96)
+
+
+## [0.52.1] - 2023-06-10
+
+- Removed use of `executable_path` from selenium driver construction to make
+  pytest-pyodide compatible with Selenium v4.10.
+  [#93](https://github.com/pyodide/pytest-pyodide/pull/93)
+
+
+## [0.52.0] - 2023-06-01
+
+- Removed `JsException` unpickle special case. This was fixed by
+  [pyodide/pyodide#3387](https://github.com/pyodide/pyodide/pull/3387).
+  [#91](https://github.com/pyodide/pytest-pyodide/pull/91)
+
+- Dropped support for Pyodide version `0.21.x`.
+  [#91](https://github.com/pyodide/pytest-pyodide/pull/91)
+
+## [0.51.0] - 2023-05-10
+
+- Added test templates files in the package.
+  [#87](https://github.com/pyodide/pytest-pyodide/pull/87)
 
 ## [0.50.0] - 2023-01-05
 

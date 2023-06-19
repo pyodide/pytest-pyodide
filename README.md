@@ -29,18 +29,18 @@ This will run your tests on the given browser/pyodide version/OS configuration. 
 
 ```
 jobs:
-  # Build for pyodide 0.21.0
+  # Build for pyodide 0.23.2
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: 3.10.2
+        python-version: 3.11
     - uses: mymindstorm/setup-emsdk@v11
       with:
-        version: 3.1.14
-    - run: pip install pyodide-build==0.21.0
+        version: 3.1.32
+    - run: pip install pyodide-build==0.23.2
     - run: pyodide build
     - uses: actions/upload-artifact@v3
       with:
@@ -55,7 +55,7 @@ jobs:
       build-artifact-path: dist
       browser: firefox
       runner: selenium
-      pyodide-version: 0.21.0
+      pyodide-version: 0.23.2
 ```
 
 If you want to run on multiple browsers / pyodide versions etc., you can either use a matrix strategy and run main.yaml as above, or you can use testall.yaml. This by default tests on all browsers (and node) with multiple configurations. If you want to reduce the configurations you can filter with lists of browsers, runners, pyodide-versions as shown below.
@@ -66,7 +66,7 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
     with:
       build-artifact-name: pyodide wheel
       build-artifact-path: dist
-      pyodide-versions: "0.21.3, 0.22.0"
+      pyodide-versions: "0.22.0, 0.23.2"
       runners: "selenium, playwright"
       browsers: "firefox, chrome, node"
       os: "ubuntu-latest, macos-latest"
@@ -76,8 +76,8 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
 
 1. First you need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
    ```bash
-   wget https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2
-   tar xjf pyodide-build-0.21.0.tar.bz2
+   wget https://github.com/pyodide/pyodide/releases/download/0.23.2/pyodide-build-0.23.2.tar.bz2
+   tar xjf pyodide-build-0.23.2.tar.bz2
    mv pyodide dist/
    ```
 
@@ -285,14 +285,7 @@ See [`examples`](./examples).
 
 ## Compatible Pyodide versions
 
-
-Following versions of pytest-pyodide and Pyodide are tested in CI. Other versions may work, however with no guarantee.
-
-| pytest-pyodide | Tested Pyodide versions |
-|----------------|-------------------------|
-| 0.23.*         | 0.21.0                  |
-| 0.50.0         | 0.21.0, 0.22.0          |
-
+See [`compatibility table`](./COMPATIBILITY.md).
 
 ## License
 

@@ -12,7 +12,6 @@ import pytest
 
 from .copy_files_to_pyodide import copy_files_to_emscripten_fs
 from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
-from .pyodide import JsException
 from .runner import _BrowserBaseRunner
 from .utils import package_is_built as _package_is_built
 
@@ -55,16 +54,6 @@ class Unpickler(pickle.Unpickler):
         # the PyodideHandle needs access to selenium in order to free the
         # reference count.
         return PyodideHandle(self.selenium, ptr)
-
-    def find_class(self, module: str, name: str) -> Any:
-        """
-        Catch exceptions that only exist in the pyodide environment and
-        convert them to exception in the host.
-        """
-        if module == "pyodide" and name == "JsException":
-            return JsException
-        else:
-            return super().find_class(module, name)
 
 
 class Pickler(pickle.Pickler):
