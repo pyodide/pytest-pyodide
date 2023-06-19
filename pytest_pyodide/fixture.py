@@ -1,6 +1,7 @@
 import contextlib
 import os
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -37,25 +38,35 @@ def _playwright_browsers(request):
                 returncode=1,
             )
 
+        runtimes = pytest.pyodide_runtimes
+
         with sync_playwright() as p:
+            browsers: dict[str, Any] = {}
+            supported_browsers: dict[str, tuple[str, list[str]]] = {
+                # browser name: (attr_name, flags)
+                "firefox": ("firefox", FIREFOX_FLAGS),
+                "chrome": ("chromium", CHROME_FLAGS),
+                # TODO: enable webkit
+                # "webkit": (),
+            }
             try:
-                chromium = p.chromium.launch(
-                    args=CHROME_FLAGS,
-                )
-                firefox = p.firefox.launch(args=FIREFOX_FLAGS)
-                # webkit = p.webkit.launch()
+                for runtime in runtimes:  # type: ignore[attr-defined]
+                    if runtime not in supported_browsers:
+                        pytest.exit(
+                            f"Unsupported runtime for playwright: {runtime}",
+                            returncode=1,
+                        )
+
+                    attr_name, flags = supported_browsers[runtime]
+                    browsers[runtime] = getattr(p, attr_name).launch(args=flags)
+
             except Exception as e:
                 pytest.exit(f"playwright failed to launch\n{e}", returncode=1)
             try:
-                yield {
-                    "chrome": chromium,
-                    "firefox": firefox,
-                    # "webkit": webkit,
-                }
+                yield browsers
             finally:
-                chromium.close()
-                firefox.close()
-                # webkit.close()
+                for browser in browsers.values():
+                    browser.close()
 
 
 @contextlib.contextmanager
@@ -75,9 +86,8 @@ def selenium_common(
 
     server_hostname, server_port, server_log = web_server_main
     runner_type = request.config.option.runner.lower()
-    cls: type[_BrowserBaseRunner]
 
-    browser_set = {
+    runner_set: dict[tuple[str, str], type[_BrowserBaseRunner]] = {
         ("selenium", "firefox"): SeleniumFirefoxRunner,
         ("selenium", "chrome"): SeleniumChromeRunner,
         ("selenium", "safari"): SeleniumSafariRunner,
@@ -87,12 +97,12 @@ def selenium_common(
         ("playwright", "node"): NodeRunner,
     }
 
-    cls = browser_set.get((runner_type, runtime))  # type: ignore[assignment]
-    if cls is None:
+    runner_cls = runner_set.get((runner_type, runtime))
+    if runner_cls is None:
         raise AssertionError(f"Unknown runner or browser: {runner_type} / {runtime}")
 
     dist_dir = Path(os.getcwd(), request.config.getoption("--dist-dir"))
-    runner = cls(
+    runner = runner_cls(
         server_port=server_port,
         server_hostname=server_hostname,
         server_log=server_log,
