@@ -35,7 +35,7 @@ test = [
 
 # pytest will look up `pytest11` entrypoints to find plugins
 # See: https://docs.pytest.org/en/7.1.x/how-to/writing_plugins.html#making-your-plugin-installable-by-others
-[project.entry-points."pytest11"]
+[project.entry-points.pytest11]
 pytest_pyodide = "pytest_pyodide.fixture"
 pytest_pyodide_hook = "pytest_pyodide.hook"
 
