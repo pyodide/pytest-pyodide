@@ -147,7 +147,6 @@ jobs:
             # We then uninstall it otherwise tests fails due to pytest hook being
             # registered twice.
               ${{needs.get_versions.outputs.pythonexec}} -m pip install ".[test]"
-              ${{needs.get_versions.outputs.pythonexec}} -m pip uninstall -y pytest-pyodide
           else
               ${{needs.get_versions.outputs.pythonexec}} -m pip install pytest-pyodide
           fi
