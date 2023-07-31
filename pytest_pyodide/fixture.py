@@ -77,6 +77,7 @@ def selenium_common(
     load_pyodide=True,
     script_type="classic",
     browsers=None,
+    jspi=False,
 ):
     """Returns an initialized selenium object.
 
@@ -110,6 +111,7 @@ def selenium_common(
         browsers=browsers,
         script_type=script_type,
         dist_dir=dist_dir,
+        jspi=jspi,
     )
     try:
         yield runner
@@ -239,11 +241,37 @@ def selenium_context_manager(selenium_module_scope):
 
 @pytest.fixture
 def selenium(request, selenium_module_scope):
-    with selenium_context_manager(selenium_module_scope) as selenium:
-        with set_webdriver_script_timeout(
-            selenium, script_timeout=parse_driver_timeout(request.node)
-        ):
-            yield selenium
+    with selenium_context_manager(
+        selenium_module_scope
+    ) as selenium, set_webdriver_script_timeout(
+        selenium, script_timeout=parse_driver_timeout(request.node)
+    ):
+        yield selenium
+
+
+@pytest.fixture
+def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
+    if runtime in ["firefox", "safari"]:
+        pytest.skip(f"jspi not supported in {runtime}")
+    with selenium_common(
+        request, runtime, web_server_main, browsers=playwright_browsers, jspi=True
+    ) as selenium, set_webdriver_script_timeout(
+        selenium, script_timeout=parse_driver_timeout(request.node)
+    ):
+        yield selenium
+
+
+@pytest.fixture(params=[False, True])
+def selenium_also_with_jspi(request, runtime, web_server_main, playwright_browsers):
+    jspi = request.param
+    if jspi and runtime in ["firefox", "safari"]:
+        pytest.skip(f"jspi not supported in {runtime}")
+    with selenium_common(
+        request, runtime, web_server_main, browsers=playwright_browsers, jspi=jspi
+    ) as selenium, set_webdriver_script_timeout(
+        selenium, script_timeout=parse_driver_timeout(request.node)
+    ):
+        yield selenium
 
 
 @pytest.fixture(scope="function")

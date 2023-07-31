@@ -24,3 +24,10 @@ def test_playwright_browsers(playwright_browsers, request):
     runtimes = pytest.pyodide_runtimes
 
     assert set(playwright_browsers.keys()) == set(runtimes)
+
+
+@run_in_pyodide
+def test_jspi(selenium_jspi):
+    from js import WebAssembly
+
+    assert hasattr(WebAssembly, "Suspender")
