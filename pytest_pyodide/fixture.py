@@ -1,4 +1,6 @@
 import contextlib
+import functools
+import inspect
 import os
 from pathlib import Path
 from typing import Any
@@ -115,6 +117,31 @@ def selenium_common(
         yield runner
     finally:
         runner.quit()
+
+
+def rename_fixture(orig_name, new_name):
+    def use_variant(f):
+        sig = inspect.signature(f)
+        new_params = []
+        for p in sig.parameters.values():
+            if p.name == orig_name:
+                p = p.replace(name=new_name)
+            new_params.append(p)
+        new_sig = sig.replace(parameters=new_params)
+
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            if new_name in kwargs:
+                kwargs[orig_name] = kwargs.pop(new_name)
+            return f(*args, **kwargs)
+
+        wrapper.__signature__ = new_sig  # type:ignore[attr-defined]
+        return wrapper
+
+    return use_variant
+
+
+standalone = rename_fixture("selenium", "selenium_standalone")
 
 
 @pytest.fixture(scope="function")
