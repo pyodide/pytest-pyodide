@@ -125,6 +125,13 @@ jobs:
           driver-version: ${{ inputs.driver-version }}
           playwright-version: ${{ inputs.runner-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Check install
+        shell: bash -l {0}
+        if: ${{ inputs.browser == 'firefox' }}
+        run: |
+          which firefox
+          which geckodriver
 
       - name: Download build artifacts from calling package
         if: ${{ inputs.build-artifact-name != 'none' }}
