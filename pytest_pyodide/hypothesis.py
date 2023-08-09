@@ -1,3 +1,4 @@
+import io
 import pickle
 from zoneinfo import ZoneInfo
 
@@ -27,6 +28,22 @@ except ImportError:
         pass
 
 
+class NoHypothesisUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        # Only allow safe classes from builtins.
+        if module == "hypothesis":
+            raise pickle.UnpicklingError()
+        return super().find_class(module, name)
+
+
+def no_hypothesis(x):
+    try:
+        NoHypothesisUnpickler(io.BytesIO(pickle.dumps(x))).load()
+        return True
+    except Exception:
+        return False
+
+
 # Generate an object of any type
 any_strategy = (
     strategies.from_type(type)
@@ -34,6 +51,7 @@ any_strategy = (
     .filter(lambda x: not isinstance(x, ZoneInfo))
     .filter(is_picklable)
     .filter(lambda x: not isinstance(x, ExceptionGroup))
+    .filter(no_hypothesis)
 )
 
 any_equal_to_self_strategy = any_strategy.filter(is_equal_to_self)

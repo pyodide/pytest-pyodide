@@ -218,7 +218,7 @@ async def test_run_in_pyodide_async(selenium):
     std_hypothesis_settings,
     max_examples=25,
 )
-@run_in_pyodide(packages=["hypothesis"])
+@run_in_pyodide
 def test_hypothesis(selenium_standalone, obj):
     try:
         from pyodide.ffi import to_js
