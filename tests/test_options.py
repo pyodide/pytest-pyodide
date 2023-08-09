@@ -1,4 +1,5 @@
 import pytest
+
 from pytest_pyodide.hook import _filter_runtimes
 
 
@@ -55,10 +56,10 @@ def test_invalid_runner(pytester):
     ],
 )
 def test_invalid_runtime(pytester, _runtime):
-    runtimes = _runtime.split(",")
+    _runtime.split(",")
 
     pytester.makepyfile(
-        f"""
+        """
         import pytest
         def test_option():
             assert True
@@ -85,4 +86,3 @@ def test_invalid_runtime(pytester, _runtime):
 )
 def test_filter_runtimes(_runtime, expected):
     _filter_runtimes(_runtime) == expected
-    
