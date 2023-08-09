@@ -85,4 +85,4 @@ def test_invalid_runtime(pytester, _runtime):
     ],
 )
 def test_filter_runtimes(_runtime, expected):
-    _filter_runtimes(_runtime) == expected
+    assert _filter_runtimes(_runtime) == expected
