@@ -213,6 +213,8 @@ You can copy files to the pyodide filesystem using the `copy_files_to_pyodide` d
 If you set `install_wheels` to True, any `.whl` files will be installed on pyodide. This is useful for installing your package.
 
 ```py
+from pytest_pyodide.decorator import copy_files_to_pyodide
+
 @copy_files_to_pyodide(file_list=[(src,dest)],install_wheels=True,recurse_directories=True)
 ```
 

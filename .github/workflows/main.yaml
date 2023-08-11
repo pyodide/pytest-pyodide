@@ -119,6 +119,7 @@ jobs:
           browser: ${{ inputs.browser }}
           browser-version: ${{ inputs.browser-version }}
           playwright-version: ${{ inputs.runner-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download build artifacts from calling package
         if: ${{ inputs.build-artifact-name != 'none' }}
@@ -140,8 +141,7 @@ jobs:
             # Currently we only install the package for dependencies.
             # We then uninstall it otherwise tests fails due to pytest hook being
             # registered twice.
-              ${{needs.get_versions.outputs.pythonexec}} -m pip install -e ".[test]"
-              ${{needs.get_versions.outputs.pythonexec}} -m pip uninstall -y pytest-pyodide
+              ${{needs.get_versions.outputs.pythonexec}} -m pip install ".[test]"
           else
               ${{needs.get_versions.outputs.pythonexec}} -m pip install pytest-pyodide
           fi
