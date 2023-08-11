@@ -1,3 +1,5 @@
+# This is a helper script to run tests with multiple browsers, runners, versions.
+
 name: main
 
 on:
@@ -10,56 +12,73 @@ on:
         required: true
         type: string
       pyodide-versions:
-        required: false
+        required: true
         type: string
-        default: "*"
-      runners:
-        required: false
-        type: string
-        default: '[selenium,playwright]'
-      browsers:
-        required: false
-        type: string
-        default: "*"
       os:
         required: false
         type: string
-        default: '[ubuntu-20.04,macos-11]'
+        default: ""
+      runners:
+        required: false
+        type: string
+        default: ""
+      browsers:
+        required: false
+        type: string
+        default: ""
+      chrome-versions:
+        required: false
+        type: string
+        default: ""
+      firefox-versions:
+        required: false
+        type: string
+        default: ""
+      node-versions:
+        required: false
+        type: string
+        default: ""
+      playwright-version:
+        required: false
+        type: string
+        default: ""  # latest
 permissions:
   contents: read
 jobs:
   make_test_matrix:
     outputs:
-      matrix: ${{ steps.filter.outputs.matrix }}
-      pyodide_versions: ${{ steps.filter.outputs.pyodide_versions }}
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Filter matrix
-        id: filter
-        run: python .github/workflows/filtermatrix.py "${{ inputs.pyodide-versions }}" "${{ inputs.os }}"  "${{inputs.runners}}" "${{inputs.browsers}}">> $GITHUB_OUTPUT
-      - name: output filter matrix
-        run: echo "FilterMatrix is ${{ steps.filter.outputs.matrix }}"
-  check_matrix:
-    needs: make_test_matrix
-    runs-on: ubuntu-latest
-    steps:
-      - name: show matrix
-        run: echo "${{ needs.make_test_matrix.outputs.matrix }}"
-  call-main-workflow:
+      - name: Build test matrix
+        id: build-matrix
+        run: |
+          MATRIX=$(python utils/build_test_matrix.py \
+            "${{ inputs.pyodide-versions }}" \
+            --os="${{ inputs.os }}" \
+            --runner "${{ inputs.runners }}" \
+            --browser "${{ inputs.browsers }}" \
+            --chrome-version "${{ inputs.chrome-versions }}" \
+            --firefox-version "${{ inputs.firefox-versions }}" \
+            --node-version "${{ inputs.node-versions }}" \
+            --playwright-version "${{ inputs.playwright-versions }}" \
+          )
+          echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+          echo "Test matrix is ${MATRIX}"
+  test:
     needs: make_test_matrix
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix)}}
+        include: ${{ fromJSON(needs.make_test_matrix.outputs.matrix) }}
     uses: ./.github/workflows/main.yaml
     with:
       build-artifact-name: ${{ inputs.build-artifact-name }}
       build-artifact-path: ${{ inputs.build-artifact-path }}
-      pyodide-version: ${{ matrix.pyodide-version }}
-      runner: ${{ matrix.test-config.runner }}
-      browser: ${{ matrix.test-config.browser }}
+      pyodide-version: ${{ matrix.pyodide_version }}
       os: ${{ matrix.os }}
-      browser-version: ${{ matrix.test-config.browser-version }}
-      driver-version: ${{ matrix.test-config.driver-version }}
-      runner-version: ${{ matrix.test-config.runner-version }}
+      runner: ${{ matrix.runner }}
+      browser: ${{ matrix.browser }}
+      browser-version: ${{ matrix.browser_version }}
+      playwright-version: ${{ matrix.playwright_version }}
