@@ -284,8 +284,11 @@ class run_in_pyodide:
             REWRITTEN_MODULE_ASTS if pytest_assert_rewrites else ORIGINAL_MODULE_ASTS
         )
 
-        if package_is_built("tblib"):
-            self._pkgs.append("tblib")
+        tblib_variants = ("pyodide-tblib", "tblib")  # https://github.com/ionelmc/python-tblib/pull/66
+        for pkg in tblib_variants:
+            if package_is_built(pkg):
+                self._pkgs.append(pkg)
+                break
 
         self._pytest_assert_rewrites = pytest_assert_rewrites
 
