@@ -278,6 +278,12 @@ def selenium(request, selenium_module_scope):
 
 @pytest.fixture
 def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
+    yield from selenium_jspi_inner(
+        request, runtime, web_server_main, playwright_browsers
+    )
+
+
+def selenium_jspi_inner(request, runtime, web_server_main, playwright_browsers):
     if runtime in ["firefox", "safari"]:
         pytest.skip(f"jspi not supported in {runtime}")
     if request.config.option.runner.lower() == "playwright":
@@ -291,19 +297,16 @@ def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
 
 
 @pytest.fixture(params=[False, True])
-def selenium_also_with_jspi(request, runtime, web_server_main, playwright_browsers):
+def selenium_also_with_jspi(
+    selenium, request, runtime, web_server_main, playwright_browsers
+):
     jspi = request.param
-    if jspi:
-        if runtime in ["firefox", "safari"]:
-            pytest.skip(f"jspi not supported in {runtime}")
-        if request.config.option.runner.lower() == "playwright":
-            pytest.skip("jspi not supported with playwright")
-    with selenium_common(
-        request, runtime, web_server_main, browsers=playwright_browsers, jspi=jspi
-    ) as selenium, set_webdriver_script_timeout(
-        selenium, script_timeout=parse_driver_timeout(request.node)
-    ):
+    if not jspi:
         yield selenium
+        return
+    yield from selenium_jspi_inner(
+        request, runtime, web_server_main, playwright_browsers
+    )
 
 
 @pytest.fixture(scope="function")
