@@ -13,14 +13,14 @@ on:
         required: false
         type: string
         default: "0.23.2"
+      os:
+        required: false
+        type: string
+        default: "ubuntu-latest"
       runner:
         required: false
         type: string
         default: "selenium"
-      runner-version:
-        required: false
-        type: string
-        default: ""
       browser:
         required: false
         type: string
@@ -29,18 +29,14 @@ on:
         required: false
         type: string
         default: "latest"
-      os:
+      playwright-version:
         required: false
         type: string
-        default: "ubuntu-latest"
+        default: ""  # latest
       pytest-extra-args:
         required: false
         type: string
         default: ""
-      driver-version:
-        required: false
-        type: string
-        default: "latest"
 permissions:
   contents: read
 
@@ -90,7 +86,7 @@ jobs:
         uses: actions/setup-node@v3
         if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
         with:
-          node-version: ${{ inputs.driver-version }}
+          node-version: ${{ inputs.node-version }}
 
       - name: Cache Playwright browsers
         uses: actions/cache@v3
@@ -103,26 +99,25 @@ jobs:
         shell: bash -l {0}
         if: ${{ inputs.runner == 'playwright' }}
         run: |
-          if [ -n "${{ inputs.runner-version }}" ]
+          if [ -n "${{ inputs.playwright-version }}" ]
           then
-            ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright==${{inputs.runner-version}}
+            ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright==${{inputs.playwright-version}}
           else
             ${{needs.get_versions.outputs.pythonexec}} -m pip install playwright
           fi
           # TODO: install only browsers that are required
           ${{needs.get_versions.outputs.pythonexec}} -m playwright install --with-deps
 
-      - uses: pyodide/pyodide-actions/download-pyodide@v1.1.0
+      - uses: pyodide/pyodide-actions/download-pyodide@v1
         with:
           version: ${{ inputs.pyodide-version }}
           to: pyodide-dist
 
-      - uses: pyodide/pyodide-actions/install-browser@v1.1.0
+      - uses: pyodide/pyodide-actions/install-browser@v1
         with:
           runner: ${{ inputs.runner }}
           browser: ${{ inputs.browser }}
           browser-version: ${{ inputs.browser-version }}
-          driver-version: ${{ inputs.driver-version }}
           playwright-version: ${{ inputs.runner-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

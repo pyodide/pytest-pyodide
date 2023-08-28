@@ -432,7 +432,7 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
         for flag in FIREFOX_FLAGS:
             options.add_argument(flag)
 
-        return Firefox(service=Service("geckodriver"), options=options)
+        return Firefox(service=Service(), options=options)
 
 
 class SeleniumChromeRunner(_SeleniumBaseRunner):

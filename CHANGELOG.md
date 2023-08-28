@@ -1,3 +1,12 @@
+## Unreleased
+
+- The Github reusable workflow `testall.yaml` does not accept asterisks ("*") in parameters.
+  If you want to use the default value, you can omit the parameter.
+  [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
+
+- The Github reusable workflow `testall.yaml` now receives parameters without square brackets.
+  [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
+
 ## [0.52.2] - 2023-06-18
 
 - Added compatibility for a lock file named `pyodide-lock.json` in addition to

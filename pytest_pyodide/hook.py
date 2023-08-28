@@ -92,9 +92,15 @@ def pytest_configure(config):
     )
 
     run_host, runtimes = _filter_runtimes(config.option.runtime)
-    pytest.pyodide_run_host_test = run_host
-    pytest.pyodide_runtimes = runtimes
-    pytest.pyodide_dist_dir = config.getoption("--dist-dir")
+
+    # using `pytester` fixture seems to call this hook again with different options
+    # so this is a workaround to avoid overwriting the values
+    if not hasattr(pytest, "pyodide_run_host_test"):
+        pytest.pyodide_run_host_test = run_host
+    if not hasattr(pytest, "pyodide_runtimes"):
+        pytest.pyodide_runtimes = runtimes
+    if not hasattr(pytest, "pyodide_dist_dir"):
+        pytest.pyodide_dist_dir = config.getoption("--dist-dir")
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -170,6 +176,21 @@ def pytest_generate_tests(metafunc: Any) -> None:
         metafunc.parametrize("runtime", pytest.pyodide_runtimes, scope="module")
 
 
+STANDALONE_FIXTURES = [
+    "selenium_standalone",
+    "selenium_standalone_noload",
+    "selenium_webworker_standalone",
+]
+
+
+def _has_standalone_fixture(item):
+    for fixture in item._request.fixturenames:
+        if fixture in STANDALONE_FIXTURES:
+            return True
+
+    return False
+
+
 def pytest_collection_modifyitems(items: list[Any]) -> None:
     # if we are running tests in pyodide, then run all tests for each runtime
     if len(items) > 0 and items[0].config.option.run_in_pyodide:
@@ -186,28 +207,14 @@ def pytest_collection_modifyitems(items: list[Any]) -> None:
     # Since Safari doesn't support more than one simultaneous session, we run all
     # selenium_standalone Safari tests first. We preserve the order of other
     # tests.
-
     OFFSET = 10000
-
     counter = [0]
-    standalone_fixtures = [
-        "selenium_standalone",
-        "selenium_standalone_noload",
-        "selenium_webworker_standalone",
-    ]
-
-    def _has_standalone_fixture(fixturenames):
-        for fixture in fixturenames:
-            if fixture in standalone_fixtures:
-                return True
-
-        return False
 
     def _get_item_position(item):
         counter[0] += 1
         if any(
             [re.match(r"^safari[\-$]?", el) for el in item.keywords._markers.keys()]
-        ) and _has_standalone_fixture(item._request.fixturenames):
+        ) and _has_standalone_fixture(item):
             return counter[0] - OFFSET
         return counter[0]
 
