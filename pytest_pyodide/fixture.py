@@ -293,8 +293,11 @@ def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
 @pytest.fixture(params=[False, True])
 def selenium_also_with_jspi(request, runtime, web_server_main, playwright_browsers):
     jspi = request.param
-    if jspi and runtime in ["firefox", "safari"]:
-        pytest.skip(f"jspi not supported in {runtime}")
+    if jspi:
+        if runtime in ["firefox", "safari"]:
+            pytest.skip(f"jspi not supported in {runtime}")
+        if request.config.option.runner.lower() == "playwright":
+            pytest.skip("jspi not supported with playwright")
     with selenium_common(
         request, runtime, web_server_main, browsers=playwright_browsers, jspi=jspi
     ) as selenium, set_webdriver_script_timeout(

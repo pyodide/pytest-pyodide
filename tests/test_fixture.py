@@ -35,6 +35,11 @@ def test_jspi(selenium_jspi):
     assert hasattr(WebAssembly, "Suspender")
 
 
+@run_in_pyodide
+def test_also_jspi(selenium_also_with_jspi):
+    pass
+
+
 @rename_fixture("myfixture", "myfixture_variant")
 def myfunc(a, myfixture):
     return [a, myfixture]
