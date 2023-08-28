@@ -116,6 +116,7 @@ class _BrowserBaseRunner:
         load_pyodide=True,
         script_type="classic",
         dist_dir=None,
+        jspi=False,
         *args,
         **kwargs,
     ):
@@ -125,7 +126,7 @@ class _BrowserBaseRunner:
         self.server_log = server_log
         self.script_type = script_type
         self.dist_dir = dist_dir
-        self.driver = self.get_driver()
+        self.driver = self.get_driver(jspi)
         self.set_script_timeout(self.script_timeout)
         self.prepare_driver()
         self.javascript_setup()
@@ -135,7 +136,7 @@ class _BrowserBaseRunner:
             self.save_state()
             self.restore_state()
 
-    def get_driver(self):
+    def get_driver(self, jspi=False):
         raise NotImplementedError()
 
     def goto(self, page):
@@ -378,7 +379,9 @@ class _PlaywrightBaseRunner(_BrowserBaseRunner):
     def goto(self, page):
         self.driver.goto(page)
 
-    def get_driver(self):
+    def get_driver(self, jspi=False):
+        if jspi:
+            raise NotImplementedError("JSPI not supported with playwright")
         return self.browsers[self.browser].new_page()
 
     def set_script_timeout(self, timeout):
@@ -417,7 +420,9 @@ class _PlaywrightBaseRunner(_BrowserBaseRunner):
 class SeleniumFirefoxRunner(_SeleniumBaseRunner):
     browser = "firefox"
 
-    def get_driver(self):
+    def get_driver(self, jspi=False):
+        if jspi:
+            raise NotImplementedError("JSPI not supported in Firefox")
         from selenium.webdriver import Firefox
         from selenium.webdriver.firefox.options import Options
         from selenium.webdriver.firefox.service import Service
@@ -433,13 +438,16 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
 class SeleniumChromeRunner(_SeleniumBaseRunner):
     browser = "chrome"
 
-    def get_driver(self):
+    def get_driver(self, jspi=False):
         from selenium.webdriver import Chrome
         from selenium.webdriver.chrome.options import Options
 
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
+        if jspi:
+            options.add_argument("--enable-features=WebAssemblyExperimentalJSPI")
+            options.add_argument("--enable-experimental-webassembly-features")
         for flag in CHROME_FLAGS:
             options.add_argument(flag)
         return Chrome(options=options)
@@ -452,7 +460,9 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
     browser = "safari"
     script_timeout = 30
 
-    def get_driver(self):
+    def get_driver(self, jspi=False):
+        if jspi:
+            raise NotImplementedError("JSPI not supported in Firefox")
         from selenium.webdriver import Safari
         from selenium.webdriver.safari.options import Options
 
@@ -475,7 +485,7 @@ class PlaywrightFirefoxRunner(_PlaywrightBaseRunner):
 class NodeRunner(_BrowserBaseRunner):
     browser = "node"
 
-    def init_node(self):
+    def init_node(self, jspi=False):
         curdir = Path(__file__).parent
         self.p = pexpect.spawn("/bin/bash", timeout=60)
         self.p.setecho(False)
@@ -488,6 +498,8 @@ class NodeRunner(_BrowserBaseRunner):
         extra_args = NODE_FLAGS[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
+        if jspi:
+            extra_args.append("--experimental-wasm-stack-switching")
         if node_version.startswith("v14"):
             extra_args.append("--experimental-wasm-bigint")
 
@@ -500,9 +512,9 @@ class NodeRunner(_BrowserBaseRunner):
         except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
             raise JavascriptException("", self.p.before.decode()) from None
 
-    def get_driver(self):
+    def get_driver(self, jspi=False):
         self._logs = []
-        self.init_node()
+        self.init_node(jspi)
 
         class NodeDriver:
             def __getattr__(self, x):

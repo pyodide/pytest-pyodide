@@ -28,6 +28,18 @@ def test_playwright_browsers(playwright_browsers, request):
     assert set(playwright_browsers.keys()) == set(runtimes)
 
 
+@run_in_pyodide
+def test_jspi(selenium_jspi):
+    from js import WebAssembly
+
+    assert hasattr(WebAssembly, "Suspender")
+
+
+@run_in_pyodide
+def test_also_jspi(selenium_also_with_jspi):
+    pass
+
+
 @rename_fixture("myfixture", "myfixture_variant")
 def myfunc(a, myfixture):
     return [a, myfixture]
