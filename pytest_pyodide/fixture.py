@@ -280,7 +280,7 @@ def selenium(request, selenium_module_scope):
 def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
     if runtime in ["firefox", "safari"]:
         pytest.skip(f"jspi not supported in {runtime}")
-    if playwright_browsers:
+    if request.config.option.runner.lower() == "playwright":
         pytest.skip("jspi not supported with playwright")
     with selenium_common(
         request, runtime, web_server_main, browsers=playwright_browsers, jspi=True
