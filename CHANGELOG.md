@@ -1,5 +1,7 @@
 ## Unreleased
 
+## [0.53.0] - 2023-08-29
+
 - The Github reusable workflow `testall.yaml` does not accept asterisks ("*") in parameters.
   If you want to use the default value, you can omit the parameter.
   [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
