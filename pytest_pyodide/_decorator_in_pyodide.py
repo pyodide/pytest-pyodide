@@ -16,11 +16,12 @@ See also:
 https://github.com/pyodide/pytest-pyodide/issues/43
 """
 
-import ctypes
 import pickle
 from base64 import b64decode, b64encode
 from io import BytesIO
 from typing import Any
+
+import pyodide_js
 
 
 def pointer_to_object(ptr: int) -> Any:
@@ -32,7 +33,7 @@ def pointer_to_object(ptr: int) -> Any:
     # object: use PyObject_SetItem to assign it to a dictionary.
     # ctypes doesn't seem to have an API to do this directly.
     temp: dict[int, Any] = {}
-    ctypes.pythonapi.PyObject_SetItem(id(temp), id(0), ptr)
+    pyodide_js._module._PyDict_SetItem(id(temp), id(0), ptr)
     return temp[0]
 
 
@@ -55,7 +56,7 @@ class Pickler(pickle.Pickler):
     def persistent_id(self, obj: Any) -> Any:
         if not isinstance(obj, PyodideHandle):
             return None
-        ctypes.pythonapi.Py_IncRef(obj.ptr)
+        pyodide_js._module._Py_IncRef(obj.ptr)
         return ("PyodideHandle", obj.ptr)
 
 
