@@ -1,4 +1,10 @@
-## Unreleased
+## [0.53.1] - 2023-10-10
+
+- Removed the ctypes dependency so it can be used with Python builds with
+  dynamic linking disabled.
+  [#110]
+
+## [0.53.0] - 2023-08-29
 
 ## [0.53.0] - 2023-08-29
 
@@ -8,6 +14,7 @@
 
 - The Github reusable workflow `testall.yaml` now receives parameters without square brackets.
   [#86](https://github.com/pyodide/pytest-pyodide/pull/86)
+
 
 ## [0.52.2] - 2023-06-18
 
