@@ -65,7 +65,10 @@ class Pickler(pickle.Pickler):
             from _pytest.outcomes import OutcomeException
 
             if isclass(obj) and issubclass(obj, OutcomeException):
-                obj.__module__ = "_pytest.outcomes"
+                # To shorten the repr, pytest sets the __module__ of these
+                # classes to builtins. This breaks pickling. Restore the correct
+                # value.
+                obj.__module__ = OutcomeException.__module__
         except ImportError:
             pass
         return NotImplemented
