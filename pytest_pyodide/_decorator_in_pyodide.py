@@ -18,6 +18,7 @@ https://github.com/pyodide/pytest-pyodide/issues/43
 
 import pickle
 from base64 import b64decode, b64encode
+from inspect import isclass
 from io import BytesIO
 from typing import Any
 
@@ -58,6 +59,16 @@ class Pickler(pickle.Pickler):
             return None
         pyodide_js._module._Py_IncRef(obj.ptr)
         return ("PyodideHandle", obj.ptr)
+
+    def reducer_override(self, obj):
+        try:
+            from _pytest.outcomes import OutcomeException
+
+            if isclass(obj) and issubclass(obj, OutcomeException):
+                obj.__module__ = "_pytest.outcomes"
+        except ImportError:
+            pass
+        return NotImplemented
 
 
 class Unpickler(pickle.Unpickler):
