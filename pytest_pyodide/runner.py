@@ -463,11 +463,20 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
     def get_driver(self, jspi=False):
         if jspi:
             raise NotImplementedError("JSPI not supported in Firefox")
+        from selenium.common.exceptions import WebDriverException
         from selenium.webdriver import Safari
         from selenium.webdriver.safari.options import Options
+        
 
         options = Options()
-        return Safari(options=options)
+        try:
+            instance = Safari(options=options)
+        except WebDriverException:
+            from selenium.webdriver.safari.service import Service
+            service = Service(reuse_service=False)
+            instance = Safari(options=options, service=service)
+            
+        return instance
 
 
 class PlaywrightChromeRunner(_PlaywrightBaseRunner):
