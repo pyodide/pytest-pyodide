@@ -462,7 +462,7 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
 # reuse it.
 GLOBAL_SAFARI_WEBDRIVER = None
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=True)
 def use_global_safari_service():
     if "safari" in pytest.pyodide_runtimes:
         global GLOBAL_SAFARI_WEBDRIVER
