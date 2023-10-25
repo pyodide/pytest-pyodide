@@ -500,7 +500,7 @@ class NodeRunner(_BrowserBaseRunner):
             raise RuntimeError(
                 f"Node version {node_version} is too old, please use node >= 18"
             )
-        
+
         extra_args = NODE_FLAGS[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
