@@ -495,13 +495,17 @@ class NodeRunner(_BrowserBaseRunner):
         self.p.sendline("stty -icanon")
 
         node_version = pexpect.spawn("node --version").read().decode("utf-8")
+        node_major = int(node_version.split(".")[0][1:])  # vAA.BB.CC -> AA
+        if node_major < 18:
+            raise RuntimeError(
+                f"Node version {node_version} is too old, please use node >= 18"
+            )
+        
         extra_args = NODE_FLAGS[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
         if jspi:
             extra_args.append("--experimental-wasm-stack-switching")
-        if node_version.startswith("v14"):
-            extra_args.append("--experimental-wasm-bigint")
 
         self.p.sendline(
             f"node --expose-gc {' '.join(extra_args)} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",
