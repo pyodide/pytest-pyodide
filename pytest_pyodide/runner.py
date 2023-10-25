@@ -468,13 +468,19 @@ def use_global_safari_service():
         global GLOBAL_SAFARI_WEBDRIVER
 
         from selenium.webdriver.safari.service import Service
+        from selenium.webdriver.common.driver_finder import DriverFinder
+        from selenium.webdriver.safari.options import Options
+        
         GLOBAL_SAFARI_WEBDRIVER = Service(reuse_service=True)
+        GLOBAL_SAFARI_WEBDRIVER.path = DriverFinder.get_path(GLOBAL_SAFARI_WEBDRIVER, Options())
         GLOBAL_SAFARI_WEBDRIVER.start()
 
         try:
             yield GLOBAL_SAFARI_WEBDRIVER
         finally:
             GLOBAL_SAFARI_WEBDRIVER.stop()
+    else:
+        yield None
 
 
 class SeleniumSafariRunner(_SeleniumBaseRunner):
@@ -484,7 +490,6 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
     def get_driver(self, jspi=False):
         if jspi:
             raise NotImplementedError("JSPI not supported in Firefox")
-        from selenium.common.exceptions import WebDriverException
         from selenium.webdriver import Safari
         from selenium.webdriver.safari.options import Options
         
