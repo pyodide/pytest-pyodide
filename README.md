@@ -17,7 +17,7 @@ You would also one at least one of the following runtimes,
  - Chrome and chromedriver
  - Firefox and geckodriver
  - Safari and safaridriver
- - node v14+
+ - node v18+
 
 ## Github Reusable workflow
 
@@ -29,7 +29,7 @@ This will run your tests on the given browser/pyodide version/OS configuration. 
 
 ```
 jobs:
-  # Build for pyodide 0.23.2
+  # Build for pyodide 0.24.1
   build:
     runs-on: ubuntu-latest
     steps:
@@ -39,8 +39,8 @@ jobs:
         python-version: 3.11
     - uses: mymindstorm/setup-emsdk@v11
       with:
-        version: 3.1.32
-    - run: pip install pyodide-build==0.23.2
+        version: 3.1.45
+    - run: pip install pyodide-build==0.24.1
     - run: pyodide build
     - uses: actions/upload-artifact@v3
       with:
@@ -55,7 +55,7 @@ jobs:
       build-artifact-path: dist
       browser: firefox
       runner: selenium
-      pyodide-version: 0.23.2
+      pyodide-version: 0.24.1
 ```
 
 If you want to run on multiple browsers / pyodide versions etc., you can either use a matrix strategy and run main.yaml as above, or you can use testall.yaml. This by default tests on all browsers (and node) with multiple configurations. If you want to reduce the configurations you can filter with lists of browsers, runners, pyodide-versions as shown below.
@@ -66,7 +66,7 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
     with:
       build-artifact-name: pyodide wheel
       build-artifact-path: dist
-      pyodide-versions: "0.22.0, 0.23.2"
+      pyodide-versions: "0.23.4, 0.24.1"
       runners: "selenium, playwright"
       browsers: "firefox, chrome, node"
       os: "ubuntu-latest, macos-latest"
@@ -76,8 +76,8 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
 
 1. First you need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
    ```bash
-   wget https://github.com/pyodide/pyodide/releases/download/0.23.2/pyodide-build-0.23.2.tar.bz2
-   tar xjf pyodide-build-0.23.2.tar.bz2
+   wget https://github.com/pyodide/pyodide/releases/download/0.24.1/pyodide-build-0.24.1.tar.bz2
+   tar xjf pyodide-build-0.24.1.tar.bz2
    mv pyodide dist/
    ```
 
