@@ -4,10 +4,6 @@ const path = require("path");
 const util = require("util");
 
 let nodeFetch = globalThis.fetch;
-if (!nodeFetch) {
-  nodeFetch = require("node-fetch");
-}
-
 let baseUrl = process.argv[2];
 let distDir = process.argv[3];
 

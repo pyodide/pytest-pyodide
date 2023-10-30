@@ -12,7 +12,7 @@ DEFAULT_RUNNER = "selenium, playwright"
 DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 DEFAULT_CHROME_VERSION = "latest"
 DEFAULT_FIREFOX_VERSION = "latest"
-DEFAULT_NODE_VERSION = "14, 16, 18"
+DEFAULT_NODE_VERSION = "18, 20"
 DEFAULT_PLAYWRIGHT_VERSION = (
     "1.22.0"  # TODO: versions > 1.22.0 have firefox performance issue
 )
