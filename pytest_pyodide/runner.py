@@ -462,17 +462,20 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
 # reuse it.
 GLOBAL_SAFARI_WEBDRIVER = None
 
+
 @pytest.fixture(scope="session", autouse=True)
 def use_global_safari_service():
     if "safari" in pytest.pyodide_runtimes:
         global GLOBAL_SAFARI_WEBDRIVER
 
-        from selenium.webdriver.safari.service import Service
         from selenium.webdriver.common.driver_finder import DriverFinder
         from selenium.webdriver.safari.options import Options
-        
+        from selenium.webdriver.safari.service import Service
+
         GLOBAL_SAFARI_WEBDRIVER = Service(reuse_service=True)
-        GLOBAL_SAFARI_WEBDRIVER.path = DriverFinder.get_path(GLOBAL_SAFARI_WEBDRIVER, Options())
+        GLOBAL_SAFARI_WEBDRIVER.path = DriverFinder.get_path(
+            GLOBAL_SAFARI_WEBDRIVER, Options()
+        )
         GLOBAL_SAFARI_WEBDRIVER.start()
 
         try:
@@ -492,13 +495,15 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
             raise NotImplementedError("JSPI not supported in Firefox")
         from selenium.webdriver import Safari
         from selenium.webdriver.safari.options import Options
-        
+
         options = Options()
         if GLOBAL_SAFARI_WEBDRIVER is not None:
-            instance = Safari(options=options, service=GLOBAL_SAFARI_WEBDRIVER, reuse_service=True)
+            instance = Safari(
+                options=options, service=GLOBAL_SAFARI_WEBDRIVER, reuse_service=True
+            )
         else:
             instance = Safari(options=options)
-            
+
         return instance
 
 
