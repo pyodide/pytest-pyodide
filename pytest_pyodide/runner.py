@@ -465,7 +465,7 @@ GLOBAL_SAFARI_WEBDRIVER = None
 
 @pytest.fixture(scope="session", autouse=True)
 def use_global_safari_service():
-    if "safari" in pytest.pyodide_runtimes:
+    if "safari" in pytest.pyodide_runtimes:  # type: ignore[operator]
         global GLOBAL_SAFARI_WEBDRIVER
 
         from selenium.webdriver.common.driver_finder import DriverFinder
