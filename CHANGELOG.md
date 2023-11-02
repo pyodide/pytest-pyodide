@@ -1,10 +1,13 @@
+## unreleased
+
+- BREAKING: dropped support for Node < 18.
+  [#113](https://github.com/pyodide/pytest-pyodide/pull/113)
+
 ## [0.53.1] - 2023-10-10
 
 - Removed the ctypes dependency so it can be used with Python builds with
   dynamic linking disabled.
-  [#110]
-
-## [0.53.0] - 2023-08-29
+  [#110](https://github.com/pyodide/pytest-pyodide/pull/110)
 
 ## [0.53.0] - 2023-08-29
 
