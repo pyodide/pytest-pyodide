@@ -3,6 +3,9 @@
 - BREAKING: dropped support for Node < 18.
   [#113](https://github.com/pyodide/pytest-pyodide/pull/113)
 
+- Added webworker test template files into the package.
+  [#112](https://github.com/pyodide/pytest-pyodide/pull/112)
+
 ## [0.53.1] - 2023-10-10
 
 - Removed the ctypes dependency so it can be used with Python builds with
