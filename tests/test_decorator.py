@@ -282,3 +282,17 @@ def test_selenium_handle(selenium):
     check_refcount(selenium, 4)
     del handle
     check_refcount(selenium, 3)
+
+
+def test_pytest_dot_skip(selenium):
+    """Check that pytest.skip, etc will work inside @run_in_pyodide"""
+
+    @run_in_pyodide(_force_assert_rewrites=True)
+    def helper(selenium, meth):
+        import pytest
+
+        getattr(pytest, meth)("blah")
+
+    for meth in ["skip", "fail", "xfail"]:
+        with pytest.raises(getattr(pytest, meth).Exception):
+            helper(selenium, meth)
