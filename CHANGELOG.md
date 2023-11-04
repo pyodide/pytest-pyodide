@@ -1,5 +1,7 @@
 ## unreleased
 
+## [0.54.0] - 2023-11/04
+
 - BREAKING: dropped support for Node < 18.
   [#113](https://github.com/pyodide/pytest-pyodide/pull/113)
 
