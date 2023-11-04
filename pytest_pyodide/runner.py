@@ -3,6 +3,7 @@ import textwrap
 from pathlib import Path
 
 import pexpect
+import pytest
 
 CHROME_FLAGS: list[str] = ["--js-flags=--expose-gc"]
 FIREFOX_FLAGS: list[str] = []
@@ -456,6 +457,35 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         self.driver.execute_cdp_cmd("HeapProfiler.collectGarbage", {})
 
 
+# Stopping and starting the safari webdriver multiple times during the test
+# often causes unexpected errors. So we make a global webdriver instance and
+# reuse it.
+GLOBAL_SAFARI_WEBDRIVER = None
+
+
+@pytest.fixture(scope="session", autouse=True)
+def use_global_safari_service():
+    if "safari" in pytest.pyodide_runtimes:  # type: ignore[operator]
+        global GLOBAL_SAFARI_WEBDRIVER
+
+        from selenium.webdriver.common.driver_finder import DriverFinder
+        from selenium.webdriver.safari.options import Options
+        from selenium.webdriver.safari.service import Service
+
+        GLOBAL_SAFARI_WEBDRIVER = Service(reuse_service=True)
+        GLOBAL_SAFARI_WEBDRIVER.path = DriverFinder.get_path(
+            GLOBAL_SAFARI_WEBDRIVER, Options()
+        )
+        GLOBAL_SAFARI_WEBDRIVER.start()
+
+        try:
+            yield GLOBAL_SAFARI_WEBDRIVER
+        finally:
+            GLOBAL_SAFARI_WEBDRIVER.stop()
+    else:
+        yield None
+
+
 class SeleniumSafariRunner(_SeleniumBaseRunner):
     browser = "safari"
     script_timeout = 30
@@ -467,7 +497,14 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
         from selenium.webdriver.safari.options import Options
 
         options = Options()
-        return Safari(options=options)
+        if GLOBAL_SAFARI_WEBDRIVER is not None:
+            instance = Safari(
+                options=options, service=GLOBAL_SAFARI_WEBDRIVER, reuse_service=True
+            )
+        else:
+            instance = Safari(options=options)
+
+        return instance
 
 
 class PlaywrightChromeRunner(_PlaywrightBaseRunner):
