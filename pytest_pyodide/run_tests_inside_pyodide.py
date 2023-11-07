@@ -162,7 +162,6 @@ def close_pyodide_browsers():
     This is done at the end of testing so that we can run more
     than one test without launching browsers each time.
     """
-    global _seleniums, _playwright_browser_list, _playwright_browser_generator
     for x in _seleniums.values():
         x.selenium.close()
-    del _seleniums
+    _seleniums.clear()

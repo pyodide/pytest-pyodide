@@ -1,8 +1,13 @@
+"""
+This file is listed in the options.entry_points section of config.cfg so pytest
+will look in here for hooks to execute.
+"""
+
 import ast
 import re
 import sys
 from argparse import BooleanOptionalAction
-from copy import deepcopy
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import Any, cast
 
@@ -11,6 +16,7 @@ from _pytest.assertion.rewrite import AssertionRewritingHook, rewrite_asserts
 from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
+from pytest import Collector, Session
 
 from .copy_files_to_pyodide import copy_files_to_emscripten_fs
 from .run_tests_inside_pyodide import (
@@ -66,8 +72,7 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
 
 
 def pytest_unconfigure(config):
-    if config.option.run_in_pyodide:
-        close_pyodide_browsers()
+    close_pyodide_browsers()
 
 
 def pytest_configure(config):
@@ -134,6 +139,24 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_collection(session: Session):
+    from .doctest import patch_doctest_runner
+
+    patch_doctest_runner()
+    session.config.option.doctestmodules_ = session.config.option.doctestmodules
+
+
+def pytest_collect_file(file_path: Path, parent: Collector):
+    # Have to set doctestmodules to False to prevent original hook from
+    # triggering
+    parent.config.option.doctestmodules = False
+    doctestmodules = parent.config.option.doctestmodules_
+    from .doctest import collect_doctests
+
+    # call our collection hook instead
+    return collect_doctests(file_path, parent, doctestmodules)
+
+
 # Handling for pytest assertion rewrites
 # First we find the pytest rewrite config. It's an attribute of the pytest
 # assertion rewriting meta_path_finder, so we locate that to get the config.
@@ -160,7 +183,7 @@ ORIGINAL_MODULE_ASTS: dict[str, ast.Module] = {}
 REWRITTEN_MODULE_ASTS: dict[str, ast.Module] = {}
 
 
-def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> None:
+def pytest_pycollect_makemodule(module_path: Path, parent: Collector) -> None:
     source = module_path.read_bytes()
     strfn = str(module_path)
     tree = ast.parse(source, filename=strfn)
@@ -191,17 +214,29 @@ def _has_standalone_fixture(item):
     return False
 
 
-def pytest_collection_modifyitems(items: list[Any]) -> None:
+def modifyitems_run_in_pyodide(items: list[Any]):
     # if we are running tests in pyodide, then run all tests for each runtime
-    if len(items) > 0 and items[0].config.option.run_in_pyodide:
-        new_items = []
-        for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
-            if runtime != "host":
-                for x in items:
-                    new_items.append(x)
-                    new_items[-1].pyodide_runtime = runtime
-        items[:] = new_items
+    if not items:
         return
+    new_items = []
+    # TODO: if pyodide_runtimes is not a singleton this is buggy...
+    # pytest_collection_modifyitems is only allowed to filter and reorder the
+    # items, not to remove them...
+    for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
+        if runtime == "host":
+            continue
+        for x in items:
+            x = copy(x)
+            x.pyodide_runtime = runtime
+            new_items.append(x)
+    items[:] = new_items
+    return
+
+
+def pytest_collection_modifyitems(items: list[Any]) -> None:
+    # TODO: is this the best way to figure out if run_in_pyodide was requested?
+    if items and items[0].config.option.run_in_pyodide:
+        modifyitems_run_in_pyodide(items)
 
     # Run all Safari standalone tests first
     # Since Safari doesn't support more than one simultaneous session, we run all
