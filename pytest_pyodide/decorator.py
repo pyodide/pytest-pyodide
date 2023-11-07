@@ -385,11 +385,17 @@ class run_in_pyodide:
                 )
 
             self._async_func = isinstance(node, ast.AsyncFunctionDef)
+            # Clear out things that won't be in scope when we exec the ast.
+            # decorators, annotations, and default values all have to go.
             node.decorator_list = []
             for arg in node.args.args:
                 arg.annotation = None
-            node.args.defaults = []
             node.returns = None
+            node.args.defaults = []
+            # For the inner node, turn all kwonly args into positional args. The
+            # outer node cannot be changed like this because it is called
+            # directly by the user, but we don't want to deal with kwonly args,
+            # it's easier to pass everything by position.
             inner_node = deepcopy(node)
             args = inner_node.args
             args.args.extend(args.kwonlyargs)
