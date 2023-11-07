@@ -166,7 +166,8 @@ def _create_outer_test_function(
     onwards_call.func = ast.Name(id=run_test_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
     onwards_call.args[1].elts = [  # Set tuple elements
-        ast.Name(id=arg.arg, ctx=ast.Load()) for arg in node_args.args[1:]
+        ast.Name(id=arg.arg, ctx=ast.Load())
+        for arg in node_args.args[1:] + node_args.kwonlyargs
     ]
 
     # Add extra <selenium_arg_name> argument
@@ -385,7 +386,16 @@ class run_in_pyodide:
 
             self._async_func = isinstance(node, ast.AsyncFunctionDef)
             node.decorator_list = []
-            nodes.append(node)
+            for arg in node.args.args:
+                arg.annotation = None
+            node.args.defaults = []
+            node.returns = None
+            inner_node = deepcopy(node)
+            args = inner_node.args
+            args.args.extend(args.kwonlyargs)
+            args.kwonlyargs = []
+            inner_node.args.kw_defaults = []
+            nodes.append(inner_node)
             break
 
         self._mod = ast.Module(nodes, type_ignores=[])
