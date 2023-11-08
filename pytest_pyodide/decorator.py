@@ -117,24 +117,18 @@ def all_args(node: MaybeAsyncFuncDef) -> list[ast.arg]:
     return node.args.posonlyargs + node.args.args + node.args.kwonlyargs
 
 
-def const_or_none(d: dict[str, Any], k: str, globs: dict[str, Any]) -> ast.Name | None:
-    if k not in d:
-        return None
-    index = f"v-{len(globs)}"
-    globs[index] = d[k]
-    return ast.Name(index, ast.Load())
-
-
 def prepare_inner_funcdef(node: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
     node = deepcopy(node)
     node.decorator_list = []
+    # Delete all type annotations
+    for arg in all_args(node):
+        arg.annotation = None
+    node.returns = None
     # For the inner node, turn all kwonly args into positional args. The
     # outer node cannot be changed like this because it is called
     # directly by the user, but we don't want to deal with kwonly args,
     # it's easier to pass everything by position.
-    for arg in all_args(node):
-        arg.annotation = None
-    node.returns = None
+    # Positional only args cause no trouble so we leave them alone.
     args = node.args
     args.defaults = []
     args.args.extend(args.kwonlyargs)
@@ -143,25 +137,48 @@ def prepare_inner_funcdef(node: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
     return node
 
 
+def value_to_name(globs: dict[str, Any], value: Any) -> ast.Name:
+    """We can't put values in an `ast.Const` node unless they are deeply
+    immutable (they must be of type int, float, complex, bool, string, bytes, or
+    a tuple or frozenset whose entries are deeply immutable).
+
+    So put the actual values into a dict with a unique id and return a `Name`
+    node that loads the values.
+    """
+    index = f"v-{len(globs)}"
+    globs[index] = value
+    return ast.Name(index, ast.Load())
+
+
+def value_to_name_or_none(
+    globs: dict[str, Any], d: dict[str, Any], k: str
+) -> ast.Name | None:
+    if k not in d:
+        return None
+    return value_to_name(globs, d[k])
+
+
 def prepare_outer_funcdef(
     node: MaybeAsyncFuncDef, f: Callable
 ) -> tuple[MaybeAsyncFuncDef, dict[str, Any]]:
     node = deepcopy(node)
-    # Clear out things that won't be in scope when we exec the ast.
-    # decorators and annotations have to be removed
+    # Clear out the decorator list.
     node.decorator_list = []
+    # Pull the default and annotation values off of the original function
+    # object. In case they refer to local variables this gets the values from
+    # the scope in which the function was originally defined. We use
+    # value_to_name to stick the actual value into globs and put make a `Name`
+    # node to load them out of globs.
     globs: dict[str, Any] = {}
-    for arg in all_args(node):
-        arg.annotation = const_or_none(f.__annotations__, arg.arg, globs)
-    node.returns = const_or_none(f.__annotations__, "return", globs)
-    # Pull the default values off of the original function object. In
-    # case they refer to local variables this will get the values from
-    # the scope in which the function was originally defined.
     defaults: tuple[Any, ...] = f.__defaults__ or ()
     kwdefaults = f.__kwdefaults__ or {}
-    node.args.defaults = [ast.Constant(x) for x in defaults]
+    for arg in all_args(node):
+        arg.annotation = value_to_name_or_none(globs, f.__annotations__, arg.arg)
+    node.returns = value_to_name_or_none(globs, f.__annotations__, "return")
+    node.args.defaults = [value_to_name(globs, x) for x in defaults]
     node.args.kw_defaults = [
-        const_or_none(kwdefaults, arg.arg, globs) for arg in node.args.kwonlyargs
+        value_to_name_or_none(globs, kwdefaults, arg.arg)
+        for arg in node.args.kwonlyargs
     ]
 
     return node, globs

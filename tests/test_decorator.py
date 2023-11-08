@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import pytest
 from hypothesis import given, settings
 
@@ -340,7 +342,7 @@ def test_defaults1(selenium):
 
 def test_defaults2_from_local_variables(selenium):
     """Check that defaults that variables in defaults are resolved correctly"""
-    a = 5
+    a = Callable
     b = 6
     c = 7
     d = 8
