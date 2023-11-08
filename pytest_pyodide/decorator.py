@@ -125,7 +125,7 @@ def const_or_none(d: dict[str, Any], k: str, globs: dict[str, Any]) -> ast.Name 
     return ast.Name(index, ast.Load())
 
 
-def prepare_innernode(node: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
+def prepare_inner_funcdef(node: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
     node = deepcopy(node)
     node.decorator_list = []
     # For the inner node, turn all kwonly args into positional args. The
@@ -143,7 +143,7 @@ def prepare_innernode(node: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
     return node
 
 
-def prepare_outernode(
+def prepare_outer_funcdef(
     node: MaybeAsyncFuncDef, f: Callable
 ) -> tuple[MaybeAsyncFuncDef, dict[str, Any]]:
     node = deepcopy(node)
@@ -167,12 +167,12 @@ def prepare_outernode(
     return node, globs
 
 
-def _create_outer_test_function(
-    run_test: Callable, node: MaybeAsyncFuncDef, f: Callable
+def _create_outer_func(
+    run: Callable, funcdef: MaybeAsyncFuncDef, f: Callable
 ) -> Callable:
     """
     Create the top level item: it will be called by pytest and it calls
-    run_test.
+    run.
 
     If the original function looked like:
 
@@ -185,35 +185,35 @@ def _create_outer_test_function(
     This wrapper looks like:
 
         def <func_name>(<selenium_arg_name>, arg1, arg2, arg3):
-            run_test(<selenium_arg_name>, (arg1, arg2, arg3))
+            run(<selenium_arg_name>, (arg1, arg2, arg3))
 
     Any inner_decorators get ignored. Any outer_decorators get applied by
     the Python interpreter via the normal mechanism
     """
-    node, globs = prepare_outernode(node, f)
+    funcdef, globs = prepare_outer_funcdef(funcdef, f)
 
-    args = all_args(node)
+    args = all_args(funcdef)
     if not args:
         raise ValueError(
-            f"Function {node.name} should take at least one argument whose name should start with 'selenium'"
+            f"Function {funcdef.name} should take at least one argument whose name should start with 'selenium'"
         )
 
     selenium_arg_name = args[0].arg
     if not selenium_arg_name.startswith("selenium"):
         raise ValueError(
-            f"Function {node.name}'s first argument name '{selenium_arg_name}' should start with 'selenium'"
+            f"Function {funcdef.name}'s first argument name '{selenium_arg_name}' should start with 'selenium'"
         )
 
-    new_node = ast.FunctionDef(
-        name=node.name,
-        args=node.args,
-        returns=node.returns,
+    funcdef = ast.FunctionDef(
+        name=funcdef.name,
+        args=funcdef.args,
+        returns=funcdef.returns,
         body=[],
         lineno=1,
         decorator_list=[],
     )
 
-    run_test_id = "run-test-not-valid-identifier"
+    run_id = "run-not-valid-identifier"
 
     # Make onwards call with two args:
     # 1. <selenium_arg_name>
@@ -221,42 +221,42 @@ def _create_outer_test_function(
     func_body = ast.parse(
         """\
         __tracebackhide__ = True; \
-        return run_test(selenium_arg_name, (arg1, arg2, ...)) \
+        return run(selenium_arg_name, (arg1, arg2, ...)) \
         """.strip()
     ).body
     onwards_call = func_body[1].value  # type: ignore[attr-defined]
-    onwards_call.func = ast.Name(id=run_test_id, ctx=ast.Load())
+    onwards_call.func = ast.Name(id=run_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
     onwards_call.args[1].elts = [  # Set tuple elements
         ast.Name(id=arg.arg, ctx=ast.Load()) for arg in args[1:]
     ]
 
     # Add extra <selenium_arg_name> argument
-    new_node.body = func_body
-    new_node.end_lineno = 2
+    funcdef.body = func_body
+    funcdef.end_lineno = 2
 
     # Make a best effort to show something that isn't total nonsense in the
     # traceback for the generated function when there is an error.
     # This will show:
-    # >   run_test(selenium_arg_name, (arg1, arg2, ...))
+    # >   run(selenium_arg_name, (arg1, arg2, ...))
     # in the traceback.
     def fake_body_for_traceback(arg1, arg2, selenium_arg_name):
-        run_test(selenium_arg_name, (arg1, arg2, ...))
+        run(selenium_arg_name, (arg1, arg2, ...))
 
     # Adjust line numbers to point into our fake function
     lineno = fake_body_for_traceback.__code__.co_firstlineno
-    ast.increment_lineno(new_node, lineno)
+    ast.increment_lineno(funcdef, lineno)
 
-    mod = ast.Module([new_node], type_ignores=[])
+    mod = ast.Module([funcdef], type_ignores=[])
     ast.fix_missing_locations(mod)
     co = compile(mod, __file__, "exec")
 
-    # Need to give our code access to the actual "run_test" object which it
+    # Need to give our code access to the actual "run" object which it
     # invokes.
-    globs.update({run_test_id: run_test})
+    globs.update({run_id: run})
     exec(co, globs)
 
-    return globs[node.name]
+    return globs[funcdef.name]
 
 
 def initialize_decorator(selenium):
@@ -291,7 +291,7 @@ del temp
     )
 
 
-def _locate_funcdef_node(
+def _locate_funcdef(
     module_ast: ast.Module, f: Callable
 ) -> tuple[list[ast.stmt], MaybeAsyncFuncDef]:
     """Locate the statements from the original module that we need to make our
@@ -299,7 +299,7 @@ def _locate_funcdef_node(
 
     Returns a pair:
         statements: a list of mypy magic imports that are used for mypy assertion rewrites
-        node: The funcdef node that makes our function
+        funcdef: The funcdef node that makes our function
     """
     funcname = f.__name__
     func_line_no = f.__code__.co_firstlineno
@@ -328,7 +328,7 @@ def _locate_funcdef_node(
             it = iter(node.body)  # type: ignore[attr-defined]
             continue
 
-        # We also want the function definition for the current test
+        # We also want the function definition node
         if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             continue
 
@@ -374,7 +374,7 @@ class run_in_pyodide:
         Parameters
         ----------
         packages : List[str]
-            List of packages to load before running the test
+            List of packages to load before running the function in Pyodide
 
         pytest_assert_rewrites : bool, default = True
             If True, use pytest assertion rewrites. This gives better error messages
@@ -407,23 +407,22 @@ class run_in_pyodide:
         module_filename = module.__file__ or ""
         module_ast = self._module_asts_dict[module_filename]
 
-        statements, node = _locate_funcdef_node(module_ast, f)
-        innernode = prepare_innernode(node)
-        statements.append(innernode)
+        statements, funcdef = _locate_funcdef(module_ast, f)
+        inner_funcdef = prepare_inner_funcdef(funcdef)
+        statements.append(inner_funcdef)
         new_ast_module = ast.Module(statements, type_ignores=[])
 
-        wrapper = _create_outer_test_function(self._run_test, node, f)
+        wrapper = _create_outer_func(self._run, funcdef, f)
 
         # Store information needed by self._code_template
         self._mod = new_ast_module
         self._module_filename = module_filename
         self._func_name = f.__name__
-        self._async_func = isinstance(node, ast.AsyncFunctionDef)
+        self._async_func = isinstance(funcdef, ast.AsyncFunctionDef)
         return wrapper
 
-    def _run_test(self, selenium: SeleniumType, args: tuple):
-        """The main test runner, called from the AST generated in
-        _create_outer_test_function."""
+    def _run(self, selenium: SeleniumType, args: tuple):
+        """The main runner, called from the AST generated in _create_outer_func."""
         __tracebackhide__ = True
         code = self._code_template(args)
         if self._pkgs:
