@@ -7,7 +7,7 @@ from pytest_pyodide.hook import _filter_runtimes
 
 
 def test_dist_dir(pytester):
-    dist_dir = "dist"
+    dist_dir = str(Path("dist").resolve())
 
     pytester.makepyfile(
         f"""
@@ -17,7 +17,7 @@ def test_dist_dir(pytester):
         """
     )
 
-    result = pytester.runpytest("--dist-dir", dist_dir)
+    result = pytester.runpytest("--dist-dir", "dist")
     result.assert_outcomes(passed=1)
 
 
@@ -96,11 +96,12 @@ def test_options_pytester(pytester):
         dedent(
             """
             import pytest
+            from pathlib import Path
 
             def test_options_pytester():
                 assert pytest.pyodide_run_host_test == True
                 assert pytest.pyodide_runtimes == set(["chrome","firefox","safari","node"])
-                assert str(pytest.pyodide_dist_dir) == "some_weird_dir"
+                assert pytest.pyodide_dist_dir == Path("some_weird_dir").resolve()
             """
         )
     )
