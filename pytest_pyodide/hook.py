@@ -92,6 +92,7 @@ def pytest_configure(config):
         "xfail_browsers: xfail a test in specific browsers",
     )
 
+    config.option.dist_dir = config.option.dist_dir.resolve()
     run_host, runtimes = _filter_runtimes(config.option.runtime)
 
     if not hasattr(pytest, "pyodide_options_stack"):
@@ -106,7 +107,7 @@ def pytest_configure(config):
         )
     pytest.pyodide_run_host_test = run_host
     pytest.pyodide_runtimes = runtimes
-    pytest.pyodide_dist_dir = config.getoption("--dist-dir")
+    pytest.pyodide_dist_dir = config.option.dist_dir
 
 
 def pytest_unconfigure(config):
@@ -126,6 +127,7 @@ def pytest_addoption(parser):
     group = parser.getgroup("general")
     group.addoption(
         "--dist-dir",
+        dest="dist_dir",
         action="store",
         default="pyodide",
         help="Path to the pyodide dist directory",
