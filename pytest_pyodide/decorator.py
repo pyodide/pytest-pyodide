@@ -113,28 +113,26 @@ def _decode(result: str, selenium: SeleniumType) -> Any:
         ) from None
 
 
-def all_args(node: MaybeAsyncFuncDef) -> list[ast.arg]:
-    return node.args.posonlyargs + node.args.args + node.args.kwonlyargs
+def all_args(funcdef: MaybeAsyncFuncDef) -> list[ast.arg]:
+    return funcdef.args.posonlyargs + funcdef.args.args + funcdef.args.kwonlyargs
 
 
-def prepare_inner_funcdef(node: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
-    node = deepcopy(node)
-    node.decorator_list = []
+def prepare_inner_funcdef(funcdef: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
+    funcdef = deepcopy(funcdef)
+    funcdef.decorator_list = []
     # Delete all type annotations
-    for arg in all_args(node):
+    for arg in all_args(funcdef):
         arg.annotation = None
-    node.returns = None
-    # For the inner node, turn all kwonly args into positional args. The
-    # outer node cannot be changed like this because it is called
-    # directly by the user, but we don't want to deal with kwonly args,
-    # it's easier to pass everything by position.
-    # Positional only args cause no trouble so we leave them alone.
-    args = node.args
+    funcdef.returns = None
+    # For the inner funcdef, we turn all kwonly args into positional args.
+    # We don't want to deal with kwonly args, it's easier to pass everything by
+    # position. Positional only args cause us no trouble so we leave them alone.
+    args = funcdef.args
     args.defaults = []
     args.args.extend(args.kwonlyargs)
     args.kwonlyargs = []
-    node.args.kw_defaults = []
-    return node
+    funcdef.args.kw_defaults = []
+    return funcdef
 
 
 def value_to_name(globs: dict[str, Any], value: Any) -> ast.Name:
@@ -159,11 +157,11 @@ def value_to_name_or_none(
 
 
 def prepare_outer_funcdef(
-    node: MaybeAsyncFuncDef, f: Callable
+    funcdef: MaybeAsyncFuncDef, f: Callable
 ) -> tuple[MaybeAsyncFuncDef, dict[str, Any]]:
-    node = deepcopy(node)
+    funcdef = deepcopy(funcdef)
     # Clear out the decorator list.
-    node.decorator_list = []
+    funcdef.decorator_list = []
     # Pull the default and annotation values off of the original function
     # object. In case they refer to local variables this gets the values from
     # the scope in which the function was originally defined. We use
@@ -172,16 +170,16 @@ def prepare_outer_funcdef(
     globs: dict[str, Any] = {}
     defaults: tuple[Any, ...] = f.__defaults__ or ()
     kwdefaults = f.__kwdefaults__ or {}
-    for arg in all_args(node):
+    for arg in all_args(funcdef):
         arg.annotation = value_to_name_or_none(globs, f.__annotations__, arg.arg)
-    node.returns = value_to_name_or_none(globs, f.__annotations__, "return")
-    node.args.defaults = [value_to_name(globs, x) for x in defaults]
-    node.args.kw_defaults = [
+    funcdef.returns = value_to_name_or_none(globs, f.__annotations__, "return")
+    funcdef.args.defaults = [value_to_name(globs, x) for x in defaults]
+    funcdef.args.kw_defaults = [
         value_to_name_or_none(globs, kwdefaults, arg.arg)
-        for arg in node.args.kwonlyargs
+        for arg in funcdef.args.kwonlyargs
     ]
 
-    return node, globs
+    return funcdef, globs
 
 
 def _create_outer_func(
@@ -356,8 +354,7 @@ def _locate_funcdef(
             raise RuntimeError(
                 f"Internal run_in_pyodide error: looking for function '{funcname}' but found '{node.name}'"
             )
-        break
-    return (statements, node)
+        return (statements, node)
 
 
 class run_in_pyodide:
