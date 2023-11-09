@@ -150,7 +150,7 @@ def pytest_collect_file(file_path: Path, parent: Collector):
     # Have to set doctestmodules to False to prevent original hook from
     # triggering
     parent.config.option.doctestmodules = False
-    doctestmodules = parent.config.option.doctestmodules_
+    doctestmodules = getattr(parent.config.option, "doctestmodules_", False)
     from .doctest import collect_doctests
 
     # call our collection hook instead

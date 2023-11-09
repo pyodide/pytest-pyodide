@@ -101,8 +101,11 @@ def run_doctest_in_pyodide_inner(
     # in our tests.
     from importlib import import_module
 
-    mod = import_module(test.globs["__name__"])
-    test.globs = mod.__dict__.copy()
+    try:
+        mod = import_module(test.globs["__name__"])
+        test.globs = mod.__dict__.copy()
+    except ModuleNotFoundError:
+        pass
     try:
         return self.run(test, compileflags, out, clear_globs)
     except Exception:
