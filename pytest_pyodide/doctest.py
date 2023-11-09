@@ -33,11 +33,10 @@ class PyodideDoctestMixin:
         """
         for item in super().collect():  # type:ignore[misc]
             if RUN_IN_PYODIDE not in item.dtest.examples[0].options:
-                yield item
+                if pytest.pyodide_run_host_test:
+                    yield item
                 continue
             for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
-                if runtime == "host":
-                    continue
                 x = copy(item)
                 x.dtest = copy(item.dtest)
                 x.name += f"[{runtime}]"
