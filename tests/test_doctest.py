@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from textwrap import dedent
 
@@ -36,8 +37,12 @@ def host_success():
     '''
 """
 
+ORIG_HOME = os.environ.get("HOME", None)
+
 
 def test_doctest_run(pytester, request):
+    # Help playwright find the cache
+    os.environ["XDG_CACHE_HOME"] = str(Path(ORIG_HOME) / ".cache")
     pytester.makepyfile(DOCTESTS)
 
     @run_in_pyodide
