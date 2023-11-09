@@ -1,4 +1,8 @@
-## unreleased
+## Unreleased
+
+- Added support in `@run_in_pyodide` positional only and keyword only arguments,
+  type annotations, and argument default values.
+  [#116](https://github.com/pyodide/pytest-pyodide/pull/116)
 
 ## [0.54.0] - 2023-11/04
 
