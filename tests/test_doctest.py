@@ -58,6 +58,9 @@ def test_doctest_run(pytester, runtime1):
         .splitlines(),
         consecutive=True,
     )
+    from pytest_pyodide.run_tests_inside_pyodide import close_pyodide_browsers
+
+    close_pyodide_browsers()
 
 
 def test_doctest_collect(pytester):
