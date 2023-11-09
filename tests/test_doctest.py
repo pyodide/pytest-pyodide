@@ -1,7 +1,10 @@
 from textwrap import dedent
 
+import pytest
 
-def test_doctest1(pytester):
+
+@pytest.mark.parametrize("runtime1", ["chrome"])
+def test_doctest1(pytester, runtime1):
     pytester.makepyfile(
         dedent(
             """
@@ -32,8 +35,15 @@ def test_doctest1(pytester):
     from pathlib import Path
 
     result = pytester.runpytest(
-        "--doctest-modules", "--dist-dir", Path(__file__).parents[1] / "pyodide"
+        "--doctest-modules",
+        "--dist-dir",
+        Path(__file__).parents[1] / "pyodide",
+        "--rt",
+        "chrome",
     )
+    if runtime1 == "host":
+        result.assert_outcomes(passed=1)
+        return
     result.assert_outcomes(passed=2, failed=1)
     result.stdout.fnmatch_lines(
         dedent(

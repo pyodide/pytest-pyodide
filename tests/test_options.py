@@ -1,3 +1,6 @@
+from pathlib import Path
+from textwrap import dedent
+
 import pytest
 
 from pytest_pyodide.hook import _filter_runtimes
@@ -86,3 +89,35 @@ def test_invalid_runtime(pytester, _runtime):
 )
 def test_filter_runtimes(_runtime, expected):
     assert _filter_runtimes(_runtime) == expected
+
+
+def test_options_pytester(pytester):
+    pytester.makepyfile(
+        dedent(
+            """
+            import pytest
+
+            def test_options_pytester():
+                assert pytest.pyodide_run_host_test == True
+                assert pytest.pyodide_runtimes == set(["chrome","firefox","safari","node"])
+                assert str(pytest.pyodide_dist_dir) == "some_weird_dir"
+            """
+        )
+    )
+    run_host = pytest.pyodide_run_host_test
+    runtimes = pytest.pyodide_runtimes
+    dist_dir = pytest.pyodide_dist_dir
+
+    result = pytester.runpytest(
+        "--dist-dir",
+        Path(__file__).parents[1] / "pyodide",
+        "--rt",
+        "chrome,firefox,safari,node",
+        "--dist-dir",
+        "some_weird_dir",
+    )
+    result.assert_outcomes(passed=1)
+
+    assert run_host == pytest.pyodide_run_host_test
+    assert runtimes == pytest.pyodide_runtimes
+    assert dist_dir == pytest.pyodide_dist_dir

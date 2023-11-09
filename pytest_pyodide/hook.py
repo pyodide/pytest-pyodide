@@ -71,10 +71,6 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     return run_host, runtime_filtered
 
 
-def pytest_unconfigure(config):
-    close_pyodide_browsers()
-
-
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
@@ -98,14 +94,31 @@ def pytest_configure(config):
 
     run_host, runtimes = _filter_runtimes(config.option.runtime)
 
-    # using `pytester` fixture seems to call this hook again with different options
-    # so this is a workaround to avoid overwriting the values
-    if not hasattr(pytest, "pyodide_run_host_test"):
-        pytest.pyodide_run_host_test = run_host
-    if not hasattr(pytest, "pyodide_runtimes"):
-        pytest.pyodide_runtimes = runtimes
-    if not hasattr(pytest, "pyodide_dist_dir"):
-        pytest.pyodide_dist_dir = config.getoption("--dist-dir")
+    if not hasattr(pytest, "pyodide_options_stack"):
+        pytest.pyodide_options_stack = []
+    else:
+        pytest.pyodide_options_stack.append(  # type:ignore[attr-defined]
+            [
+                pytest.pyodide_run_host_test,
+                pytest.pyodide_runtimes,
+                pytest.pyodide_dist_dir,
+            ]
+        )
+    pytest.pyodide_run_host_test = run_host
+    pytest.pyodide_runtimes = runtimes
+    pytest.pyodide_dist_dir = config.getoption("--dist-dir")
+
+
+def pytest_unconfigure(config):
+    close_pyodide_browsers()
+    try:
+        (
+            pytest.pyodide_run_host_test,
+            pytest.pyodide_runtimes,
+            pytest.pyodide_dist_dir,
+        ) = pytest.pyodide_options_stack.pop()  # type:ignore[attr-defined]
+    except IndexError:
+        pass
 
 
 @pytest.hookimpl(tryfirst=True)
