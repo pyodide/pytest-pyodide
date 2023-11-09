@@ -27,8 +27,7 @@ def host_success():
 """
 
 
-@pytest.mark.parametrize("runtime1", ["chrome"])
-def test_doctest_run(pytester, runtime1):
+def test_doctest_run(pytester, request):
     pytester.makepyfile(DOCTESTS)
     from pathlib import Path
 
@@ -37,9 +36,9 @@ def test_doctest_run(pytester, runtime1):
         "--dist-dir",
         Path(__file__).parents[1] / "pyodide",
         "--rt",
-        "chrome",
+        request.config.option.runtime,
     )
-    if runtime1 == "host":
+    if not pytest.pyodide_runtimes:
         result.assert_outcomes(passed=1)
         return
     result.assert_outcomes(passed=2, failed=1)
@@ -58,9 +57,6 @@ def test_doctest_run(pytester, runtime1):
         .splitlines(),
         consecutive=True,
     )
-    from pytest_pyodide.run_tests_inside_pyodide import close_pyodide_browsers
-
-    close_pyodide_browsers()
 
 
 def test_doctest_collect(pytester):
