@@ -306,18 +306,19 @@ def test_typehints(selenium):
     from typing import Any
 
     def fn_with_typehints(selenium, a: Any, b: Callable) -> Any:
-        return None
+        return [a, b]
 
     wrapped = run_in_pyodide(fn_with_typehints)
 
-    wrapped(selenium, 5, Callable)
+    assert wrapped(selenium, 5, Callable) == [5, Callable]
     assert wrapped.__annotations__ == fn_with_typehints.__annotations__
 
 
 def test_posonly(selenium):
     @run_in_pyodide
     def fn_with_posonly(selenium, a, /, b):
-        return None
+        assert a == 5
+        assert b == 7
 
     fn_with_posonly(selenium, 5, 7)
 
@@ -325,7 +326,8 @@ def test_posonly(selenium):
 def test_kwonly(selenium):
     @run_in_pyodide
     def fn_with_kwonly(selenium, *, a, b):
-        return None
+        assert a == 5
+        assert b == 7
 
     fn_with_kwonly(selenium, a=5, b=7)
 
