@@ -1,4 +1,8 @@
-## unreleased
+## Unreleased
+
+- Added support for running doctests in Pyodide if they have
+  `# doctest: +RUN_IN_PYODIDE` on the first line.
+  [#117](https://github.com/pyodide/pytest-pyodide/pull/117)
 
 ## [0.54.0] - 2023-11/04
 
