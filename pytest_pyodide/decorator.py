@@ -15,6 +15,8 @@ from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
 from .runner import _BrowserBaseRunner
 from .utils import package_is_built as _package_is_built
 
+MaybeAsyncFuncDef = ast.FunctionDef | ast.AsyncFunctionDef
+
 
 def package_is_built(package_name: str):
     return _package_is_built(package_name, pytest.pyodide_dist_dir)  # type: ignore[arg-type]
@@ -111,13 +113,81 @@ def _decode(result: str, selenium: SeleniumType) -> Any:
         ) from None
 
 
-def _create_outer_test_function(
-    run_test: Callable,
-    node: Any,
+def all_args(funcdef: MaybeAsyncFuncDef) -> list[ast.arg]:
+    return funcdef.args.posonlyargs + funcdef.args.args + funcdef.args.kwonlyargs
+
+
+def prepare_inner_funcdef(funcdef: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
+    funcdef = deepcopy(funcdef)
+    funcdef.decorator_list = []
+    # Delete all type annotations
+    for arg in all_args(funcdef):
+        arg.annotation = None
+    funcdef.returns = None
+    # For the inner funcdef, we turn all kwonly args into positional args.
+    # We don't want to deal with kwonly args, it's easier to pass everything by
+    # position. Positional only args cause us no trouble so we leave them alone.
+    args = funcdef.args
+    args.defaults = []
+    args.args.extend(args.kwonlyargs)
+    args.kwonlyargs = []
+    funcdef.args.kw_defaults = []
+    return funcdef
+
+
+def value_to_name(globs: dict[str, Any], value: Any) -> ast.Name:
+    """We can't put values in an `ast.Const` node unless they are deeply
+    immutable (they must be of type int, float, complex, bool, string, bytes, or
+    a tuple or frozenset whose entries are deeply immutable).
+
+    So put the actual values into a dict with a unique id and return a `Name`
+    node that loads the values.
+    """
+    index = f"v-{len(globs)}"
+    globs[index] = value
+    return ast.Name(index, ast.Load())
+
+
+def value_to_name_or_none(
+    globs: dict[str, Any], d: dict[str, Any], k: str
+) -> ast.Name | None:
+    if k not in d:
+        return None
+    return value_to_name(globs, d[k])
+
+
+def prepare_outer_funcdef(
+    funcdef: MaybeAsyncFuncDef, f: Callable
+) -> tuple[MaybeAsyncFuncDef, dict[str, Any]]:
+    funcdef = deepcopy(funcdef)
+    # Clear out the decorator list.
+    funcdef.decorator_list = []
+    # Pull the default and annotation values off of the original function
+    # object. In case they refer to local variables this gets the values from
+    # the scope in which the function was originally defined. We use
+    # value_to_name to stick the actual value into globs and put make a `Name`
+    # node to load them out of globs.
+    globs: dict[str, Any] = {}
+    defaults: tuple[Any, ...] = f.__defaults__ or ()
+    kwdefaults = f.__kwdefaults__ or {}
+    for arg in all_args(funcdef):
+        arg.annotation = value_to_name_or_none(globs, f.__annotations__, arg.arg)
+    funcdef.returns = value_to_name_or_none(globs, f.__annotations__, "return")
+    funcdef.args.defaults = [value_to_name(globs, x) for x in defaults]
+    funcdef.args.kw_defaults = [
+        value_to_name_or_none(globs, kwdefaults, arg.arg)
+        for arg in funcdef.args.kwonlyargs
+    ]
+
+    return funcdef, globs
+
+
+def _create_outer_func(
+    run: Callable, funcdef: MaybeAsyncFuncDef, f: Callable
 ) -> Callable:
     """
     Create the top level item: it will be called by pytest and it calls
-    run_test.
+    run.
 
     If the original function looked like:
 
@@ -130,28 +200,35 @@ def _create_outer_test_function(
     This wrapper looks like:
 
         def <func_name>(<selenium_arg_name>, arg1, arg2, arg3):
-            run_test(<selenium_arg_name>, (arg1, arg2, arg3))
+            run(<selenium_arg_name>, (arg1, arg2, arg3))
 
     Any inner_decorators get ignored. Any outer_decorators get applied by
     the Python interpreter via the normal mechanism
     """
-    node_args = deepcopy(node.args)
-    if not node_args.args:
+    funcdef, globs = prepare_outer_funcdef(funcdef, f)
+
+    args = all_args(funcdef)
+    if not args:
         raise ValueError(
-            f"Function {node.name} should take at least one argument whose name should start with 'selenium'"
+            f"Function {funcdef.name} should take at least one argument whose name should start with 'selenium'"
         )
 
-    selenium_arg_name = node_args.args[0].arg
+    selenium_arg_name = args[0].arg
     if not selenium_arg_name.startswith("selenium"):
         raise ValueError(
-            f"Function {node.name}'s first argument name '{selenium_arg_name}' should start with 'selenium'"
+            f"Function {funcdef.name}'s first argument name '{selenium_arg_name}' should start with 'selenium'"
         )
 
-    new_node = ast.FunctionDef(
-        name=node.name, args=node_args, body=[], lineno=1, decorator_list=[]
+    funcdef = ast.FunctionDef(
+        name=funcdef.name,
+        args=funcdef.args,
+        returns=funcdef.returns,
+        body=[],
+        lineno=1,
+        decorator_list=[],
     )
 
-    run_test_id = "run-test-not-valid-identifier"
+    run_id = "run-not-valid-identifier"
 
     # Make onwards call with two args:
     # 1. <selenium_arg_name>
@@ -159,42 +236,42 @@ def _create_outer_test_function(
     func_body = ast.parse(
         """\
         __tracebackhide__ = True; \
-        return run_test(selenium_arg_name, (arg1, arg2, ...)) \
+        return run(selenium_arg_name, (arg1, arg2, ...)) \
         """.strip()
     ).body
     onwards_call = func_body[1].value  # type: ignore[attr-defined]
-    onwards_call.func = ast.Name(id=run_test_id, ctx=ast.Load())
+    onwards_call.func = ast.Name(id=run_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
     onwards_call.args[1].elts = [  # Set tuple elements
-        ast.Name(id=arg.arg, ctx=ast.Load()) for arg in node_args.args[1:]
+        ast.Name(id=arg.arg, ctx=ast.Load()) for arg in args[1:]
     ]
 
     # Add extra <selenium_arg_name> argument
-    new_node.body = func_body
-    new_node.end_lineno = 2
+    funcdef.body = func_body
+    funcdef.end_lineno = 2
 
     # Make a best effort to show something that isn't total nonsense in the
     # traceback for the generated function when there is an error.
     # This will show:
-    # >   run_test(selenium_arg_name, (arg1, arg2, ...))
+    # >   run(selenium_arg_name, (arg1, arg2, ...))
     # in the traceback.
     def fake_body_for_traceback(arg1, arg2, selenium_arg_name):
-        run_test(selenium_arg_name, (arg1, arg2, ...))
+        run(selenium_arg_name, (arg1, arg2, ...))
 
     # Adjust line numbers to point into our fake function
     lineno = fake_body_for_traceback.__code__.co_firstlineno
-    ast.increment_lineno(new_node, lineno)
+    ast.increment_lineno(funcdef, lineno)
 
-    mod = ast.Module([new_node], type_ignores=[])
+    mod = ast.Module([funcdef], type_ignores=[])
     ast.fix_missing_locations(mod)
     co = compile(mod, __file__, "exec")
 
-    # Need to give our code access to the actual "run_test" object which it
+    # Need to give our code access to the actual "run" object which it
     # invokes.
-    globs = {run_test_id: run_test}
+    globs.update({run_id: run})
     exec(co, globs)
 
-    return globs[node.name]
+    return globs[funcdef.name]
 
 
 def initialize_decorator(selenium):
@@ -229,6 +306,57 @@ del temp
     )
 
 
+def _locate_funcdef(
+    module_ast: ast.Module, f: Callable
+) -> tuple[list[ast.stmt], MaybeAsyncFuncDef]:
+    """Locate the statements from the original module that we need to make our
+    wrapper function.
+
+    Returns a pair:
+        statements: a list of mypy magic imports that are used for mypy assertion rewrites
+        funcdef: The funcdef node that makes our function
+    """
+    funcname = f.__name__
+    func_line_no = f.__code__.co_firstlineno
+    statements: list[ast.stmt] = []
+    it = iter(module_ast.body)
+    while True:
+        try:
+            node = next(it)
+        except StopIteration:
+            raise Exception(
+                f"Didn't find function {funcname} (line {func_line_no}) in module."
+            ) from None
+        # We need to include the magic imports that pytest inserts
+        if (
+            isinstance(node, ast.Import)
+            and node.names[0].asname
+            and node.names[0].asname.startswith("@")
+        ):
+            statements.append(node)
+
+        if (
+            node.end_lineno
+            and node.end_lineno > func_line_no
+            and node.lineno < func_line_no
+        ):
+            it = iter(node.body)  # type: ignore[attr-defined]
+            continue
+
+        # We also want the function definition node
+        if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            continue
+
+        if node.lineno < func_line_no:
+            continue
+
+        if node.name != funcname:
+            raise RuntimeError(
+                f"Internal run_in_pyodide error: looking for function '{funcname}' but found '{node.name}'"
+            )
+        return (statements, node)
+
+
 class run_in_pyodide:
     def __new__(cls, function: Callable | None = None, /, **kwargs):
         if function:
@@ -260,7 +388,7 @@ class run_in_pyodide:
         Parameters
         ----------
         packages : List[str]
-            List of packages to load before running the test
+            List of packages to load before running the function in Pyodide
 
         pytest_assert_rewrites : bool, default = True
             If True, use pytest assertion rewrites. This gives better error messages
@@ -268,14 +396,9 @@ class run_in_pyodide:
         """
 
         self._pkgs = list(packages)
-        self._pytest_not_built = False
-        if (
-            pytest_assert_rewrites
-            and not package_is_built("pytest")
-            and not _force_assert_rewrites
-        ):
-            pytest_assert_rewrites = False
-            self._pytest_not_built = True
+        pytest_assert_rewrites = _force_assert_rewrites or (
+            pytest_assert_rewrites and package_is_built("pytest")
+        )
 
         if pytest_assert_rewrites:
             self._pkgs.append("pytest")
@@ -293,7 +416,40 @@ class run_in_pyodide:
                 self._pkgs.append(pkg)
                 break
 
-        self._pytest_assert_rewrites = pytest_assert_rewrites
+    def __call__(self, f: Callable) -> Callable:
+        module = sys.modules[f.__module__]
+        module_filename = module.__file__ or ""
+        module_ast = self._module_asts_dict[module_filename]
+
+        statements, funcdef = _locate_funcdef(module_ast, f)
+        inner_funcdef = prepare_inner_funcdef(funcdef)
+        statements.append(inner_funcdef)
+        new_ast_module = ast.Module(statements, type_ignores=[])
+
+        wrapper = _create_outer_func(self._run, funcdef, f)
+
+        # Store information needed by self._code_template
+        self._mod = new_ast_module
+        self._module_filename = module_filename
+        self._func_name = f.__name__
+        self._async_func = isinstance(funcdef, ast.AsyncFunctionDef)
+        return wrapper
+
+    def _run(self, selenium: SeleniumType, args: tuple):
+        """The main runner, called from the AST generated in _create_outer_func."""
+        __tracebackhide__ = True
+        code = self._code_template(args)
+        if self._pkgs:
+            selenium.load_package(self._pkgs)
+
+        r = selenium.run_async(code)
+        [status, result] = r
+
+        result = _decode(result, selenium)
+        if status:
+            raise result
+        else:
+            return result
 
     def _code_template(self, args: tuple) -> str:
         """
@@ -320,93 +476,6 @@ class run_in_pyodide:
             del __tmp
         result
         """
-
-    def _run_test(self, selenium: SeleniumType, args: tuple):
-        """The main test runner, called from the AST generated in
-        _create_outer_test_function."""
-        __tracebackhide__ = True
-        code = self._code_template(args)
-        if self._pkgs:
-            selenium.load_package(self._pkgs)
-
-        r = selenium.run_async(code)
-        [status, result] = r
-
-        result = _decode(result, selenium)
-        if status:
-            raise result
-        else:
-            return result
-
-    def _generate_pyodide_ast(
-        self, module_ast: ast.Module, funcname: str, func_line_no: int
-    ) -> None:
-        """Generates appropriate AST for the test to run in Pyodide.
-
-        The test ast includes mypy magic imports and the test function definition.
-        This will be pickled and sent to Pyodide.
-        """
-        nodes: list[ast.stmt] = []
-        it = iter(module_ast.body)
-        while True:
-            try:
-                node = next(it)
-            except StopIteration:
-                raise Exception(
-                    f"Didn't find function {funcname} (line {func_line_no}) in module."
-                ) from None
-            # We need to include the magic imports that pytest inserts
-            if (
-                isinstance(node, ast.Import)
-                and node.names[0].asname
-                and node.names[0].asname.startswith("@")
-            ):
-                nodes.append(node)
-
-            if (
-                node.end_lineno
-                and node.end_lineno > func_line_no
-                and node.lineno < func_line_no
-            ):
-                it = iter(node.body)  # type: ignore[attr-defined]
-                continue
-
-            # We also want the function definition for the current test
-            if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-                continue
-
-            if node.lineno < func_line_no:
-                continue
-
-            if node.name != funcname:
-                raise RuntimeError(
-                    f"Internal run_in_pyodide error: looking for function '{funcname}' but found '{node.name}'"
-                )
-
-            self._async_func = isinstance(node, ast.AsyncFunctionDef)
-            node.decorator_list = []
-            nodes.append(node)
-            break
-
-        self._mod = ast.Module(nodes, type_ignores=[])
-
-        self._node = node
-
-    def __call__(self, f: Callable) -> Callable:
-        func_name = f.__name__
-        module_filename = sys.modules[f.__module__].__file__ or ""
-        module_ast = self._module_asts_dict[module_filename]
-
-        func_line_no = f.__code__.co_firstlineno
-
-        # _code_template needs this info.
-        self._generate_pyodide_ast(module_ast, func_name, func_line_no)
-        self._func_name = func_name
-        self._module_filename = module_filename
-
-        wrapper = _create_outer_test_function(self._run_test, self._node)
-
-        return wrapper
 
 
 def copy_files_to_pyodide(file_list, install_wheels=True, recurse_directories=True):
