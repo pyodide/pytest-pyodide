@@ -29,12 +29,11 @@ def host_success():
 
 def test_doctest_run(pytester, request):
     pytester.makepyfile(DOCTESTS)
-    from pathlib import Path
 
     result = pytester.runpytest(
         "--doctest-modules",
         "--dist-dir",
-        Path(__file__).parents[1] / "pyodide",
+        request.config.getoption("--dist-dir"),
         "--rt",
         request.config.option.runtime,
     )
