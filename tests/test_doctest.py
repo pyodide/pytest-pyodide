@@ -1,15 +1,25 @@
+from pathlib import Path
 from textwrap import dedent
 
 import pytest
+
+from pytest_pyodide import run_in_pyodide
+from pytest_pyodide.run_tests_inside_pyodide import (
+    close_pyodide_browsers,
+    get_browser_pyodide,
+)
 
 DOCTESTS = """\
 def pyodide_success():
     '''
     >>> from js import Object # doctest: +RUN_IN_PYODIDE
+    >>> pyodide_success()
+    7
     >>> import sys
     >>> sys.platform == "emscripten"
     True
     '''
+    return 7
 
 def pyodide_fail():
     '''
@@ -30,6 +40,18 @@ def host_success():
 def test_doctest_run(pytester, request):
     pytester.makepyfile(DOCTESTS)
 
+    @run_in_pyodide
+    def write_file(selenium, path, contents):
+        path.parent.mkdir(exist_ok=True)
+        import sys
+
+        sys.path.append(str(path.parent))
+        path.write_text(contents)
+
+    for runtime in pytest.pyodide_runtimes:
+        selenium = get_browser_pyodide(request, runtime)
+        write_file(selenium, Path("/test_files/test_doctest_run.py"), DOCTESTS)
+
     result = pytester.runpytest(
         "--doctest-modules",
         "--dist-dir",
@@ -44,8 +66,8 @@ def test_doctest_run(pytester, request):
     result.stdout.fnmatch_lines(
         dedent(
             """
-            011     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-            012     >>> 1 == 2
+            014     >>> from js import Object # doctest: +RUN_IN_PYODIDE
+            015     >>> 1 == 2
             Expected:
                 True
             Got:
@@ -56,6 +78,7 @@ def test_doctest_run(pytester, request):
         .splitlines(),
         consecutive=True,
     )
+    close_pyodide_browsers()
 
 
 def test_doctest_collect(pytester):

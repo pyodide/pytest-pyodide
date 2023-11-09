@@ -104,6 +104,8 @@ def run_doctest_in_pyodide_inner(
         mod = import_module(test.globs["__name__"])
         test.globs = mod.__dict__.copy()
     except ModuleNotFoundError:
+        # Oops the test file isn't in the Pyodide file system.
+        # TODO: maybe we shouldn't suppress this error??
         pass
     try:
         return self.run(test, compileflags, out, clear_globs)
