@@ -29,6 +29,7 @@ const context = {
   clearTimeout,
   setInterval,
   setTimeout,
+  Headers
 };
 vm.createContext(context);
 vm.runInContext("globalThis.self = globalThis;", context);
