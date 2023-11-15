@@ -16,23 +16,11 @@ function _fetch(path) {
 }
 
 const context = {
+  self: context,
   loadPyodide,
-  path,
-  process,
-  require,
-  setTimeout,
-  fetch: _fetch,
-  TextDecoder: util.TextDecoder,
-  TextEncoder: util.TextEncoder,
-  URL,
-  clearInterval,
-  clearTimeout,
-  setInterval,
-  setTimeout,
-  Headers
+  ...globalThis,
 };
 vm.createContext(context);
-vm.runInContext("globalThis.self = globalThis;", context);
 
 // Get rid of all colors in output of console.log, they mess us up.
 for (let key of Object.keys(util.inspect.styles)) {
