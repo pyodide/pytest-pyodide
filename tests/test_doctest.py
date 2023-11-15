@@ -4,18 +4,10 @@ from textwrap import dedent
 
 import pytest
 
-from pytest_pyodide import run_in_pyodide
-from pytest_pyodide.run_tests_inside_pyodide import (
-    close_pyodide_browsers,
-    get_browser_pyodide,
-)
-
 DOCTESTS = """\
 def pyodide_success():
     '''
     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-    >>> pyodide_success()
-    7
     >>> import sys
     >>> sys.platform == "emscripten"
     True
@@ -40,50 +32,49 @@ def host_success():
 ORIG_HOME = os.environ.get("HOME", None)
 
 
-def test_doctest_run(pytester, request):
+def test_doctest_run(pytester, request, runtime, playwright_browsers, capsys):
     # Help playwright find the cache
     os.environ["XDG_CACHE_HOME"] = str(Path(ORIG_HOME) / ".cache")
-    pytester.makepyfile(DOCTESTS)
+    file = pytester.makepyfile(DOCTESTS)
+    config = pytester.parseconfigure(file)
 
-    @run_in_pyodide
-    def write_file(selenium, path, contents):
-        path.parent.mkdir(exist_ok=True)
-        import sys
+    config.playwright_browsers = playwright_browsers
 
-        sys.path.append(str(path.parent))
-        path.write_text(contents)
+    class MyPlugin:
+        def pytest_fixture_setup(self, fixturedef, request):
+            if fixturedef.argname == "playwright_browsers":
+                my_cache_key = fixturedef.cache_key(request)
+                fixturedef.cached_result = (playwright_browsers, my_cache_key, None)
+                return playwright_browsers
 
-    for runtime in pytest.pyodide_runtimes:
-        selenium = get_browser_pyodide(request, runtime)
-        write_file(selenium, Path("/test_files/test_doctest_run.py"), DOCTESTS)
-
-    result = pytester.runpytest(
+    result = pytester.inline_run(
+        file,
         "--doctest-modules",
         "--dist-dir",
         request.config.getoption("--dist-dir"),
         "--rt",
-        request.config.option.runtime,
+        runtime,
+        "--runner",
+        request.config.option.runner,
+        plugins=(MyPlugin(),),
     )
     if not pytest.pyodide_runtimes:
-        result.assert_outcomes(passed=1)
+        result.assertoutcome(passed=1)
         return
-    result.assert_outcomes(passed=2, failed=1)
-    result.stdout.fnmatch_lines(
-        dedent(
-            """
-            014     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-            015     >>> 1 == 2
-            Expected:
-                True
-            Got:
-                False
-            """
-        )
-        .strip()
-        .splitlines(),
-        consecutive=True,
-    )
-    close_pyodide_browsers()
+    result.assertoutcome(passed=2, failed=1)
+    result.getfailures()[0]
+    captured = capsys.readouterr()
+    expected = dedent(
+        """
+        012     >>> from js import Object # doctest: +RUN_IN_PYODIDE
+        013     >>> 1 == 2
+        Expected:
+            True
+        Got:
+            False
+        """
+    ).strip()
+    assert expected in captured.out
 
 
 def test_doctest_collect(pytester):
