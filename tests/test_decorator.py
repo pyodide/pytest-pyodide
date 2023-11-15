@@ -354,3 +354,55 @@ def test_defaults2_from_local_variables(selenium):
         return [a, b, c, d]
 
     assert fn_with_defaults(selenium) == [a, b, c, d]
+
+
+def test_vararg(selenium):
+    @run_in_pyodide
+    def fn_with_vararg(selenium, a, *args: Callable):
+        assert a == 5
+        assert args == (6, 7, 8)
+
+    fn_with_vararg(selenium, 5, 6, 7, 8)
+
+
+def test_kwarg(selenium):
+    @run_in_pyodide
+    def fn_with_kwarg(selenium, a, **kwargs: Callable):
+        assert a == 5
+        assert kwargs == dict(b=6, c=7, d=8)
+
+    fn_with_kwarg(selenium, a=5, b=6, c=7, d=8)
+
+
+def test_complex_args(selenium):
+    def fn_with_complex_args(selenium, a, /, b, *args, c, d=Callable, **kwargs):
+        from collections.abc import Callable
+
+        assert a == 5
+        assert b == 6
+        assert c == 7
+        assert args == tuple()
+        assert d == Callable
+        assert kwargs == dict(a=8, q=11)
+
+    wrapped = run_in_pyodide(fn_with_complex_args)
+    import inspect
+
+    assert inspect.signature(wrapped) == inspect.signature(fn_with_complex_args)
+
+    wrapped(selenium, 5, b=6, a=8, c=7, q=11)
+
+    @run_in_pyodide
+    def fn_with_complex_args2(selenium, a, /, b, *args, c, d=Callable, **kwargs):
+        from collections.abc import Callable
+
+        assert a == 5
+        assert b == 6
+        assert c == 7
+        assert args == (7, 8, 9)
+        assert d == Callable
+        assert kwargs == dict(a=8, q=11)
+
+    fn_with_complex_args2(selenium, 5, 6, 7, 8, 9, a=8, c=7, q=11)
+    with pytest.raises(TypeError, match="multiple values"):
+        fn_with_complex_args2(selenium, 5, 6, 7, 8, 9, b=8, c=7, q=11)

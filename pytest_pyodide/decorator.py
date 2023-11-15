@@ -114,7 +114,15 @@ def _decode(result: str, selenium: SeleniumType) -> Any:
 
 
 def all_args(funcdef: MaybeAsyncFuncDef) -> list[ast.arg]:
-    return funcdef.args.posonlyargs + funcdef.args.args + funcdef.args.kwonlyargs
+    vararg = [funcdef.args.vararg] if funcdef.args.vararg else []
+    kwarg = [funcdef.args.kwarg] if funcdef.args.kwarg else []
+    return (
+        funcdef.args.posonlyargs
+        + funcdef.args.args
+        + vararg
+        + funcdef.args.kwonlyargs
+        + kwarg
+    )
 
 
 def prepare_inner_funcdef(funcdef: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
@@ -124,13 +132,13 @@ def prepare_inner_funcdef(funcdef: MaybeAsyncFuncDef) -> MaybeAsyncFuncDef:
     for arg in all_args(funcdef):
         arg.annotation = None
     funcdef.returns = None
-    # For the inner funcdef, we turn all kwonly args into positional args.
-    # We don't want to deal with kwonly args, it's easier to pass everything by
-    # position. Positional only args cause us no trouble so we leave them alone.
     args = funcdef.args
+    args.args = all_args(funcdef)
     args.defaults = []
-    args.args.extend(args.kwonlyargs)
+    args.posonlyargs = []
     args.kwonlyargs = []
+    args.vararg = None
+    args.kwarg = None
     funcdef.args.kw_defaults = []
     return funcdef
 
