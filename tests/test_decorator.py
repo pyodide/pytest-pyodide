@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import pytest
 from hypothesis import given, settings
 
@@ -296,3 +298,59 @@ def test_pytest_dot_skip(selenium):
     for meth in ["skip", "fail", "xfail"]:
         with pytest.raises(getattr(pytest, meth).Exception):
             helper(selenium, meth)
+
+
+def test_typehints(selenium):
+    """Check that typehints are resolved correctly"""
+    from collections.abc import Callable
+    from typing import Any
+
+    def fn_with_typehints(selenium, a: Any, b: Callable) -> Any:
+        return [a, b]
+
+    wrapped = run_in_pyodide(fn_with_typehints)
+
+    assert wrapped(selenium, 5, Callable) == [5, Callable]
+    assert wrapped.__annotations__ == fn_with_typehints.__annotations__
+
+
+def test_posonly(selenium):
+    @run_in_pyodide
+    def fn_with_posonly(selenium, a, /, b):
+        assert a == 5
+        assert b == 7
+
+    fn_with_posonly(selenium, 5, 7)
+
+
+def test_kwonly(selenium):
+    @run_in_pyodide
+    def fn_with_kwonly(selenium, *, a, b):
+        assert a == 5
+        assert b == 7
+
+    fn_with_kwonly(selenium, a=5, b=7)
+
+
+def test_defaults1(selenium):
+    """Check that defaults are kept"""
+
+    @run_in_pyodide
+    def fn_with_defaults(selenium, a=5, b=6, *, c=7, d=8):
+        return [a, b, c, d]
+
+    assert fn_with_defaults(selenium) == [5, 6, 7, 8]
+
+
+def test_defaults2_from_local_variables(selenium):
+    """Check that defaults that variables in defaults are resolved correctly"""
+    a = Callable
+    b = 6
+    c = 7
+    d = 8
+
+    @run_in_pyodide
+    def fn_with_defaults(selenium, a=a, b=b, *, c=c, d=d):
+        return [a, b, c, d]
+
+    assert fn_with_defaults(selenium) == [a, b, c, d]

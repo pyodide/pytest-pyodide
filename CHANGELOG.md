@@ -4,6 +4,10 @@
   `# doctest: +RUN_IN_PYODIDE` on the first line.
   [#117](https://github.com/pyodide/pytest-pyodide/pull/117)
 
+- Added support in `@run_in_pyodide` positional only and keyword only arguments,
+  type annotations, and argument default values.
+  [#116](https://github.com/pyodide/pytest-pyodide/pull/116)
+
 ## [0.54.0] - 2023-11/04
 
 - BREAKING: dropped support for Node < 18.
