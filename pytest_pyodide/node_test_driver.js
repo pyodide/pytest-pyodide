@@ -16,10 +16,10 @@ function _fetch(path) {
 }
 
 const context = {
-  self: context,
   loadPyodide,
   ...globalThis,
 };
+context.self = context;
 vm.createContext(context);
 
 // Get rid of all colors in output of console.log, they mess us up.
