@@ -179,7 +179,8 @@ def pytest_collect_file(file_path: Path, parent: Collector):
     doctestmodules = getattr(parent.config.option, "doctestmodules_", False)
     from .doctest import collect_doctests
 
-    # call our collection hook instead
+    # Call our collection hook instead. (If there are no doctests to collect,
+    # collect_doctests will return None)
     return collect_doctests(file_path, parent, doctestmodules)
 
 
@@ -238,13 +239,12 @@ def _has_standalone_fixture(item):
 
 
 def modifyitems_run_in_pyodide(items: list[Any]):
+    # TODO: get rid of this
     # if we are running tests in pyodide, then run all tests for each runtime
-    if not items:
-        return
     new_items = []
-    # TODO: if pyodide_runtimes is not a singleton this is buggy...
-    # pytest_collection_modifyitems is only allowed to filter and reorder the
-    # items, not to remove them...
+    # if pyodide_runtimes is not a singleton this is buggy...
+    # pytest_collection_modifyitems is only allowed to filter and reorder items,
+    # not to add new ones...
     for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
         if runtime == "host":
             continue
