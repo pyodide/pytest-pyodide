@@ -1,33 +1,83 @@
 import re
 import sys
 import xml.etree.ElementTree as ET
-from contextlib import ExitStack
-from functools import cache
+from dataclasses import dataclass
+from typing import ContextManager
 
 import pytest
 
-from .fixture import selenium_common
-
-_CLEANUP = ExitStack()
+from .server import spawn_web_server
 
 
-@cache
+class ContextManagerUnwrapper:
+    """Class to take a context manager (e.g. a pytest fixture or something)
+    and unwrap it so that it can be used for the whole of the module.
+
+    This is a bit of a hack, but it allows us to use some of our pytest fixtures
+    without having to be inside a pytest context. Avoids significant duplication
+    of the standard pytest_pyodide code here.
+    """
+
+    def __init__(self, ctx_manager: ContextManager):
+        self.ctx_manager = ctx_manager
+        self.value = ctx_manager.__enter__()
+
+    def get_value(self):
+        return self.value
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self.ctx_manager is not None:
+            self.ctx_manager.__exit__(None, None, None)
+            self.value = None
+
+
+@dataclass
+class _SeleniumInstance:
+    selenium: ContextManagerUnwrapper
+    server: ContextManagerUnwrapper
+
+
+_seleniums: dict[str, _SeleniumInstance] = {}
+_playwright_browser_list = None
+_playwright_browser_generator = None
+
+
 def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
     """Start a browser running with pyodide, ready to run pytest
     calls. If the same runtime is already running, it will
     just return that.
     """
-    browsers = request.getfixturevalue("playwright_browsers")
-    web_server_main = request.getfixturevalue("web_server_main")
-    # open pyodide
-    return _CLEANUP.enter_context(
-        selenium_common(
-            request,
-            runtime,
-            web_server_main,
-            browsers=browsers,
-        )
+    global _playwright_browser_generator, _playwright_browser_list
+    from .fixture import _playwright_browsers, selenium_common
+
+    if (
+        request.config.option.runner.lower() == "playwright"
+        and _playwright_browser_generator is None
+    ):
+        _playwright_browser_generator = _playwright_browsers(request)
+        _playwright_browser_list = _playwright_browser_generator.__next__()
+    if runtime in _seleniums:
+        return _seleniums[runtime].selenium.get_value()
+    web_server_main = ContextManagerUnwrapper(
+        spawn_web_server(request.config.option.dist_dir)
     )
+    # open pyodide
+    _seleniums[runtime] = _SeleniumInstance(
+        selenium=ContextManagerUnwrapper(
+            selenium_common(
+                request,
+                runtime,
+                web_server_main.get_value(),
+                browsers=_playwright_browser_list,
+            )
+        ),
+        server=web_server_main,
+    )
+
+    return _seleniums[runtime].selenium.get_value()
 
 
 def _remove_pytest_capture_title(
@@ -112,5 +162,7 @@ def close_pyodide_browsers():
     This is done at the end of testing so that we can run more
     than one test without launching browsers each time.
     """
-    get_browser_pyodide.cache_clear()
-    _CLEANUP.close()
+    global _seleniums, _playwright_browser_list, _playwright_browser_generator
+    for x in _seleniums.values():
+        x.selenium.close()
+    del _seleniums

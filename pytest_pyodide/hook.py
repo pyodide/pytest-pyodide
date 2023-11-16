@@ -71,6 +71,11 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     return run_host, runtime_filtered
 
 
+def pytest_unconfigure(config):
+    if config.option.run_in_pyodide:
+        close_pyodide_browsers()
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
