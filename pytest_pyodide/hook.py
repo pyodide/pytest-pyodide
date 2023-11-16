@@ -160,9 +160,11 @@ def pytest_addoption(parser):
 def runtime(request):
     return request.param
 
+
 def set_runtime_fixture_params(session):
     rt = session._fixturemanager._arg2fixturedefs["runtime"]
     rt[0].params = pytest.pyodide_runtimes
+
 
 def pytest_collection(session: Session):
     from .doctest import patch_doctest_runner
@@ -219,8 +221,6 @@ def pytest_pycollect_makemodule(module_path: Path, parent: Collector) -> None:
     rewrite_asserts(tree2, source, strfn, REWRITE_CONFIG)
     REWRITTEN_MODULE_ASTS[strfn] = tree2
     orig_pytest_pycollect_makemodule(module_path, parent)
-
-
 
 
 STANDALONE_FIXTURES = [
