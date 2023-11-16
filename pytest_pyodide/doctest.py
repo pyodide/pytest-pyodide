@@ -3,6 +3,7 @@ from collections.abc import Callable
 from copy import copy
 from doctest import DocTest, DocTestRunner, register_optionflag
 from pathlib import Path
+from typing import cast
 
 import pytest
 from _pytest.doctest import (
@@ -12,11 +13,12 @@ from _pytest.doctest import (
     _is_main_py,
     _is_setup_py,
 )
+from _pytest.python import CallSpec2
+from _pytest.scope import Scope
 from pytest import Collector
 
 from . import run_in_pyodide
 from .hook import ORIGINAL_MODULE_ASTS
-from .run_tests_inside_pyodide import get_browser_pyodide
 
 RUN_IN_PYODIDE = register_optionflag("RUN_IN_PYODIDE")
 ORIGINAL_MODULE_ASTS[__file__] = ast.parse(
@@ -32,17 +34,28 @@ class PyodideDoctestMixin:
         first line, make one copy for each Pyodide runtime environment
         """
         for item in super().collect():  # type:ignore[misc]
-            if RUN_IN_PYODIDE not in item.dtest.examples[0].options:
+            pyodide_test = RUN_IN_PYODIDE in item.dtest.examples[0].options
+            item.dtest.pyodide_test = pyodide_test
+            if not pyodide_test:
                 if pytest.pyodide_run_host_test:
                     yield item
                 continue
-            for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
-                x = copy(item)
-                x.dtest = copy(item.dtest)
-                x.name += f"[{runtime}]"
-                x._nodeid += f"[{runtime}]"
-                x.dtest.pyodide_runtime = runtime
-                yield x
+            scope = Scope.from_user("module", "")
+            name: str
+            runtimes = cast(list[str], pytest.pyodide_runtimes)
+            for idx, name in enumerate(runtimes):
+                newitem = copy(item)
+                newitem.dtest = copy(item.dtest)
+                newitem.name += f"[{name}]"
+                newitem._nodeid += f"[{name}]"
+                newitem.fixturenames = ("runtime",)
+                newitem.callspec = CallSpec2(
+                    params={"runtime": name},
+                    indices={"runtime": idx},
+                    _idlist=[name],
+                    _arg2scope={"runtime": scope},
+                )
+                yield newitem
 
 
 class PyodideDoctestModule(PyodideDoctestMixin, DoctestModule):
@@ -127,15 +140,14 @@ def run_doctest_in_pyodide_outer(
     out: Callable[[str], object] | None = None,
     clear_globs: bool = True,
 ):
-    if not hasattr(test, "pyodide_runtime"):
+    if not test.pyodide_test:  # type:ignore[attr-defined]
         # Run host test as normal
         return host_DocTestRunner_run(self, test, compileflags, out, clear_globs)
 
     # pytest conveniently inserts getfixture into the test globals. This saves
     # us a lot of effort.
     getfixture = test.globs["getfixture"]
-    request = getfixture("request")
-    selenium = get_browser_pyodide(request, test.pyodide_runtime)
+    selenium = getfixture("selenium")
 
     # Can't pickle test with its globals. We retain the __name__ so that we can
     # figure out how to restore the globals inside of pyodide.

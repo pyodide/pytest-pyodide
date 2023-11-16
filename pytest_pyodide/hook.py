@@ -92,7 +92,7 @@ def pytest_configure(config):
         "xfail_browsers: xfail a test in specific browsers",
     )
 
-    config.option.dist_dir = config.option.dist_dir.resolve()
+    config.option.dist_dir = Path(config.option.dist_dir).resolve()
     run_host, runtimes = _filter_runtimes(config.option.runtime)
 
     if not hasattr(pytest, "pyodide_options_stack"):
@@ -154,11 +154,24 @@ def pytest_addoption(parser):
     )
 
 
+# We don't know the params yet, but we can set them when we do know them in
+# pytest_collection
+@pytest.fixture(params=[], scope="module")
+def runtime(request):
+    return request.param
+
+
+def set_runtime_fixture_params(session):
+    rt = session._fixturemanager._arg2fixturedefs["runtime"]
+    rt[0].params = pytest.pyodide_runtimes
+
+
 def pytest_collection(session: Session):
     from .doctest import patch_doctest_runner
 
     patch_doctest_runner()
     session.config.option.doctestmodules_ = session.config.option.doctestmodules
+    set_runtime_fixture_params(session)
 
 
 def pytest_collect_file(file_path: Path, parent: Collector):
@@ -207,11 +220,6 @@ def pytest_pycollect_makemodule(module_path: Path, parent: Collector) -> None:
     rewrite_asserts(tree2, source, strfn, REWRITE_CONFIG)
     REWRITTEN_MODULE_ASTS[strfn] = tree2
     orig_pytest_pycollect_makemodule(module_path, parent)
-
-
-def pytest_generate_tests(metafunc: Any) -> None:
-    if "runtime" in metafunc.fixturenames:
-        metafunc.parametrize("runtime", pytest.pyodide_runtimes, scope="module")
 
 
 STANDALONE_FIXTURES = [

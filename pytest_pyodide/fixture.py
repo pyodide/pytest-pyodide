@@ -263,7 +263,10 @@ def selenium_context_manager(selenium_module_scope):
         selenium_module_scope.clean_logs()
         yield selenium_module_scope
     finally:
-        print(selenium_module_scope.logs)
+        try:
+            print(selenium_module_scope.logs)
+        except ValueError:
+            pass
 
 
 @pytest.fixture

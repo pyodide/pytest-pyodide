@@ -1,19 +1,11 @@
-import os
 from pathlib import Path
 from textwrap import dedent
 
 import pytest
 
-DOCTESTS = """\
-def pyodide_success():
-    '''
-    >>> from js import Object # doctest: +RUN_IN_PYODIDE
-    >>> import sys
-    >>> sys.platform == "emscripten"
-    True
-    '''
-    return 7
+from pytest_pyodide import run_in_pyodide
 
+DOCTESTS = """\
 def pyodide_fail():
     '''
     >>> from js import Object # doctest: +RUN_IN_PYODIDE
@@ -27,25 +19,50 @@ def host_success():
     >>> sys.platform == "emscripten"
     False
     '''
+
+def pyodide_success():
+    '''
+    >>> pyodide_success() # doctest: +RUN_IN_PYODIDE
+    7
+    >>> from js import Object
+    >>> import sys
+    >>> sys.platform == "emscripten"
+    True
+    '''
+    return 7
 """
 
-ORIG_HOME = os.environ.get("HOME", None)
 
-
-def test_doctest_run(pytester, request, runtime, playwright_browsers, capsys):
-    # Help playwright find the cache
-    os.environ["XDG_CACHE_HOME"] = str(Path(ORIG_HOME) / ".cache")
+def test_doctest_run(pytester, selenium, request, playwright_browsers, capsys):
     file = pytester.makepyfile(DOCTESTS)
     config = pytester.parseconfigure(file)
 
     config.playwright_browsers = playwright_browsers
 
+    @run_in_pyodide
+    def write_file(selenium, path, contents):
+        path.parent.mkdir(exist_ok=True)
+        import sys
+
+        sys.path.append(str(path.parent))
+        path.write_text(contents)
+
+    write_file(selenium, Path("/test_files/test_doctest_run.py"), DOCTESTS)
+
     class MyPlugin:
+        """Copy a couple of fixtures into the inner pytest
+
+        If we instantiate playwright_browsers twice it breaks playwright
+        If we instantiate safari twice it breaks safari
+        """
+
         def pytest_fixture_setup(self, fixturedef, request):
-            if fixturedef.argname == "playwright_browsers":
-                my_cache_key = fixturedef.cache_key(request)
-                fixturedef.cached_result = (playwright_browsers, my_cache_key, None)
-                return playwright_browsers
+            vals = {"selenium": selenium, "playwright_browsers": playwright_browsers}
+            if fixturedef.argname in vals:
+                val = vals[fixturedef.argname]
+                cache_key = fixturedef.cache_key(request)
+                fixturedef.cached_result = (val, cache_key, None)
+                return val
 
     result = pytester.inline_run(
         file,
@@ -53,9 +70,11 @@ def test_doctest_run(pytester, request, runtime, playwright_browsers, capsys):
         "--dist-dir",
         request.config.getoption("--dist-dir"),
         "--rt",
-        runtime,
+        ",".join(pytest.pyodide_runtimes),
         "--runner",
         request.config.option.runner,
+        "--rootdir",
+        str(file.parent),
         plugins=(MyPlugin(),),
     )
     if not pytest.pyodide_runtimes:
@@ -66,14 +85,15 @@ def test_doctest_run(pytester, request, runtime, playwright_browsers, capsys):
     captured = capsys.readouterr()
     expected = dedent(
         """
-        012     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-        013     >>> 1 == 2
+        003     >>> from js import Object # doctest: +RUN_IN_PYODIDE
+        004     >>> 1 == 2
         Expected:
             True
         Got:
             False
         """
     ).strip()
+    print(captured.out)
     assert expected in captured.out
 
 
