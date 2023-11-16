@@ -84,6 +84,48 @@ def collect_doctests(
     return None
 
 
+host_DocTestRunner_run = DocTestRunner.run
+
+
+def patch_doctest_runner() -> None:
+    DocTestRunner.run = run_doctest_in_pyodide_outer  # type: ignore[method-assign]
+
+
+def run_doctest_in_pyodide_outer(
+    self: DocTestRunner,
+    test: DocTest,
+    compileflags: int | None = None,
+    out: Callable[[str], object] | None = None,
+    clear_globs: bool = True,
+):
+    if not test.pyodide_test:  # type:ignore[attr-defined]
+        # Run host test as normal
+        return host_DocTestRunner_run(self, test, compileflags, out, clear_globs)
+
+    # pytest conveniently inserts getfixture into the test globals. This saves
+    # us a lot of effort.
+    getfixture = test.globs["getfixture"]
+    selenium = getfixture("selenium")
+
+    # Can't pickle test with its globals. We retain the __name__ so that we can
+    # figure out how to restore the globals inside of pyodide.
+    test.globs = {k: test.globs[k] for k in ["__name__"]}
+
+    # It would be nice if we could pickle DocTestRunner, but pytest has made it
+    # very not pickleable. After fixing a few name resolution issues I can get
+    # it to pickle successfully but I get some pickle internal error on
+    # unpickling.
+    #
+    # So we just take the DocTestRunner apart and put it back together inside
+    # Pyodide.
+    optionflags = self.optionflags
+    continue_on_failure = self.continue_on_failure  # type:ignore[attr-defined]
+
+    return run_doctest_in_pyodide_inner(
+        selenium, optionflags, continue_on_failure, test, compileflags, out, clear_globs
+    )
+
+
 @run_in_pyodide(pytest_assert_rewrites=False, packages=["pytest"])
 def run_doctest_in_pyodide_inner(
     selenium,
@@ -128,45 +170,3 @@ def run_doctest_in_pyodide_inner(
         # we can pickle the exception we threw.
         test.globs = {}
         raise
-
-
-host_DocTestRunner_run = DocTestRunner.run
-
-
-def run_doctest_in_pyodide_outer(
-    self: DocTestRunner,
-    test: DocTest,
-    compileflags: int | None = None,
-    out: Callable[[str], object] | None = None,
-    clear_globs: bool = True,
-):
-    if not test.pyodide_test:  # type:ignore[attr-defined]
-        # Run host test as normal
-        return host_DocTestRunner_run(self, test, compileflags, out, clear_globs)
-
-    # pytest conveniently inserts getfixture into the test globals. This saves
-    # us a lot of effort.
-    getfixture = test.globs["getfixture"]
-    selenium = getfixture("selenium")
-
-    # Can't pickle test with its globals. We retain the __name__ so that we can
-    # figure out how to restore the globals inside of pyodide.
-    test.globs = {k: test.globs[k] for k in ["__name__"]}
-
-    # It would be nice if we could pickle DocTestRunner, but pytest has made it
-    # very not pickleable. After fixing a few name resolution issues I can get
-    # it to pickle successfully but I get some pickle internal error on
-    # unpickling.
-    #
-    # So we just take the DocTestRunner apart and put it back together inside
-    # Pyodide.
-    optionflags = self.optionflags
-    continue_on_failure = self.continue_on_failure  # type:ignore[attr-defined]
-
-    return run_doctest_in_pyodide_inner(
-        selenium, optionflags, continue_on_failure, test, compileflags, out, clear_globs
-    )
-
-
-def patch_doctest_runner() -> None:
-    DocTestRunner.run = run_doctest_in_pyodide_outer  # type: ignore[method-assign]
