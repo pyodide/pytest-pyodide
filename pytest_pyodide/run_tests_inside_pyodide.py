@@ -165,4 +165,4 @@ def close_pyodide_browsers():
     global _seleniums, _playwright_browser_list, _playwright_browser_generator
     for x in _seleniums.values():
         x.selenium.close()
-    del _seleniums
+    _seleniums.clear()
