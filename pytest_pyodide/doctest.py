@@ -20,12 +20,47 @@ from pytest import Collector
 from . import run_in_pyodide
 from .hook import ORIGINAL_MODULE_ASTS
 
-RUN_IN_PYODIDE = register_optionflag("RUN_IN_PYODIDE")
+__all__ = ["patch_doctest_runner", "collect_doctests"]
+
+
+# Record the ast of this file so we can use run_in_pyodide in here
+# TODO: maybe extract this as a utility function for clarity?
 ORIGINAL_MODULE_ASTS[__file__] = ast.parse(
     Path(__file__).read_bytes(), filename=__file__
 )
+# make doctest aware of our `doctest: +RUN_IN_PYODIDE`` optionflag
+RUN_IN_PYODIDE = register_optionflag("RUN_IN_PYODIDE")
 
-__all__ = ["patch_doctest_runner", "collect_doctests"]
+
+def runtime_parametrize(item):
+    """Force test item to be parametrized over runtimes.
+
+    Unfortunately we have to do this manually since pytest_generate_tests only
+    runs on Python tests.
+    """
+    scope = Scope.from_user("module", "")
+    name: str
+    runtimes = cast(list[str], pytest.pyodide_runtimes)
+    for idx, name in enumerate(runtimes):
+        newitem = copy(item)
+        # dtest is the actual doctest, we have to mutate it to allow pickling so
+        # better copy it too.
+        newitem.dtest = copy(item.dtest)
+        # Add e.g., `[chrome]` to the name, have to add it to the nodeid too or
+        # else it won't be displayed on the terminal.
+        newitem.name += f"[{name}]"
+        newitem._nodeid += f"[{name}]"
+        # Add runtime fixture to the list of fixtures and give it a specific
+        # value. Normally this would be done by metafunc.parametrize but it is
+        # hard to get access to that from here.
+        newitem.fixturenames = ("runtime",)
+        newitem.callspec = CallSpec2(
+            params={"runtime": name},
+            indices={"runtime": idx},
+            _idlist=[name],
+            _arg2scope={"runtime": scope},
+        )
+        yield newitem
 
 
 class PyodideDoctestMixin:
@@ -40,22 +75,7 @@ class PyodideDoctestMixin:
                 if pytest.pyodide_run_host_test:
                     yield item
                 continue
-            scope = Scope.from_user("module", "")
-            name: str
-            runtimes = cast(list[str], pytest.pyodide_runtimes)
-            for idx, name in enumerate(runtimes):
-                newitem = copy(item)
-                newitem.dtest = copy(item.dtest)
-                newitem.name += f"[{name}]"
-                newitem._nodeid += f"[{name}]"
-                newitem.fixturenames = ("runtime",)
-                newitem.callspec = CallSpec2(
-                    params={"runtime": name},
-                    indices={"runtime": idx},
-                    _idlist=[name],
-                    _arg2scope={"runtime": scope},
-                )
-                yield newitem
+            yield from runtime_parametrize(item)
 
 
 class PyodideDoctestModule(PyodideDoctestMixin, DoctestModule):
