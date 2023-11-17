@@ -263,7 +263,13 @@ def selenium_context_manager(selenium_module_scope):
         selenium_module_scope.clean_logs()
         yield selenium_module_scope
     finally:
-        print(selenium_module_scope.logs)
+        try:
+            print(selenium_module_scope.logs)
+        except ValueError:
+            # For reasons I don't entirely understand, it is possible for
+            # selenium to be closed before this is executed. In that case, just
+            # skip printing the logs and we can exit cleanly.
+            pass
 
 
 @pytest.fixture

@@ -1,8 +1,13 @@
+"""
+This file is listed in the options.entry_points section of config.cfg so pytest
+will look in here for hooks to execute.
+"""
+
 import ast
 import re
 import sys
 from argparse import BooleanOptionalAction
-from copy import deepcopy
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import Any, cast
 
@@ -11,6 +16,7 @@ from _pytest.assertion.rewrite import AssertionRewritingHook, rewrite_asserts
 from _pytest.python import (
     pytest_pycollect_makemodule as orig_pytest_pycollect_makemodule,
 )
+from pytest import Collector, Session
 
 from .copy_files_to_pyodide import copy_files_to_emscripten_fs
 from .run_tests_inside_pyodide import (
@@ -65,11 +71,6 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     return run_host, runtime_filtered
 
 
-def pytest_unconfigure(config):
-    if config.option.run_in_pyodide:
-        close_pyodide_browsers()
-
-
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
@@ -91,16 +92,34 @@ def pytest_configure(config):
         "xfail_browsers: xfail a test in specific browsers",
     )
 
+    config.option.dist_dir = Path(config.option.dist_dir).resolve()
     run_host, runtimes = _filter_runtimes(config.option.runtime)
 
-    # using `pytester` fixture seems to call this hook again with different options
-    # so this is a workaround to avoid overwriting the values
-    if not hasattr(pytest, "pyodide_run_host_test"):
-        pytest.pyodide_run_host_test = run_host
-    if not hasattr(pytest, "pyodide_runtimes"):
-        pytest.pyodide_runtimes = runtimes
-    if not hasattr(pytest, "pyodide_dist_dir"):
-        pytest.pyodide_dist_dir = config.getoption("--dist-dir")
+    if not hasattr(pytest, "pyodide_options_stack"):
+        pytest.pyodide_options_stack = []
+    else:
+        pytest.pyodide_options_stack.append(  # type:ignore[attr-defined]
+            [
+                pytest.pyodide_run_host_test,
+                pytest.pyodide_runtimes,
+                pytest.pyodide_dist_dir,
+            ]
+        )
+    pytest.pyodide_run_host_test = run_host
+    pytest.pyodide_runtimes = runtimes
+    pytest.pyodide_dist_dir = config.option.dist_dir
+
+
+def pytest_unconfigure(config):
+    close_pyodide_browsers()
+    try:
+        (
+            pytest.pyodide_run_host_test,
+            pytest.pyodide_runtimes,
+            pytest.pyodide_dist_dir,
+        ) = pytest.pyodide_options_stack.pop()  # type:ignore[attr-defined]
+    except IndexError:
+        pass
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -108,6 +127,7 @@ def pytest_addoption(parser):
     group = parser.getgroup("general")
     group.addoption(
         "--dist-dir",
+        dest="dist_dir",
         action="store",
         default="pyodide",
         help="Path to the pyodide dist directory",
@@ -132,6 +152,38 @@ def pytest_addoption(parser):
         default="node",
         help="Select runtimes to run tests (default: %(default)s)",
     )
+
+
+# We don't know the params yet, but we can set them when we do know them in
+# pytest_collection
+@pytest.fixture(params=[], scope="module")
+def runtime(request):
+    return request.param
+
+
+def set_runtime_fixture_params(session):
+    rt = session._fixturemanager._arg2fixturedefs["runtime"]
+    rt[0].params = pytest.pyodide_runtimes
+
+
+def pytest_collection(session: Session):
+    from .doctest import patch_doctest_runner
+
+    patch_doctest_runner()
+    session.config.option.doctestmodules_ = session.config.option.doctestmodules
+    set_runtime_fixture_params(session)
+
+
+def pytest_collect_file(file_path: Path, parent: Collector):
+    # Have to set doctestmodules to False to prevent original hook from
+    # triggering
+    parent.config.option.doctestmodules = False
+    doctestmodules = getattr(parent.config.option, "doctestmodules_", False)
+    from .doctest import collect_doctests
+
+    # Call our collection hook instead. (If there are no doctests to collect,
+    # collect_doctests will return None)
+    return collect_doctests(file_path, parent, doctestmodules)
 
 
 # Handling for pytest assertion rewrites
@@ -160,7 +212,7 @@ ORIGINAL_MODULE_ASTS: dict[str, ast.Module] = {}
 REWRITTEN_MODULE_ASTS: dict[str, ast.Module] = {}
 
 
-def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> None:
+def pytest_pycollect_makemodule(module_path: Path, parent: Collector) -> None:
     source = module_path.read_bytes()
     strfn = str(module_path)
     tree = ast.parse(source, filename=strfn)
@@ -169,11 +221,6 @@ def pytest_pycollect_makemodule(module_path: Path, path: Any, parent: Any) -> No
     rewrite_asserts(tree2, source, strfn, REWRITE_CONFIG)
     REWRITTEN_MODULE_ASTS[strfn] = tree2
     orig_pytest_pycollect_makemodule(module_path, parent)
-
-
-def pytest_generate_tests(metafunc: Any) -> None:
-    if "runtime" in metafunc.fixturenames:
-        metafunc.parametrize("runtime", pytest.pyodide_runtimes, scope="module")
 
 
 STANDALONE_FIXTURES = [
@@ -191,17 +238,28 @@ def _has_standalone_fixture(item):
     return False
 
 
-def pytest_collection_modifyitems(items: list[Any]) -> None:
+def modifyitems_run_in_pyodide(items: list[Any]):
+    # TODO: get rid of this
     # if we are running tests in pyodide, then run all tests for each runtime
-    if len(items) > 0 and items[0].config.option.run_in_pyodide:
-        new_items = []
-        for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
-            if runtime != "host":
-                for x in items:
-                    new_items.append(x)
-                    new_items[-1].pyodide_runtime = runtime
-        items[:] = new_items
-        return
+    new_items = []
+    # if pyodide_runtimes is not a singleton this is buggy...
+    # pytest_collection_modifyitems is only allowed to filter and reorder items,
+    # not to add new ones...
+    for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
+        if runtime == "host":
+            continue
+        for x in items:
+            x = copy(x)
+            x.pyodide_runtime = runtime
+            new_items.append(x)
+    items[:] = new_items
+    return
+
+
+def pytest_collection_modifyitems(items: list[Any]) -> None:
+    # TODO: is this the best way to figure out if run_in_pyodide was requested?
+    if items and items[0].config.option.run_in_pyodide:
+        modifyitems_run_in_pyodide(items)
 
     # Run all Safari standalone tests first
     # Since Safari doesn't support more than one simultaneous session, we run all

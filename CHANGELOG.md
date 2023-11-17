@@ -1,9 +1,12 @@
 ## Unreleased
 
+- Added support for running doctests in Pyodide if they have
+  `# doctest: +RUN_IN_PYODIDE` on the first line.
+  [#117](https://github.com/pyodide/pytest-pyodide/pull/117)
+
 - Added support in `@run_in_pyodide` for arbitrary function definitions,
   including positional only and keyword only arguments, varargs and kwargs, type
   annotations, and argument default values.
-
   [#116](https://github.com/pyodide/pytest-pyodide/pull/116)
   [#119](https://github.com/pyodide/pytest-pyodide/pull/119)
 
