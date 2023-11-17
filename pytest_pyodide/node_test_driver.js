@@ -24,6 +24,7 @@ const context = Object.assign(
 );
 context.self = context;
 vm.createContext(context);
+vm.runInContext("globalThis.self = globalThis;", context);
 
 // Get rid of all colors in output of console.log, they mess us up.
 for (let key of Object.keys(util.inspect.styles)) {
