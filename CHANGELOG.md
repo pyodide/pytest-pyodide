@@ -1,4 +1,12 @@
-## Unreleased
+## [0.55.0] - 2023-11-17
+
+- If Pyodide includes tblib 3.0, pytest-pyodide will now use it correctly.
+  [#122](https://github.com/pyodide/pytest-pyodide/pull/122)
+
+- The entire node global scope is now included in the node runner, whereas
+  previously we included the minimal set of names that were needed for Pyodide
+  to run.
+  [#121](https://github.com/pyodide/pytest-pyodide/pull/121)
 
 - Added support for running doctests in Pyodide if they have
   `# doctest: +RUN_IN_PYODIDE` on the first line.
@@ -11,7 +19,7 @@
   [#119](https://github.com/pyodide/pytest-pyodide/pull/119)
 
 
-## [0.54.0] - 2023-11/04
+## [0.54.0] - 2023-11-04
 
 - BREAKING: dropped support for Node < 18.
   [#113](https://github.com/pyodide/pytest-pyodide/pull/113)
