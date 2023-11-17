@@ -1,27 +1,27 @@
 const vm = require("vm");
 const readline = require("readline");
-const path = require("path");
 const util = require("util");
 
-let nodeFetch = globalThis.fetch;
-let baseUrl = process.argv[2];
-let distDir = process.argv[3];
+const baseUrl = process.argv[2];
+const distDir = process.argv[3];
 
-let { loadPyodide } = require(`${distDir}/pyodide`);
+const { loadPyodide } = require(`${distDir}/pyodide`);
 process.chdir(distDir);
 
 // node requires full paths.
 function _fetch(path) {
-  return nodeFetch(new URL(path, baseUrl).toString());
+  return fetch(new URL(path, baseUrl).toString());
 }
 
-const context = {
-  ...globalThis,
-  loadPyodide,
-  fetch: _fetch,
-  TextDecoder: util.TextDecoder,
-  TextEncoder: util.TextEncoder,
-};
+const context = Object.assign(
+  Object.create(Object.prototype, Object.getOwnPropertyDescriptors(globalThis)),
+  {
+    loadPyodide,
+    fetch: _fetch,
+    TextDecoder: util.TextDecoder,
+    TextEncoder: util.TextEncoder,
+  }
+);
 context.self = context;
 vm.createContext(context);
 
@@ -53,16 +53,16 @@ rl.on("line", async function (line) {
 });
 
 async function evalCode(uuid, code, eval_context) {
-  let p = new Promise((resolve, reject) => {
+  const p = new Promise((resolve, reject) => {
     eval_context.___outer_resolve = resolve;
     eval_context.___outer_reject = reject;
   });
-  let wrapped_code = `
-      (async function(){
-          ${code}
-      })().then(___outer_resolve).catch(___outer_reject);
-      `;
-  let delim = uuid + ":UUID";
+  const wrapped_code = `
+    (async function(){
+        ${code}
+    })().then(___outer_resolve).catch(___outer_reject);
+  `;
+  const delim = uuid + ":UUID";
   console.log(delim);
   try {
     vm.runInContext(wrapped_code, eval_context);
@@ -73,4 +73,3 @@ async function evalCode(uuid, code, eval_context) {
   }
 }
 console.log("READY!!");
-// evalCode("xxx", "let pyodide = await loadPyodide(); pyodide.runPython(`print([x*x+1 for x in range(10)])`);", context);
