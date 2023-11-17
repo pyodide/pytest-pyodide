@@ -125,7 +125,20 @@ async def run_in_pyodide_main(
             # If tblib is present, we can show much better tracebacks.
             from tblib import pickling_support
 
-            pickling_support.install()
+            def pickle_locals(frame):
+                result = {}
+                tbhide = frame.f_locals.get("__tracebackhide__")
+                if tbhide:
+                    result["__tracebackhide__"] = tbhide
+                return result
+
+            try:
+                # works if we are using tblib >= 3.0
+                pickling_support.install(pickle_locals=pickle_locals)
+            except TypeError:
+                # tblib < 3 or pyodide-tblib
+                pickling_support.install()
+
         except ImportError:
             pass
         return (1, encode(e))
