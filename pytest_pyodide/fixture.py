@@ -266,6 +266,9 @@ def selenium_context_manager(selenium_module_scope):
         try:
             print(selenium_module_scope.logs)
         except ValueError:
+            # For reasons I don't entirely understand, it is possible for
+            # selenium to be closed before this is executed. In that case, just
+            # skip printing the logs and we can exit cleanly.
             pass
 
 
