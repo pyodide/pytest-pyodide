@@ -23,7 +23,7 @@ dependencies = [
   "hypothesis",
   "selenium",
   "playwright",
-  "pyodide-tblib", # Forked to add https://github.com/ionelmc/python-tblib/pull/66
+  "tblib>=3",
 ]
 
 [project.optional-dependencies]
