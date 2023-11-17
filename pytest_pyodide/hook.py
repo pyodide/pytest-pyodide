@@ -15,7 +15,6 @@ from .run_tests_inside_pyodide import (
     run_in_pyodide_generate_tests,
     run_in_pyodide_runtest_call,
 )
-from . import fixture
 from .utils import parse_xfail_browsers
 
 RUNTIMES = ["firefox", "chrome", "safari", "node"]
