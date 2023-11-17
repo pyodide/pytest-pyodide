@@ -16,8 +16,11 @@ function _fetch(path) {
 }
 
 const context = {
-  loadPyodide,
   ...globalThis,
+  loadPyodide,
+  fetch: _fetch,
+  TextDecoder: util.TextDecoder,
+  TextEncoder: util.TextEncoder,
 };
 context.self = context;
 vm.createContext(context);
