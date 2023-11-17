@@ -22,6 +22,8 @@ const context = Object.assign(
     TextEncoder: util.TextEncoder,
   }
 );
+context.globalThis = context;
+context.global = context;
 context.self = context;
 vm.createContext(context);
 vm.runInContext("globalThis.self = globalThis;", context);
