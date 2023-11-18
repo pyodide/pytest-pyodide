@@ -1,3 +1,7 @@
+## [0.55.1] - 2023-11-17
+
+- Reverted [#121](https://github.com/pyodide/pytest-pyodide/pull/121)
+
 ## [0.55.0] - 2023-11-17
 
 - If Pyodide includes tblib 3.0, pytest-pyodide will now use it correctly.
