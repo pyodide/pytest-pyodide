@@ -499,7 +499,7 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
         options = Options()
         if GLOBAL_SAFARI_WEBDRIVER is not None:
             instance = Safari(
-                options=options, service=GLOBAL_SAFARI_WEBDRIVER, reuse_service=True
+                options=options, service=GLOBAL_SAFARI_WEBDRIVER,
             )
         else:
             instance = Safari(options=options)
