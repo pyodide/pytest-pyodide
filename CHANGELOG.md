@@ -1,3 +1,9 @@
+
+## [0.56.1] - 2023-12-09
+
+- Fixed a bug in webworker test template files.
+  [#127](https://github.com/pyodide/pytest-pyodide/pull/127)
+
 ## [0.56.0] - 2023-12-09
 
 - Added webworker test template files into the package.
