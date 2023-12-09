@@ -17,7 +17,10 @@ def _default_templates() -> dict[str, bytes]:
     templates_dir = pathlib.Path(__file__).parent / "_templates"
 
     templates = {}
-    for template_file in templates_dir.glob("*.html"):
+    template_files = list(templates_dir.glob("*.html")) + list(
+        templates_dir.glob("*.js")
+    )
+    for template_file in template_files:
         templates[f"/{template_file.name}"] = template_file.read_bytes()
 
     return templates
@@ -52,8 +55,11 @@ class DefaultHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         body = self.get_template(self.path)
         if body:
+            content_type = (
+                "application/javascript" if self.path.endswith(".js") else "text/html"
+            )
             self.send_response(200)
-            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.send_header("Content-type", f"{content_type}; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
 
