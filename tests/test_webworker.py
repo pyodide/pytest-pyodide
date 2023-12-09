@@ -1,6 +1,4 @@
-def test_run_webworker(
-    selenium_webworker_standalone, script_type
-):
+def test_run_webworker(selenium_webworker_standalone, script_type):
     selenium = selenium_webworker_standalone
     output = selenium.run_webworker(
         """
