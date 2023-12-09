@@ -11,6 +11,7 @@ onmessage = async function (e) {
       }
     }
 
+    self.pyodide = await loadPyodide();
     await self.pyodide.loadPackagesFromImports(data.python);
     let results = await self.pyodide.runPythonAsync(data.python);
     self.postMessage({ results });
