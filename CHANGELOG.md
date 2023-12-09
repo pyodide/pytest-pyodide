@@ -1,3 +1,8 @@
+## [0.56.0] - 2023-12-09
+
+- Added webworker test template files into the package.
+  [#112](https://github.com/pyodide/pytest-pyodide/pull/112)
+
 ## [0.55.1] - 2023-11-17
 
 - Reverted [#121](https://github.com/pyodide/pytest-pyodide/pull/121)
@@ -27,9 +32,6 @@
 
 - BREAKING: dropped support for Node < 18.
   [#113](https://github.com/pyodide/pytest-pyodide/pull/113)
-
-- Added webworker test template files into the package.
-  [#112](https://github.com/pyodide/pytest-pyodide/pull/112)
 
 ## [0.53.1] - 2023-10-10
 
