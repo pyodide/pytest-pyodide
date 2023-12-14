@@ -13,7 +13,7 @@ pytest-pyodide requires Python 3.10+ and can be installed with
 ```
 pip install pytest-pyodide
 ```
-You would also one at least one of the following runtimes,
+You would also need one at least one of the following runtimes:
  - Chrome and chromedriver
  - Firefox and geckodriver
  - Safari and safaridriver
