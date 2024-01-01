@@ -2,7 +2,7 @@ default_language_version:
   python: "3.10"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.4.0"
+    rev: "v4.5.0"
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -15,19 +15,19 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.254"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.1.9"
     hooks:
       - id: ruff
         args: [--fix]
 
   - repo: https://github.com/psf/black
-    rev: "23.1.0"
+    rev: "23.12.1"
     hooks:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.1.1"
+    rev: "v1.8.0"
     hooks:
       - id: mypy
         exclude: (setup.py|^tests|conftest.py)
@@ -41,12 +41,12 @@ repos:
           - pytest
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: "v0.9.0.2"
+    rev: "v0.9.0.6"
     hooks:
       - id: shellcheck
 
   - repo: https://github.com/codespell-project/codespell
-    rev: "v2.2.4"
+    rev: "v2.2.6"
     hooks:
       - id: codespell
         args: ["-L", "te,slowy,aray,ba,nd,classs,crate,feld,lits"]
