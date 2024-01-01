@@ -255,7 +255,6 @@ def assert_get_handle(selenium, d, key, value):
 @run_in_pyodide
 def returns_handle(selenium):
     import __main__
-
     from pytest_pyodide.decorator import PyodideHandle
 
     o = {"a": 6}
