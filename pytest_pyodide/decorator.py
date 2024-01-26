@@ -435,6 +435,7 @@ class run_in_pyodide:
         new_ast_module = ast.Module(statements, type_ignores=[])
 
         wrapper = _create_outer_func(self._run, funcdef, f)
+        functools.update_wrapper(wrapper, f)
 
         # Store information needed by self._code_template
         self._mod = new_ast_module
