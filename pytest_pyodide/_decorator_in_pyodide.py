@@ -97,6 +97,9 @@ def decode(x: str) -> Any:
     return Unpickler(BytesIO(b64decode(x))).load()
 
 
+TEST_MODULE_NAME = "__test_module__"
+
+
 async def run_in_pyodide_main(
     mod64: str, args64: str, module_filename: str, func_name: str, async_func: bool
 ) -> tuple[int, str]:
@@ -111,10 +114,9 @@ async def run_in_pyodide_main(
     args: tuple[Any] = decode(args64)
 
     # Set up test module
-    MODULE_NAME = "test_module"
     module = ModuleType(module_filename)
     module.__file__ = module_filename
-    sys.modules[MODULE_NAME] = module
+    sys.modules[TEST_MODULE_NAME] = module
     d = module.__dict__
 
     # Compile and execute the ast
@@ -152,7 +154,7 @@ async def run_in_pyodide_main(
         return (1, encode(e))
     finally:
         # Remove test module
-        del sys.modules[MODULE_NAME]
+        del sys.modules[TEST_MODULE_NAME]
 
 
 __all__ = ["PyodideHandle", "encode"]
