@@ -473,17 +473,15 @@ def use_global_safari_service():
         from selenium.webdriver.safari.service import Service
 
         GLOBAL_SAFARI_WEBDRIVER = Service(reuse_service=True)
-        
-        webdriver_path = ''
+
         try:
             # selenium >= 4.20
             # https://github.com/SeleniumHQ/selenium/pull/13387
             finder = DriverFinder(GLOBAL_SAFARI_WEBDRIVER, Options())
-            webdriver_path = finder.get_browser_path()
+            finder.get_browser_path()
         except:
             # selenium < 4.20
-            webdriver_path = DriverFinder.get_path(GLOBAL_SAFARI_WEBDRIVER, Options())
-        
+            DriverFinder.get_path(GLOBAL_SAFARI_WEBDRIVER, Options())
 
         GLOBAL_SAFARI_WEBDRIVER.path = DriverFinder.get_path(
             GLOBAL_SAFARI_WEBDRIVER, Options()
