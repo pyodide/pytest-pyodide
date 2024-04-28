@@ -476,9 +476,12 @@ def use_global_safari_service():
         
         webdriver_path = ''
         try:
+            # selenium >= 4.20
+            # https://github.com/SeleniumHQ/selenium/pull/13387
             finder = DriverFinder(GLOBAL_SAFARI_WEBDRIVER, Options())
             webdriver_path = finder.get_browser_path()
         except:
+            # selenium < 4.20
             webdriver_path = DriverFinder.get_path(GLOBAL_SAFARI_WEBDRIVER, Options())
         
 
