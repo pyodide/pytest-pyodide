@@ -98,7 +98,7 @@ def pytest_configure(config):
     if not hasattr(pytest, "pyodide_options_stack"):
         pytest.pyodide_options_stack = []
     else:
-        pytest.pyodide_options_stack.append(  # type:ignore[attr-defined]
+        pytest.pyodide_options_stack.append(
             [
                 pytest.pyodide_run_host_test,
                 pytest.pyodide_runtimes,
