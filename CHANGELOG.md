@@ -1,3 +1,7 @@
+## [0.57.0] - 2024-04-30
+
+- Fixed safari compatibility with Selenium 4.20
+  [#135](https://github.com/pyodide/pytest-pyodide/pull/135)
 
 ## [0.56.1] - 2023-12-09
 

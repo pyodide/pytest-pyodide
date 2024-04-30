@@ -4,8 +4,9 @@ Following versions of pytest-pyodide and Pyodide are tested in CI.
 Other versions may work, however with no guarantee.
 
 | pytest-pyodide | Tested Pyodide versions |
-| -------------- | ----------------------- |
-| main branch    | 0.23.4, 0.24.1          |
+|----------------|-------------------------|
+| main branch    | 0.23.4, 0.24.1, 0.25.1  |
+| 0.57.*         | 0.23.4, 0.24.1, 0.25.1  |
 | 0.56.*         | 0.23.4, 0.24.1          |
 | 0.55.*         | 0.23.4, 0.24.1          |
 | 0.54.*         | 0.23.4, 0.24.1          |
