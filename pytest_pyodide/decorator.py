@@ -19,7 +19,7 @@ MaybeAsyncFuncDef = ast.FunctionDef | ast.AsyncFunctionDef
 
 
 def package_is_built(package_name: str):
-    return _package_is_built(package_name, pytest.pyodide_dist_dir)  # type: ignore[arg-type]
+    return _package_is_built(package_name, pytest.pyodide_dist_dir)
 
 
 class SeleniumType(Protocol):

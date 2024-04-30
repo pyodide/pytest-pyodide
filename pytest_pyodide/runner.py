@@ -465,7 +465,7 @@ GLOBAL_SAFARI_WEBDRIVER = None
 
 @pytest.fixture(scope="session", autouse=True)
 def use_global_safari_service():
-    if "safari" in pytest.pyodide_runtimes:  # type: ignore[operator]
+    if "safari" in pytest.pyodide_runtimes:
         global GLOBAL_SAFARI_WEBDRIVER
 
         from selenium.webdriver.common.driver_finder import DriverFinder
@@ -473,9 +473,17 @@ def use_global_safari_service():
         from selenium.webdriver.safari.service import Service
 
         GLOBAL_SAFARI_WEBDRIVER = Service(reuse_service=True)
-        GLOBAL_SAFARI_WEBDRIVER.path = DriverFinder.get_path(
-            GLOBAL_SAFARI_WEBDRIVER, Options()
-        )
+
+        try:
+            # selenium >= 4.20
+            # https://github.com/SeleniumHQ/selenium/pull/13387
+            finder = DriverFinder(GLOBAL_SAFARI_WEBDRIVER, Options())
+            browser_path = finder.get_driver_path()
+        except Exception:
+            # selenium < 4.20
+            browser_path = DriverFinder.get_path(GLOBAL_SAFARI_WEBDRIVER, Options())
+
+        GLOBAL_SAFARI_WEBDRIVER.path = browser_path
         GLOBAL_SAFARI_WEBDRIVER.start()
 
         try:
