@@ -111,7 +111,7 @@ jobs:
             # We then uninstall it otherwise tests fails due to pytest hook being
             # registered twice.
             # temporarily pin pytest version (https://github.com/pyodide/pytest-pyodide/pull/133#issuecomment-2081412407)
-              python -m pip install ".[test]" "pytest<8.0.0"
+              python -m pip install ".[test]" "pytest<8.0.0" "selenium<4.21.0"
           else
               python -m pip install pytest-pyodide
           fi
