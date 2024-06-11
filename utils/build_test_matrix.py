@@ -14,7 +14,7 @@ DEFAULT_CHROME_VERSION = "latest"
 DEFAULT_FIREFOX_VERSION = "latest"
 DEFAULT_NODE_VERSION = "20"
 DEFAULT_PLAYWRIGHT_VERSION = (
-    "1.22.0"  # TODO: versions > 1.22.0 have firefox performance issue
+    "1.44.0"
 )
 
 
