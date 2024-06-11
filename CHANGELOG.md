@@ -1,3 +1,8 @@
+## [0.58.0] - 2024-06-11
+
+- Expose  AbortController and AbortSignal to the node runner.
+  [#137](https://github.com/pyodide/pytest-pyodide/pull/137)
+
 ## [0.57.0] - 2024-04-30
 
 - Fixed safari compatibility with Selenium 4.20

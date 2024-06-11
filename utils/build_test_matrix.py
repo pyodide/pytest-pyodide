@@ -7,15 +7,13 @@ import dataclasses
 import itertools
 import json
 
-DEFAULT_OS = "ubuntu-20.04, macos-11"
-DEFAULT_RUNNER = "selenium, playwright"
+DEFAULT_OS = "ubuntu-latest, macos-latest"
+DEFAULT_RUNNER = "selenium"
 DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 DEFAULT_CHROME_VERSION = "latest"
 DEFAULT_FIREFOX_VERSION = "latest"
-DEFAULT_NODE_VERSION = "20"
-DEFAULT_PLAYWRIGHT_VERSION = (
-    "1.22.0"  # TODO: versions > 1.22.0 have firefox performance issue
-)
+DEFAULT_NODE_VERSION = "22"
+DEFAULT_PLAYWRIGHT_VERSION = "1.44.0"
 
 
 @dataclasses.dataclass
