@@ -8,7 +8,7 @@ import itertools
 import json
 
 DEFAULT_OS = "ubuntu-latest, macos-latest"
-DEFAULT_RUNNER = "selenium, playwright"
+DEFAULT_RUNNER = "selenium"
 DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 DEFAULT_CHROME_VERSION = "latest"
 DEFAULT_FIREFOX_VERSION = "latest"
