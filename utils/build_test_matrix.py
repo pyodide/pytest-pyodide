@@ -13,9 +13,7 @@ DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 DEFAULT_CHROME_VERSION = "latest"
 DEFAULT_FIREFOX_VERSION = "latest"
 DEFAULT_NODE_VERSION = "20"
-DEFAULT_PLAYWRIGHT_VERSION = (
-    "1.44.0"
-)
+DEFAULT_PLAYWRIGHT_VERSION = "1.44.0"
 
 
 @dataclasses.dataclass
