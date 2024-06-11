@@ -38,7 +38,7 @@ on:
         required: false
         type: string
         default: ""
-      playwright-version:
+      playwright-versions:
         required: false
         type: string
         default: ""  # latest
