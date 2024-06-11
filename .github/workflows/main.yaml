@@ -42,7 +42,6 @@ permissions:
 
 jobs:
   test:
-    name: test ${{ inputs.browser }} (${{ inputs.runner }}, pyodide:${{ inputs.pyodide-version}})
     runs-on: ubuntu-latest
     env:
       DISPLAY: :99
