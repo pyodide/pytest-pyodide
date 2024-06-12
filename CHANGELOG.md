@@ -1,6 +1,14 @@
+## [0.58.1] - 2024-06-12
+
+### Fixed
+
+- fetch now accepts additional parameters correctly in node runner.
+  [#138](https://github.com/pyodide/pytest-pyodide/pull/138)
+
+
 ## [0.58.0] - 2024-06-11
 
-- Expose  AbortController and AbortSignal to the node runner.
+- Expose AbortController and AbortSignal to the node runner.
   [#137](https://github.com/pyodide/pytest-pyodide/pull/137)
 
 ## [0.57.0] - 2024-04-30
