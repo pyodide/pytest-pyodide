@@ -11,8 +11,8 @@ let { loadPyodide } = require(`${distDir}/pyodide`);
 process.chdir(distDir);
 
 // node requires full paths.
-function _fetch(path) {
-  return nodeFetch(new URL(path, baseUrl).toString());
+function _fetch(path, ...args) {
+  return nodeFetch(new URL(path, baseUrl).toString(), ...args);
 }
 
 const context = {
