@@ -598,14 +598,11 @@ class NodeRunner(_BrowserBaseRunner):
 
     def run_js_inner(self, code, check_code):
         check_code = ""
-        wrapped = """
-            let result = await (async () => {{ {} }})();
-            {}
+        wrapped = f"""
+            let result = await (async () => {{ {code} }})();
+            {check_code}
             return result;
-        """.format(
-            code,
-            check_code,
-        )
+        """
         from uuid import uuid4
 
         cmd_id = str(uuid4())
