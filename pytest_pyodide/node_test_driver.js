@@ -55,6 +55,12 @@ rl.on("line", async function (line) {
     return;
   }
   if (line !== cur_uuid) {
+    if(line.endsWith("\n")){
+      line=line.substring(0,line.length()-1)
+    }
+    if(line.endsWith("\r")){
+      line=line.substring(0,line.length()-1)
+    }
     if( line.trim() === ""){
       cur_code += "\n";
     }else{
