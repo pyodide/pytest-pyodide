@@ -610,7 +610,17 @@ class NodeRunner(_BrowserBaseRunner):
 
         cmd_id = str(uuid4())
         self.p.sendline(cmd_id)
-        self.p.sendline(wrapped)
+        # split lines into shorter buffers
+        # because some ttys don't like long
+        # single lines
+        all_lines = wrapped.split("\n")
+        for l in all_lines:
+            count = 0
+            while count < len(l):
+                to_read = min(128, len(l)-count)
+                self.p.sendline(l[count:count+to_read])
+                count += to_read
+            self.p.sendline("")
         self.p.sendline(cmd_id)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n", timeout=self.script_timeout)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n")

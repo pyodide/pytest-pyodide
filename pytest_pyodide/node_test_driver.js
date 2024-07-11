@@ -55,7 +55,11 @@ rl.on("line", async function (line) {
     return;
   }
   if (line !== cur_uuid) {
-    cur_code += line + "\n";
+    if( line.trim() === ""){
+      cur_code += "\n";
+    }else{
+      cur_code += line; 
+    }
   } else {
     evalCode(cur_uuid, cur_code, context);
     cur_code = "";
