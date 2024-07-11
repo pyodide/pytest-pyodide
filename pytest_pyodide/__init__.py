@@ -1,6 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
-from .decorator import run_in_pyodide,copy_files_to_pyodide
+from .decorator import copy_files_to_pyodide, run_in_pyodide
 from .runner import (
     NodeRunner,
     PlaywrightChromeRunner,
