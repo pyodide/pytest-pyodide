@@ -617,8 +617,8 @@ class NodeRunner(_BrowserBaseRunner):
         for l in all_lines:
             count = 0
             while count < len(l):
-                to_read = min(128, len(l)-count)
-                self.p.sendline(l[count:count+to_read])
+                to_read = min(128, len(l) - count)
+                self.p.sendline(l[count : count + to_read])
                 count += to_read
             self.p.sendline("")
         self.p.sendline(cmd_id)
