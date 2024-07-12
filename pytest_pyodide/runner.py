@@ -536,9 +536,6 @@ class NodeRunner(_BrowserBaseRunner):
         self.p = pexpect.spawn("/bin/bash", timeout=60)
         self.p.setecho(False)
         self.p.delaybeforesend = None
-        # disable canonical input processing mode to allow sending longer lines
-        # See: https://pexpect.readthedocs.io/en/stable/api/pexpect.html#pexpect.spawn.send
-        self.p.sendline("stty -icanon")
 
         node_version = pexpect.spawn("node --version").read().decode("utf-8")
         node_major = int(node_version.split(".")[0][1:])  # vAA.BB.CC -> AA
