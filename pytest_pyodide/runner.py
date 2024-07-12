@@ -619,9 +619,11 @@ class NodeRunner(_BrowserBaseRunner):
             while count < len(line):
                 to_read = min(128, len(line) - count)
                 self.p.sendline(line[count : count + to_read] + "$")
+                self.p.expect_exact("OK\r\n")
                 count += to_read
             if c<len(all_lines)-1:
                 self.p.sendline("$")
+                self.p.expect_exact("OK\r\n")
         self.p.sendline(cmd_id)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n", timeout=self.script_timeout)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n")

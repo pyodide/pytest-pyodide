@@ -61,6 +61,7 @@ rl.on("line", async function (line) {
     }else{
       cur_code += line;
     }
+    console.log("OK")
   } else {
     evalCode(cur_uuid, cur_code, context);
     cur_code = "";
