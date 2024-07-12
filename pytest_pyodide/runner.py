@@ -614,13 +614,14 @@ class NodeRunner(_BrowserBaseRunner):
         # because some ttys don't like long
         # single lines
         all_lines = wrapped.split("\n")
-        for line in all_lines:
+        for c,line in enumerate(all_lines):
             count = 0
             while count < len(line):
                 to_read = min(128, len(line) - count)
                 self.p.sendline(line[count : count + to_read]+"$")
                 count += to_read
-            self.p.sendline("$")
+            if c<len(all_lines)-1:
+                self.p.sendline("$")
         self.p.sendline(cmd_id)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n", timeout=self.script_timeout)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n")
