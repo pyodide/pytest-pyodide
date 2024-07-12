@@ -618,7 +618,7 @@ class NodeRunner(_BrowserBaseRunner):
             count = 0
             while count < len(line):
                 to_read = min(128, len(line) - count)
-                self.p.sendline(line[count : count + to_read]+"$")
+                self.p.sendline(line[count : count + to_read] + "$")
                 count += to_read
             if c<len(all_lines)-1:
                 self.p.sendline("$")
