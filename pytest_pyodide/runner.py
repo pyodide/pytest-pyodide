@@ -614,14 +614,14 @@ class NodeRunner(_BrowserBaseRunner):
         # because some ttys don't like long
         # single lines
         all_lines = wrapped.split("\n")
-        for c,line in enumerate(all_lines):
+        for c, line in enumerate(all_lines):
             count = 0
             while count < len(line):
                 to_read = min(128, len(line) - count)
                 self.p.sendline(line[count : count + to_read] + "$")
                 self.p.expect_exact("OK\r\n")
                 count += to_read
-            if c<len(all_lines)-1:
+            if c < len(all_lines) - 1:
                 self.p.sendline("$")
                 self.p.expect_exact("OK\r\n")
         self.p.sendline(cmd_id)
