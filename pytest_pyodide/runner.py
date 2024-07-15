@@ -615,7 +615,7 @@ class NodeRunner(_BrowserBaseRunner):
             count = 0
             while count < len(line):
                 to_read = min(128, len(line) - count)
-                # each sent line ends with an extra $, to avoid problems with end-of-line 
+                # each sent line ends with an extra $, to avoid problems with end-of-line
                 # translation etc. it doesn't matter if there are $ in the string elsewhere
                 # because the last $ is always the one we added
                 self.p.sendline(line[count : count + to_read] + "$")
