@@ -55,10 +55,10 @@ rl.on("line", async function (line) {
     return;
   }
   if (line !== cur_uuid) {
-    line = line.substring(0,line.lastIndexOf('$'))
-    if( line === ""){
+    line = line.substring(0, line.lastIndexOf('$'))
+    if(line === ""){
       cur_code += "\n";
-    }else{
+    } else {
       cur_code += line;
     }
     console.log("OK")
