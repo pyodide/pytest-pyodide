@@ -536,9 +536,6 @@ class NodeRunner(_BrowserBaseRunner):
         self.p = pexpect.spawn("/bin/bash", timeout=60)
         self.p.setecho(False)
         self.p.delaybeforesend = None
-        # disable canonical input processing mode to allow sending longer lines
-        # See: https://pexpect.readthedocs.io/en/stable/api/pexpect.html#pexpect.spawn.send
-        self.p.sendline("stty -icanon")
 
         node_version = pexpect.spawn("node --version").read().decode("utf-8")
         node_major = int(node_version.split(".")[0][1:])  # vAA.BB.CC -> AA
@@ -610,7 +607,29 @@ class NodeRunner(_BrowserBaseRunner):
 
         cmd_id = str(uuid4())
         self.p.sendline(cmd_id)
-        self.p.sendline(wrapped)
+        # split long lines into shorter buffers
+        # because some ttys don't like long
+        # single lines
+        all_lines = wrapped.split("\n")
+        for c, line in enumerate(all_lines):
+            count = 0
+            while count < len(line):
+                to_read = min(128, len(line) - count)
+                # each sent line ends with an extra $, to avoid problems with end-of-line
+                # translation etc. it doesn't matter if there are $ in the string elsewhere
+                # because the last $ is always the one we added
+                self.p.sendline(line[count : count + to_read] + "$")
+                # after we send a line, we wait for a response
+                # before sending the next line
+                # this means we don't overflow input buffers
+                self.p.expect_exact("{LINE_OK}\r\n")
+                count += to_read
+            if c < len(all_lines) - 1:
+                # to insert a line break into the received code string
+                # we send a blank line with just the $ end-of-line character
+                # and await response
+                self.p.sendline("$")
+                self.p.expect_exact("{LINE_OK}\r\n")
         self.p.sendline(cmd_id)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n", timeout=self.script_timeout)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n")

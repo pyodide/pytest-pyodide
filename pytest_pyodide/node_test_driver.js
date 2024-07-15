@@ -55,7 +55,18 @@ rl.on("line", async function (line) {
     return;
   }
   if (line !== cur_uuid) {
-    cur_code += line + "\n";
+    // each line ends with an extra $, to avoid problems with end-of-line
+    // translation etc.
+    line = line.substring(0, line.lastIndexOf('$'))
+    if(line === ""){
+      cur_code += "\n";
+    } else {
+      cur_code += line;
+    }
+    // tell runner.py that the line has been read
+    // so it can send the next line without worrying about
+    // filling buffers
+    console.log("{LINE_OK}")
   } else {
     evalCode(cur_uuid, cur_code, context);
     cur_code = "";

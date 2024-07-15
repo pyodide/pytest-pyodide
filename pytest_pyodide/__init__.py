@@ -1,6 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
-from .decorator import run_in_pyodide
+from .decorator import copy_files_to_pyodide, run_in_pyodide
 from .runner import (
     NodeRunner,
     PlaywrightChromeRunner,
@@ -28,5 +28,6 @@ __all__ = [
     "set_webdriver_script_timeout",
     "parse_driver_timeout",
     "run_in_pyodide",
+    "copy_files_to_pyodide",
     "spawn_web_server",
 ]
