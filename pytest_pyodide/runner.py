@@ -607,7 +607,7 @@ class NodeRunner(_BrowserBaseRunner):
 
         cmd_id = str(uuid4())
         self.p.sendline(cmd_id)
-        # split lines into shorter buffers
+        # split long lines into shorter buffers
         # because some ttys don't like long
         # single lines
         all_lines = wrapped.split("\n")
@@ -615,12 +615,21 @@ class NodeRunner(_BrowserBaseRunner):
             count = 0
             while count < len(line):
                 to_read = min(128, len(line) - count)
+                # each sent line ends with an extra $, to avoid problems with end-of-line 
+                # translation etc. it doesn't matter if there are $ in the string elsewhere
+                # because the last $ is always the one we added
                 self.p.sendline(line[count : count + to_read] + "$")
-                self.p.expect_exact("OK\r\n")
+                # after we send a line, we wait for a response
+                # before sending the next line
+                # this means we don't overflow input buffers
+                self.p.expect_exact("{LINE_OK}\r\n")
                 count += to_read
             if c < len(all_lines) - 1:
+                # to insert a line break into the received code string
+                # we send a blank line with just the $ end-of-line character
+                # and await response
                 self.p.sendline("$")
-                self.p.expect_exact("OK\r\n")
+                self.p.expect_exact("{LINE_OK}\r\n")
         self.p.sendline(cmd_id)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n", timeout=self.script_timeout)
         self.p.expect_exact(f"{cmd_id}:UUID\r\n")
