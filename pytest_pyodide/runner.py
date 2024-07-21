@@ -7,6 +7,7 @@ import pytest
 
 from .config import get_global_config
 
+
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
 
@@ -86,7 +87,6 @@ globalThis.assertThrowsAsync = async function (cb, errname, pattern) {
 };
 """.strip()
 
-
 class JavascriptException(Exception):
     def __init__(self, msg, stack):
         self.msg = msg
@@ -123,6 +123,8 @@ class _BrowserBaseRunner:
         *args,
         **kwargs,
     ):
+        self._config = get_global_config()
+
         self.server_port = server_port
         self.server_hostname = server_hostname
         self.base_url = f"http://{self.server_hostname}:{self.server_port}"
@@ -130,8 +132,6 @@ class _BrowserBaseRunner:
         self.script_type = script_type
         self.dist_dir = dist_dir
         self.driver = self.get_driver(jspi)
-
-        self._config = get_global_config()
 
         self.set_script_timeout(self.script_timeout)
         self.prepare_driver()
@@ -176,9 +176,7 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            """
-            let pyodide = await loadPyodide({ fullStdLib: false, jsglobals : self });
-            """
+            self._config.get_load_pyodide_script(self.browser)
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
 
