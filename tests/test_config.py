@@ -1,5 +1,6 @@
 from pytest_pyodide.config import Config, get_global_config
 
+
 def test_config():
     c = Config()
 
@@ -13,8 +14,8 @@ def test_config():
         assert c.get_flag(runtime) == ["--headless"]
 
         c.set_load_pyodide_script(runtime, "console.log('hello')")
-        c.get_load_pyodide_script(runtime) == "console.log('hello')"
-    
+        assert c.get_load_pyodide_script(runtime) == "console.log('hello')"
+
     c.get_initialize_script()
     c.set_initialize_script("console.log('hello')")
     assert c.get_initialize_script() == "console.log('hello')"

@@ -1,5 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
+from .config import get_global_config
 from .decorator import copy_files_to_pyodide, run_in_pyodide
 from .runner import (
     NodeRunner,
@@ -11,7 +12,6 @@ from .runner import (
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
-from .config import get_global_config
 
 try:
     __version__ = version("pytest-pyodide")

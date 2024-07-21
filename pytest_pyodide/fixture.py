@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+from .config import get_global_config
 from .runner import (
     NodeRunner,
     PlaywrightChromeRunner,
@@ -18,7 +19,6 @@ from .runner import (
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
-from .config import get_global_config
 
 
 @pytest.fixture(scope="module")
