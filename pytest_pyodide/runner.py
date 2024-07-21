@@ -5,7 +5,7 @@ from pathlib import Path
 import pexpect
 import pytest
 
-from .config import get_global_config
+from .config import get_global_config, RUNTIMES
 
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
@@ -100,7 +100,7 @@ class JavascriptException(Exception):
 
 
 class _BrowserBaseRunner:
-    browser = ""
+    browser: RUNTIMES | None = None
     script_timeout = 20
     JavascriptException = JavascriptException
 
