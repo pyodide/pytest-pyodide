@@ -11,6 +11,7 @@ from .runner import (
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
+from .config import get_global_config
 
 try:
     __version__ = version("pytest-pyodide")
@@ -30,4 +31,5 @@ __all__ = [
     "run_in_pyodide",
     "copy_files_to_pyodide",
     "spawn_web_server",
+    "get_global_config",
 ]

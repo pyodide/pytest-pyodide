@@ -8,8 +8,6 @@ from typing import Any
 import pytest
 
 from .runner import (
-    CHROME_FLAGS,
-    FIREFOX_FLAGS,
     NodeRunner,
     PlaywrightChromeRunner,
     PlaywrightFirefoxRunner,
@@ -20,6 +18,7 @@ from .runner import (
 )
 from .server import spawn_web_server
 from .utils import parse_driver_timeout, set_webdriver_script_timeout
+from .config import get_global_config
 
 
 @pytest.fixture(scope="module")
@@ -41,13 +40,14 @@ def _playwright_browsers(request):
             )
 
         runtimes = pytest.pyodide_runtimes
+        cfg = get_global_config()
 
         with sync_playwright() as p:
             browsers: dict[str, Any] = {}
             supported_browsers: dict[str, tuple[str, list[str]]] = {
                 # browser name: (attr_name, flags)
-                "firefox": ("firefox", FIREFOX_FLAGS),
-                "chrome": ("chromium", CHROME_FLAGS),
+                "firefox": ("firefox", cfg.get_flag("firefox")),
+                "chrome": ("chromium", cfg.get_flag("chrome")),
                 # TODO: enable webkit
                 # "webkit": (),
             }
