@@ -100,7 +100,7 @@ class JavascriptException(Exception):
 
 
 class _BrowserBaseRunner:
-    browser: RUNTIMES | None = None
+    browser: RUNTIMES = ""  # type: ignore[arg-type]
     script_timeout = 20
     JavascriptException = JavascriptException
 
