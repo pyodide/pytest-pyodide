@@ -7,7 +7,6 @@ import pytest
 
 from .config import get_global_config
 
-
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
 
@@ -86,6 +85,7 @@ globalThis.assertThrowsAsync = async function (cb, errname, pattern) {
     checkError(err, errname, pattern, pat_str, thiscallstr);
 };
 """.strip()
+
 
 class JavascriptException(Exception):
     def __init__(self, msg, stack):
