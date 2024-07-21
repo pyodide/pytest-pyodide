@@ -5,7 +5,7 @@ from pathlib import Path
 import pexpect
 import pytest
 
-from .config import get_global_config, RUNTIMES
+from .config import RUNTIMES, get_global_config
 
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
