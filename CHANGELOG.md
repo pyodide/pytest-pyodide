@@ -1,3 +1,10 @@
+## [0.59.0] - 2024-07-23
+
+### Added
+
+- Added global config manager.
+  [#141](https://github.com/pyodide/pytest-pyodide/pull/141)
+
 ## [0.58.1] - 2024-06-12
 
 ### Fixed
