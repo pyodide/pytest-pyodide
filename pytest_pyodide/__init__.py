@@ -1,5 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
+from .config import get_global_config
 from .decorator import copy_files_to_pyodide, run_in_pyodide
 from .runner import (
     NodeRunner,
@@ -30,4 +31,5 @@ __all__ = [
     "run_in_pyodide",
     "copy_files_to_pyodide",
     "spawn_web_server",
+    "get_global_config",
 ]

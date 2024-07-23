@@ -7,9 +7,8 @@ from typing import Any
 
 import pytest
 
+from .config import get_global_config
 from .runner import (
-    CHROME_FLAGS,
-    FIREFOX_FLAGS,
     NodeRunner,
     PlaywrightChromeRunner,
     PlaywrightFirefoxRunner,
@@ -41,13 +40,14 @@ def _playwright_browsers(request):
             )
 
         runtimes = pytest.pyodide_runtimes
+        cfg = get_global_config()
 
         with sync_playwright() as p:
             browsers: dict[str, Any] = {}
             supported_browsers: dict[str, tuple[str, list[str]]] = {
                 # browser name: (attr_name, flags)
-                "firefox": ("firefox", FIREFOX_FLAGS),
-                "chrome": ("chromium", CHROME_FLAGS),
+                "firefox": ("firefox", cfg.get_flags("firefox")),
+                "chrome": ("chromium", cfg.get_flags("chrome")),
                 # TODO: enable webkit
                 # "webkit": (),
             }

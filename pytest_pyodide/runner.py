@@ -5,10 +5,7 @@ from pathlib import Path
 import pexpect
 import pytest
 
-CHROME_FLAGS: list[str] = ["--js-flags=--expose-gc"]
-FIREFOX_FLAGS: list[str] = []
-NODE_FLAGS: list[str] = []
-
+from .config import RUNTIMES, get_global_config
 
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
@@ -89,8 +86,6 @@ globalThis.assertThrowsAsync = async function (cb, errname, pattern) {
 };
 """.strip()
 
-INITIALIZE_SCRIPT = "pyodide.runPython('');"
-
 
 class JavascriptException(Exception):
     def __init__(self, msg, stack):
@@ -105,9 +100,16 @@ class JavascriptException(Exception):
 
 
 class _BrowserBaseRunner:
-    browser = ""
+    browser: RUNTIMES = ""  # type: ignore[assignment]
     script_timeout = 20
     JavascriptException = JavascriptException
+
+    # A common script that runs after pyodide is loaded
+    POST_LOAD_PYODIDE_SCRIPT = """
+    self.pyodide = pyodide;
+    globalThis.pyodide = pyodide;
+    pyodide._api.inTestHoist = true; // improve some error messages for tests
+    """
 
     def __init__(
         self,
@@ -121,6 +123,8 @@ class _BrowserBaseRunner:
         *args,
         **kwargs,
     ):
+        self._config = get_global_config()
+
         self.server_port = server_port
         self.server_hostname = server_hostname
         self.base_url = f"http://{self.server_hostname}:{self.server_port}"
@@ -128,6 +132,7 @@ class _BrowserBaseRunner:
         self.script_type = script_type
         self.dist_dir = dist_dir
         self.driver = self.get_driver(jspi)
+
         self.set_script_timeout(self.script_timeout)
         self.prepare_driver()
         self.javascript_setup()
@@ -171,12 +176,8 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            """
-            let pyodide = await loadPyodide({ fullStdLib: false, jsglobals : self });
-            self.pyodide = pyodide;
-            globalThis.pyodide = pyodide;
-            pyodide._api.inTestHoist = true; // improve some error messages for tests
-            """
+            self._config.get_load_pyodide_script(self.browser)
+            + self.POST_LOAD_PYODIDE_SCRIPT
         )
 
     def initialize_pyodide(self):
@@ -201,7 +202,7 @@ class _BrowserBaseRunner:
             }
             """
         )
-        self.run_js(INITIALIZE_SCRIPT)
+        self.run_js(self._config.get_initialize_script())
         from .decorator import initialize_decorator
 
         initialize_decorator(self)
@@ -430,7 +431,7 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
 
         options = Options()
         options.add_argument("--headless")
-        for flag in FIREFOX_FLAGS:
+        for flag in self._config.get_flags("firefox"):
             options.add_argument(flag)
 
         return Firefox(service=Service(), options=options)
@@ -449,7 +450,7 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         if jspi:
             options.add_argument("--enable-features=WebAssemblyExperimentalJSPI")
             options.add_argument("--enable-experimental-webassembly-features")
-        for flag in CHROME_FLAGS:
+        for flag in self._config.get_flags("chrome"):
             options.add_argument(flag)
         return Chrome(options=options)
 
@@ -544,7 +545,7 @@ class NodeRunner(_BrowserBaseRunner):
                 f"Node version {node_version} is too old, please use node >= 18"
             )
 
-        extra_args = NODE_FLAGS[:]
+        extra_args = self._config.get_flags("node")[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
         if jspi:
