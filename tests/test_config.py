@@ -7,11 +7,11 @@ def test_config():
     runtimes = ["chrome", "firefox", "node", "safari"]
 
     for runtime in runtimes:
-        c.get_flag(runtime)
+        c.get_flags(runtime)
         c.get_load_pyodide_script(runtime)
 
-        c.set_flag(runtime, ["--headless"])
-        assert c.get_flag(runtime) == ["--headless"]
+        c.set_flags(runtime, ["--headless"])
+        assert c.get_flags(runtime) == ["--headless"]
 
         c.set_load_pyodide_script(runtime, "console.log('hello')")
         assert c.get_load_pyodide_script(runtime) == "console.log('hello')"

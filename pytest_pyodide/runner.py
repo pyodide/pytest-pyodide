@@ -431,7 +431,7 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
 
         options = Options()
         options.add_argument("--headless")
-        for flag in self._config.get_flag("firefox"):
+        for flag in self._config.get_flags("firefox"):
             options.add_argument(flag)
 
         return Firefox(service=Service(), options=options)
@@ -450,7 +450,7 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         if jspi:
             options.add_argument("--enable-features=WebAssemblyExperimentalJSPI")
             options.add_argument("--enable-experimental-webassembly-features")
-        for flag in self._config.get_flag("chrome"):
+        for flag in self._config.get_flags("chrome"):
             options.add_argument(flag)
         return Chrome(options=options)
 
@@ -545,7 +545,7 @@ class NodeRunner(_BrowserBaseRunner):
                 f"Node version {node_version} is too old, please use node >= 18"
             )
 
-        extra_args = self._config.get_flag("node")[:]
+        extra_args = self._config.get_flags("node")[:]
         # Node v14 require the --experimental-wasm-bigint which
         # produces errors on later versions
         if jspi:

@@ -32,10 +32,10 @@ class Config:
         # The script to be executed to initialize the runtime.
         self.initialize_script: str = "pyodide.runPython('');"
 
-    def set_flag(self, runtime: RUNTIMES, flags: list[str]):
+    def set_flags(self, runtime: RUNTIMES, flags: list[str]):
         self.flags[runtime] = flags
 
-    def get_flag(self, runtime: RUNTIMES) -> list[str]:
+    def get_flags(self, runtime: RUNTIMES) -> list[str]:
         return self.flags[runtime]
 
     def set_load_pyodide_script(self, runtime: RUNTIMES, load_pyodide_script: str):

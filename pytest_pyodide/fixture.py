@@ -46,8 +46,8 @@ def _playwright_browsers(request):
             browsers: dict[str, Any] = {}
             supported_browsers: dict[str, tuple[str, list[str]]] = {
                 # browser name: (attr_name, flags)
-                "firefox": ("firefox", cfg.get_flag("firefox")),
-                "chrome": ("chromium", cfg.get_flag("chrome")),
+                "firefox": ("firefox", cfg.get_flags("firefox")),
+                "chrome": ("chromium", cfg.get_flags("chrome")),
                 # TODO: enable webkit
                 # "webkit": (),
             }
