@@ -1,4 +1,3 @@
-import ast
 from collections.abc import Callable
 from copy import copy
 from doctest import DocTest, DocTestRunner, register_optionflag
@@ -17,17 +16,12 @@ from _pytest.python import CallSpec2
 from _pytest.scope import Scope
 from pytest import Collector
 
-from . import run_in_pyodide
-from .hook import ORIGINAL_MODULE_ASTS
+from .decorator import record_module_ast, run_in_pyodide
 
 __all__ = ["patch_doctest_runner", "collect_doctests"]
 
+record_module_ast(__file__)
 
-# Record the ast of this file so we can use run_in_pyodide in here
-# TODO: maybe extract this as a utility function for clarity?
-ORIGINAL_MODULE_ASTS[__file__] = ast.parse(
-    Path(__file__).read_bytes(), filename=__file__
-)
 # make doctest aware of our `doctest: +RUN_IN_PYODIDE`` optionflag
 RUN_IN_PYODIDE = register_optionflag("RUN_IN_PYODIDE")
 
