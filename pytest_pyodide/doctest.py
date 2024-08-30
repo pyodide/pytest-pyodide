@@ -118,7 +118,7 @@ def run_doctest_in_pyodide_outer(
     out: Callable[[str], object] | None = None,
     clear_globs: bool = True,
 ):
-    if not test.pyodide_test:  # type:ignore[attr-defined]
+    if not getattr(test, "pyodide_test", None):
         # Run host test as normal
         return host_DocTestRunner_run(self, test, compileflags, out, clear_globs)
 
