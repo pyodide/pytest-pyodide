@@ -6,16 +6,55 @@ from base64 import b64decode, b64encode
 from collections.abc import Callable, Collection
 from copy import deepcopy
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Protocol
 
 import pytest
+from _pytest.assertion.rewrite import AssertionRewritingHook, rewrite_asserts
 
 from .copy_files_to_pyodide import copy_files_to_emscripten_fs
-from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
 from .runner import _BrowserBaseRunner
 from .utils import package_is_built as _package_is_built
 
 MaybeAsyncFuncDef = ast.FunctionDef | ast.AsyncFunctionDef
+
+ORIGINAL_MODULE_ASTS: dict[str, ast.Module] = {}
+REWRITTEN_MODULE_ASTS: dict[str, ast.Module] = {}
+
+
+# Handling for pytest assertion rewrites
+# First we find the pytest rewrite config. It's an attribute of the pytest
+# assertion rewriting meta_path_finder, so we locate that to get the config.
+
+
+def _get_pytest_rewrite_config() -> Any:
+    for meta_path_finder in sys.meta_path:
+        if isinstance(meta_path_finder, AssertionRewritingHook):
+            break
+    else:
+        return None
+    return meta_path_finder.config
+
+
+# Now we need to parse the ast of the files, rewrite the ast, and store the
+# original and rewritten ast into dictionaries. `run_in_pyodide` will look the
+# ast up in the appropriate dictionary depending on whether or not it is using
+# pytest assert rewrites.
+
+REWRITE_CONFIG = _get_pytest_rewrite_config()
+del _get_pytest_rewrite_config
+
+
+def record_module_ast(module_path):
+    strfn = str(module_path)
+    if strfn in ORIGINAL_MODULE_ASTS:
+        return
+    source = Path(module_path).read_bytes()
+    tree = ast.parse(source, filename=strfn)
+    ORIGINAL_MODULE_ASTS[strfn] = tree
+    tree2 = deepcopy(tree)
+    rewrite_asserts(tree2, source, strfn, REWRITE_CONFIG)
+    REWRITTEN_MODULE_ASTS[strfn] = tree2
 
 
 def package_is_built(package_name: str):

@@ -143,9 +143,6 @@ def rename_fixture(orig_name, new_name):
     return use_variant
 
 
-standalone = rename_fixture("selenium", "selenium_standalone")
-
-
 @pytest.fixture(scope="function")
 def selenium_standalone(request, runtime, web_server_main, playwright_browsers):
     with selenium_common(
