@@ -119,10 +119,11 @@ jobs:
 
       - name: Sanity check Python version
         run: python -c "import sys; print(sys.version); assert sys.version_info[:2] == (3, 12)"
+
       - name: Run tests
         shell: bash -l {0}
         run: |
-          python -m pytest -v \
+          python3.12 -m pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
