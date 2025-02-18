@@ -117,6 +117,9 @@ jobs:
           else
               python -m pip install pytest-pyodide
           fi
+
+      - name: Sanity check Python version
+        run: python -c "import sys; print(sys.version); assert sys.version_info[:2] == (3, 12)"
       - name: Run tests
         shell: bash -l {0}
         run: |
