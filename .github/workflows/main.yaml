@@ -32,7 +32,7 @@ on:
       playwright-version:
         required: false
         type: string
-        default: ""  # latest
+        default: "" # latest
       pytest-extra-args:
         required: false
         type: string
@@ -104,7 +104,6 @@ jobs:
         run: |
           python -m pip install pyodide-py==${{inputs.pyodide-version}}
 
-
       - name: Install pytest-pyodide
         shell: bash -l {0}
         run: |
@@ -123,7 +122,7 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          pytest -v \
+          python -m pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
