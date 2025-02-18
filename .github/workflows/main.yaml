@@ -49,9 +49,7 @@ jobs:
       FORCE_COLOR: 3
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
-        with:
-          python-version: 3.12
+
       - name: Install node
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         if: ${{ contains(inputs.browser, 'node') || inputs.runner == 'playwright' }}
@@ -98,6 +96,10 @@ jobs:
           name: ${{ inputs.build-artifact-name }}
           path: ${{ inputs.build-artifact-path }}
           merge-multiple: true
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: 3.12
 
       - name: install pyodide-py
         shell: bash -l {0}
