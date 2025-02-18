@@ -92,10 +92,11 @@ jobs:
 
       - name: Download build artifacts from calling package
         if: ${{ inputs.build-artifact-name != 'none' }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build-artifact-name }}
           path: ${{ inputs.build-artifact-path }}
+          merge-multiple: true
 
       - name: install pyodide-py
         shell: bash -l {0}
