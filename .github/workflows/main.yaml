@@ -104,7 +104,7 @@ jobs:
       - name: install pyodide-py
         shell: bash -l {0}
         run: |
-          python3.12 -m pip install pyodide-py==${{inputs.pyodide-version}}
+          python -m pip install pyodide-py==${{inputs.pyodide-version}}
 
       - name: Install pytest-pyodide
         shell: bash -l {0}
@@ -114,9 +114,9 @@ jobs:
             # We then uninstall it otherwise tests fails due to pytest hook being
             # registered twice.
             # temporarily pin pytest version (https://github.com/pyodide/pytest-pyodide/pull/133#issuecomment-2081412407)
-              python3.12 -m pip install ".[test]" "pytest<8.0.0" "selenium<4.21.0"
+              python -m pip install ".[test]" "pytest<8.0.0" "selenium<4.21.0"
           else
-              python3.12 -m pip install pytest-pyodide
+              python -m pip install pytest-pyodide
           fi
 
       - name: Sanity check Python version
@@ -125,7 +125,7 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          python3.12 -m pytest -v \
+          python -m pytest -v \
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
