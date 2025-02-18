@@ -1,8 +1,8 @@
 import re
 import sys
 import xml.etree.ElementTree as ET
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from typing import ContextManager
 
 import pytest
 
@@ -18,7 +18,7 @@ class ContextManagerUnwrapper:
     of the standard pytest_pyodide code here.
     """
 
-    def __init__(self, ctx_manager: ContextManager):
+    def __init__(self, ctx_manager: AbstractContextManager):
         self.ctx_manager = ctx_manager
         self.value = ctx_manager.__enter__()
 

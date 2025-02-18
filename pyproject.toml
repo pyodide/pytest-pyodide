@@ -68,7 +68,7 @@ ignore_missing_imports = true
 # this
 
 [tool.ruff]
-select = [
+lint.select = [
   "B0",     # bugbear (all B0* checks enabled by default)
   "B904",   # bugbear (Within an except clause, raise exceptions with raise ... from err)
   "B905",   # bugbear (zip() without an explicit strict= parameter set.)
@@ -82,11 +82,11 @@ select = [
   "PLE",    # pylint errors
   "UP",     # pyupgrade
 ]
-ignore = ["E402", "E501", "E731", "E741"]
+lint.ignore = ["E402", "E501", "E731", "E741"]
 # line-length = 219  # E501: Recommended goal is 88 to match black
 target-version = "py310"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = [
   "pyodide",
   "pyodide_js",
@@ -99,7 +99,7 @@ known-third-party = [
   "build",
 ]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 31  # C901: Recommended goal is 10
 
 [tool.pytest]
