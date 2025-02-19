@@ -56,6 +56,8 @@ jobs:
         with:
           node-version: ${{ inputs.browser-version }}
 
+      # Required to fix "ModuleNotFoundError: No module named 'pathlib._local'; 'pathlib' is not a package"s
+      # as pytest runs with Python 3.13 as the driver and not Python 3.12.
       - name: Remove Python 3.13 on Safari
         if: ${{ inputs.browser == 'safari' }}
         run: sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.13/
