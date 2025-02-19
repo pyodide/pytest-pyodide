@@ -28,7 +28,7 @@ on:
       browser-version:
         required: false
         type: string
-        default: "131"
+        default: "latest"
       playwright-version:
         required: false
         type: string
