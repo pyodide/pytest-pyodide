@@ -56,12 +56,6 @@ jobs:
         with:
           node-version: ${{ inputs.browser-version }}
 
-      # Required to fix "ModuleNotFoundError: No module named 'pathlib._local'; 'pathlib' is not a package"s
-      # as pytest runs with Python 3.13 as the driver and not Python 3.12.
-      - name: Remove Python 3.13 on Safari
-        if: ${{ inputs.browser == 'safari' }}
-        run: sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.13/
-
       - name: Cache Playwright browsers
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         if: ${{ inputs.runner == 'playwright' }}
@@ -70,17 +64,16 @@ jobs:
           key: ${{ runner.os }}-playwright-latest
 
       - name: Install playwright
-        shell: bash -l {0}
         if: ${{ inputs.runner == 'playwright' }}
         run: |
           if [ -n "${{ inputs.playwright-version }}" ]
           then
-            python3.12 -m pip install playwright==${{inputs.playwright-version}}
+            python -m pip install playwright==${{inputs.playwright-version}}
           else
-            python3.12 -m pip install playwright
+            python -m pip install playwright
           fi
           # TODO: install only browsers that are required
-          python3.12 -m playwright install --with-deps
+          python -m playwright install --with-deps
 
       - uses: pyodide/pyodide-actions/download-pyodide@012fa537869d343726d01863a34b773fc4d96a14 # v2
         with:
@@ -108,12 +101,10 @@ jobs:
           python-version: 3.12
 
       - name: install pyodide-py
-        shell: bash -l {0}
         run: |
           python -m pip install pyodide-py==${{inputs.pyodide-version}}
 
       - name: Install pytest-pyodide
-        shell: bash -l {0}
         run: |
           if [ -d "pytest_pyodide" ]; then
             # Currently we only install the package for dependencies.
@@ -125,11 +116,7 @@ jobs:
               python -m pip install pytest-pyodide
           fi
 
-      - name: Sanity check Python version
-        run: python -c "import sys; print(sys.version); assert sys.version_info[:2] == (3, 12)"
-
       - name: Run tests
-        shell: bash -l {0}
         run: |
           python -m pytest -v \
             --cov=pytest_pyodide \
