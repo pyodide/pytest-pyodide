@@ -154,6 +154,9 @@ class _BrowserBaseRunner:
     def quit(self):
         raise NotImplementedError()
 
+    def is_closed(self):
+        raise NotImplementedError()
+
     def refresh(self):
         raise NotImplementedError()
 
@@ -392,6 +395,9 @@ class _PlaywrightBaseRunner(_BrowserBaseRunner):
 
     def quit(self):
         self.driver.close()
+
+    def is_closed(self):
+        return self.driver.is_closed()
 
     def refresh(self):
         self.driver.reload()
