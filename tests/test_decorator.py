@@ -408,3 +408,15 @@ def test_complex_args(selenium):
     fn_with_complex_args2(selenium, 5, 6, 7, 8, 9, a=8, c=7, q=11)
     with pytest.raises(TypeError, match="multiple values"):
         fn_with_complex_args2(selenium, 5, 6, 7, 8, 9, b=8, c=7, q=11)
+
+def test_handle_finalizer(selenium):
+    """test that the finalizer does not call run_js on a closed runner"""
+    from pytest_pyodide.decorator import PyodideHandle
+    from unittest.mock import create_autospec
+
+    selenium = create_autospec(spec=selenium)
+    selenium.is_closed.return_value = True
+    handle = PyodideHandle(selenium, 0xc0ffee)
+    del handle
+    selenium.is_closed.assert_called()
+    selenium.run_js.assert_not_called()
