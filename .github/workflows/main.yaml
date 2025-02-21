@@ -122,7 +122,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -v \
+          python -m pytest -vra \
             --cov=pytest_pyodide \
             --dist-dir=./pyodide-dist/ \
             --runner=${{ inputs.runner }} \
