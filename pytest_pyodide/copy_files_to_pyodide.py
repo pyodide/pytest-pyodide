@@ -111,7 +111,7 @@ def copy_files_to_emscripten_fs(
         )
         for file, dest in new_files:
             _copied_files[selenium].append((file, dest))
-            file_url = base_url + str(file.relative_to(base_path))
+            file_url = base_url + str(file.relative_to(base_path).as_posix())
             if file.suffix == ".whl" and install_wheels:
                 # wheel - install the wheel on the pyodide side before
                 # any fetches (and don't copy it)
