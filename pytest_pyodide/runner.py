@@ -154,6 +154,9 @@ class _BrowserBaseRunner:
     def quit(self):
         raise NotImplementedError()
 
+    def is_closed(self):
+        raise NotImplementedError()
+
     def refresh(self):
         raise NotImplementedError()
 
@@ -331,6 +334,8 @@ class _BrowserBaseRunner:
 
 
 class _SeleniumBaseRunner(_BrowserBaseRunner):
+    _is_closed = False
+
     def goto(self, page):
         self.driver.get(page)
 
@@ -340,10 +345,14 @@ class _SeleniumBaseRunner(_BrowserBaseRunner):
 
     def quit(self):
         self.driver.quit()
+        self._is_closed = True
 
     def refresh(self):
         self.driver.refresh()
         self.javascript_setup()
+
+    def is_closed(self):
+        return self._is_closed
 
     def run_js_inner(self, code, check_code):
         wrapper = """
@@ -392,6 +401,9 @@ class _PlaywrightBaseRunner(_BrowserBaseRunner):
 
     def quit(self):
         self.driver.close()
+
+    def is_closed(self):
+        return self.driver.is_closed()
 
     def refresh(self):
         self.driver.reload()
