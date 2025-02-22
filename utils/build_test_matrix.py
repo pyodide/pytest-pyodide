@@ -12,7 +12,7 @@ DEFAULT_RUNNER = "selenium"
 DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 # at the time of writing, chrome latest (>131) times out.
 # xref: https://github.com/pyodide/pytest-pyodide/pull/146
-DEFAULT_CHROME_VERSION = "131"
+DEFAULT_CHROME_VERSION = "125"
 DEFAULT_FIREFOX_VERSION = "latest"
 DEFAULT_NODE_VERSION = "22"
 DEFAULT_PLAYWRIGHT_VERSION = "1.44.0"
