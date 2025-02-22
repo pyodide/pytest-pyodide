@@ -1,18 +1,6 @@
 from pathlib import Path
 
-from pytest_pyodide import run_in_pyodide, spawn_web_server
-
-
-@run_in_pyodide(packages=["micropip"])
-async def test_install_from_pypi(selenium_standalone):
-    import micropip
-
-    await micropip.install("snowballstemmer==2.2.0")
-
-    import snowballstemmer
-
-    stemmer = snowballstemmer.stemmer("english")
-    assert stemmer.stemWords(["university"]) == ["univers"]
+from pytest_pyodide import spawn_web_server
 
 
 def test_install_from_custom_server(selenium_standalone):

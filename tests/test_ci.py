@@ -90,7 +90,7 @@ def test_build_configs():
     configs = build_configs(
         {
             "os": ["ubuntu-latest", "macos-latest"],
-            "pyodide-version": ["0.21.0"],
+            "pyodide-version": ["0.27.2"],
             "runner": ["selenium", "playwright"],
             "browser": ["firefox", "chrome", "node", "safari", "host"],
             "chrome_version": ["1.0", "2.0"],

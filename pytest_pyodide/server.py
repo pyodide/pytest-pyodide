@@ -35,8 +35,7 @@ class DefaultHandler(http.server.SimpleHTTPRequestHandler):
 
     def log_message(self, format_, *args):
         print(
-            "[%s] source: %s:%s - %s"
-            % (
+            "[{}] source: {}:{} - {}".format(
                 self.log_date_time_string(),
                 *self.client_address,
                 format_ % args,
