@@ -87,7 +87,7 @@ async function evalCode(uuid, code, eval_context) {
   let delim = uuid + ":UUID";
   console.log(delim);
   try {
-    vm.runInContext(wrapped_code, eval_context);
+    vm.runInContext(wrapped_code, eval_context, { importModuleDynamically: vm.constants?.USE_MAIN_CONTEXT_DEFAULT_LOADER });
     let result = JSON.stringify(await p);
     console.log(`${delim}\n0\n${result}\n${delim}`);
   } catch (e) {
