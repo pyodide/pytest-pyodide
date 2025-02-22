@@ -28,6 +28,7 @@ def test_playwright_browsers(playwright_browsers, request):
     assert set(playwright_browsers.keys()) == set(runtimes)
 
 
+# https://github.com/GoogleChromeLabs/wasm-feature-detect/blob/8bfe6691b0749b53d605f3220f15e68751c4b5b6/src/detectors/jspi/index.js
 @run_in_pyodide
 def test_jspi(selenium_jspi):
     from js import WebAssembly

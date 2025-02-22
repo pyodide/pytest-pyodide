@@ -21,41 +21,43 @@ You would also need one at least one of the following runtimes:
 
 ## Github Reusable workflow
 
-pytest-pyodide also supports testing on github actions by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process.
+`pytest-pyodide` also supports testing on GitHub Action by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process.
 
-In your github actions workflow, call it with as a aseparate job. To pass in your build wheel use an upload-artifact step in your build step.
+In your github actions workflow, call it with as a separate job. To pass in your built wheel, use an `upload-artifact` step in your build step.
 
-This will run your tests on the given browser/pyodide version/OS configuration. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders.
+This will run your tests on the given browser/Pyodide version/OS configuration. It runs pytest in the root of your repo, which should catch any test_\*.py files in subfolders.
 
+> [!NOTE]
+> The following workflow might be out of date. Please refer to the latest version from the [Pyodide documentation](https://pyodide.org/en/stable/development/building-and-testing-packages.html).
 ```
 jobs:
-  # Build for pyodide 0.24.1
+  # Build for pyodide 0.27
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: 3.11
-    - uses: mymindstorm/setup-emsdk@v11
+        python-version: 3.12 # same as the version in Pyodide
+    - uses: mymindstorm/setup-emsdk@v14
       with:
-        version: 3.1.45
-    - run: pip install pyodide-build==0.24.1
+        version: 3.1.58
+    - run: pip install pyodide-build>=0.27.0
     - run: pyodide build
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: pyodide wheel
+        name: pyodide_wheel
         path: dist
   # this is the job which you add to run pyodide-test
   test:
     needs: build
     uses: pyodide/pytest-pyodide/.github/workflows/main.yaml@main
     with:
-      build-artifact-name: pyodide wheel
+      build-artifact-name: pyodide_wheel
       build-artifact-path: dist
       browser: firefox
       runner: selenium
-      pyodide-version: 0.24.1
+      pyodide-version: 0.27.2
 ```
 
 If you want to run on multiple browsers / pyodide versions etc., you can either use a matrix strategy and run main.yaml as above, or you can use testall.yaml. This by default tests on all browsers (and node) with multiple configurations. If you want to reduce the configurations you can filter with lists of browsers, runners, pyodide-versions as shown below.
@@ -66,7 +68,7 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
     with:
       build-artifact-name: pyodide wheel
       build-artifact-path: dist
-      pyodide-versions: "0.23.4, 0.24.1"
+      pyodide-versions: "0.26.4, 0.27.2"
       runners: "selenium, playwright"
       browsers: "firefox, chrome, node"
       os: "ubuntu-latest, macos-latest"
@@ -76,8 +78,8 @@ If you want to run on multiple browsers / pyodide versions etc., you can either 
 
 1. First you need a compatible version of Pyodide. You can download the Pyodide build artifacts from releases with,
    ```bash
-   wget https://github.com/pyodide/pyodide/releases/download/0.24.1/pyodide-build-0.24.1.tar.bz2
-   tar xjf pyodide-build-0.24.1.tar.bz2
+   wget https://github.com/pyodide/pyodide/releases/download/0.27.2/pyodide-0.27.2.tar.bz2
+   tar xjf pyodide-0.27.2.tar.bz2
    mv pyodide dist/
    ```
 

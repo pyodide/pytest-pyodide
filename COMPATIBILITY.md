@@ -5,7 +5,7 @@ Other versions may work, however with no guarantee.
 
 | pytest-pyodide | Tested Pyodide versions |
 | -------------- | ----------------------- |
-| main branch    | 0.24.1, 0.25.1, 0.26.1  |
+| main branch    | 0.26.4, 0.27.2          |
 | 0.58.*         | 0.24.1, 0.25.1, 0.26.1  |
 | 0.57.*         | 0.23.4, 0.24.1, 0.25.1  |
 | 0.56.*         | 0.23.4, 0.24.1          |
