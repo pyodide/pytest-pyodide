@@ -108,7 +108,7 @@ def _decode(result: str, selenium: SeleniumType) -> Any:
     except ModuleNotFoundError as exc:
         raise ModuleNotFoundError(
             f"There was a problem with unpickling the return value/exception from your pyodide environment. "
-            f"This usually means the type of the return value does not exist in your host environment. "
+            f"This usually means the type of the return value/exception does not exist in your host environment. "
             f"The original message is: {exc}."
         ) from None
 
