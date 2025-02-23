@@ -29,7 +29,7 @@ pip install -e ".[test]"
 
 # Download the target Pyodide distribution, for example, 0.27.2
 export PYODIDE_VERSION="0.27.2"
-wget https://github.com/pyodide/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-${PYODIDE_VERSION}.tar.bz2 
+wget https://github.com/pyodide/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-${PYODIDE_VERSION}.tar.bz2
 # unpack the distribution, this will create a `pyodide` directory in the current directory
 # if not, please check the directory name and rename it to `pyodide`
 tar -xf pyodide-${PYODIDE_VERSION}.tar.bz2
@@ -69,7 +69,7 @@ However, if you want to use your own browser or WebDriver, you can install them 
   - Firefox does not support official ways to download older versions, but you can find them in the following link:
     - `https://download-installer.cdn.mozilla.net/pub/firefox/releases/{{FIREFOX_VERSION}}/linux-x86_64/en-US/firefox-{{FIREFOX_VERSION}}.tar.bz2`
     - replace the `{{FIREFOX_VERSION}}` with the target version, for example, `133.0` for Firefox 133
-  
+
 > [!TIP]
 > You can pass `SE_BROWSER_VERSION` environment variables to the test command to specify the browser and driver versions.
 > For example, `SE_BROWSER_VERSION=125 pytest -v --runtime=firefox` will use Firefox 133.
