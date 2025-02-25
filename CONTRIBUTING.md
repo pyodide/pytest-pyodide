@@ -46,7 +46,8 @@ Installing Node.js is easy compared to other runtimes.
 So unless you have a specific reason to use other runtimes, such as fixing a bug in Chrome or Firefox,
 using Node.js is recommended.
 
-Install Node.js by following the instructions on the [official website](https://nodejs.org/).
+Install Node.js by following the instructions on the [official website](https://nodejs.org/),
+or use [nvm](https://github.com/nvm-sh/nvm) if you don't want to change the global Node.js version
 After the installation, `node` executable should be available in your PATH.
 
 Using the latest LTS version of Node.js is recommended.
@@ -65,7 +66,7 @@ However, if you want to use your own browser or WebDriver, you can install them 
 - Chrome
   - You can download chrome and chromedriver from the [chrome-for-testing](https://github.com/GoogleChromeLabs/chrome-for-testing) repository.
 - Firefox
-  - You can download geckodriver from the following respository: https://github.com/mozilla/geckodriver.
+  - You can download geckodriver from the following repository: https://github.com/mozilla/geckodriver.
   - Firefox does not support official ways to download older versions, but you can find them in the following link:
     - `https://download-installer.cdn.mozilla.net/pub/firefox/releases/{{FIREFOX_VERSION}}/linux-x86_64/en-US/firefox-{{FIREFOX_VERSION}}.tar.bz2`
     - replace the `{{FIREFOX_VERSION}}` with the target version, for example, `133.0` for Firefox 133
