@@ -1,3 +1,10 @@
+## Unreleased
+
+### Fixed
+
+- Fixed path handling in windows environment.
+  [#145](https://github.com/pyodide/pytest-pyodide/pull/145)
+
 ## [0.58.3] - 2024-07-23
 
 ### Added
