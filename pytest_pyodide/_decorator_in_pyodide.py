@@ -17,9 +17,11 @@ https://github.com/pyodide/pytest-pyodide/issues/43
 """
 
 import pickle
+import sys
 from base64 import b64decode, b64encode
 from inspect import isclass
 from io import BytesIO
+from types import ModuleType
 from typing import Any
 
 import pyodide_js
@@ -95,6 +97,9 @@ def decode(x: str) -> Any:
     return Unpickler(BytesIO(b64decode(x))).load()
 
 
+TEST_MODULE_NAME = "__test_module__"
+
+
 async def run_in_pyodide_main(
     mod64: str, args64: str, module_filename: str, func_name: str, async_func: bool
 ) -> tuple[int, str]:
@@ -108,9 +113,14 @@ async def run_in_pyodide_main(
     mod = decode(mod64)
     args: tuple[Any] = decode(args64)
 
+    # Set up test module
+    module = ModuleType(module_filename)
+    module.__file__ = module_filename
+    sys.modules[TEST_MODULE_NAME] = module
+    d = module.__dict__
+
     # Compile and execute the ast
     co = compile(mod, module_filename, "exec")
-    d: dict[str, Any] = {}
     exec(co, d)
 
     try:
@@ -142,6 +152,9 @@ async def run_in_pyodide_main(
         except ImportError:
             pass
         return (1, encode(e))
+    finally:
+        # Remove test module
+        del sys.modules[TEST_MODULE_NAME]
 
 
 __all__ = ["PyodideHandle", "encode"]
