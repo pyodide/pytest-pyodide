@@ -1,5 +1,6 @@
 import ast
 import functools
+import os
 import pickle
 import sys
 from base64 import b64decode, b64encode
@@ -383,6 +384,7 @@ class run_in_pyodide:
         packages: Collection[str] = (),
         pytest_assert_rewrites: bool = True,
         *,
+        skip_if_not_all_built: bool = "CI" in os.environ,
         _force_assert_rewrites: bool = False,
     ):
         """
@@ -402,6 +404,15 @@ class run_in_pyodide:
             If True, use pytest assertion rewrites. This gives better error messages
             when an assertion fails, but requires us to load pytest.
         """
+
+        unbuilt = sorted(pkg for pkg in packages if not package_is_built(pkg))
+        if unbuilt:
+            msg = "Requires unbuilt packages: " + ", ".join(unbuilt)
+            if "PYTEST_CURRENT_TEST" not in os.environ:
+                raise RuntimeError(msg)
+            if skip_if_not_all_built:
+                pytest.skip(msg)
+            pytest.fail(msg)
 
         self._pkgs = list(packages)
         pytest_assert_rewrites = _force_assert_rewrites or (
