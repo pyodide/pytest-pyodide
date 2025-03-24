@@ -404,16 +404,6 @@ class run_in_pyodide:
             If True, use pytest assertion rewrites. This gives better error messages
             when an assertion fails, but requires us to load pytest.
         """
-
-        unbuilt = sorted(pkg for pkg in packages if not package_is_built(pkg))
-        if unbuilt:
-            msg = "Requires unbuilt packages: " + ", ".join(unbuilt)
-            if "PYTEST_CURRENT_TEST" not in os.environ:
-                raise RuntimeError(msg)
-            if skip_if_not_all_built:
-                pytest.skip(msg)
-            pytest.fail(msg)
-
         self._pkgs = list(packages)
         pytest_assert_rewrites = _force_assert_rewrites or (
             pytest_assert_rewrites and package_is_built("pytest")
@@ -459,6 +449,14 @@ class run_in_pyodide:
         """The main runner, called from the AST generated in _create_outer_func."""
         __tracebackhide__ = True
         code = self._code_template(args)
+        unbuilt = sorted(pkg for pkg in self._pkgs if not package_is_built(pkg))
+        if unbuilt:
+            msg = "Requires unbuilt packages: " + ", ".join(unbuilt)
+            if "PYTEST_CURRENT_TEST" not in os.environ:
+                raise RuntimeError(msg)
+            if skip_if_not_all_built:
+                pytest.skip(msg)
+            pytest.fail(msg)
         if self._pkgs:
             selenium.load_package(self._pkgs)
 
