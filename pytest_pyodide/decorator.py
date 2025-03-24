@@ -405,6 +405,7 @@ class run_in_pyodide:
             when an assertion fails, but requires us to load pytest.
         """
         self._pkgs = list(packages)
+        self._skip_if_not_all_built = skip_if_not_all_built
         pytest_assert_rewrites = _force_assert_rewrites or (
             pytest_assert_rewrites and package_is_built("pytest")
         )
@@ -448,18 +449,18 @@ class run_in_pyodide:
     def _run(self, selenium: SeleniumType, args: tuple):
         """The main runner, called from the AST generated in _create_outer_func."""
         __tracebackhide__ = True
-        code = self._code_template(args)
-        unbuilt = sorted(pkg for pkg in self._pkgs if not package_is_built(pkg))
+
+        unbuilt = sorted(pkg for pkg in self._pk if not package_is_built(pkg))
         if unbuilt:
             msg = "Requires unbuilt packages: " + ", ".join(unbuilt)
             if "PYTEST_CURRENT_TEST" not in os.environ:
                 raise RuntimeError(msg)
-            if skip_if_not_all_built:
+            if self._skip_if_not_all_built:
                 pytest.skip(msg)
             pytest.fail(msg)
-        if self._pkgs:
-            selenium.load_package(self._pkgs)
+        selenium.load_package(self._pkgs)
 
+        code = self._code_template(args)
         r = selenium.run_async(code)
         [status, result] = r
 
