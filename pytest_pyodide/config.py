@@ -2,6 +2,7 @@
 Stores the global runtime configuration related to the pytest_pyodide package.
 """
 
+from collections.abc import Iterable, Sequence
 from typing import Literal
 
 RUNTIMES = Literal["chrome", "firefox", "node", "safari"]
@@ -31,6 +32,7 @@ class Config:
 
         # The script to be executed to initialize the runtime.
         self.initialize_script: str = "pyodide.runPython('');"
+        self.node_extra_globals = []
 
     def set_flags(self, runtime: RUNTIMES, flags: list[str]):
         self.flags[runtime] = flags
@@ -49,6 +51,12 @@ class Config:
 
     def get_initialize_script(self) -> str:
         return self.initialize_script
+
+    def add_node_extra_globals(self, l: Iterable[str]):
+        self.node_extra_globals.update(l)
+
+    def get_node_extra_globals(self) -> Sequence[str]:
+        return self.node_extra_globals
 
 
 SINGLETON = Config()
