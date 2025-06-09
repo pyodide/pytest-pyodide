@@ -5,7 +5,7 @@ const util = require("util");
 
 const baseUrl = process.argv[2];
 const distDir = process.argv[3];
-const EXTRA_GLOBALS = JSON.parse(process.env[NODE_TEST_DRIVER_EXTRA_GLOBALS]);
+const EXTRA_GLOBALS = JSON.parse(process.env.NODE_TEST_DRIVER_EXTRA_GLOBALS);
 
 
 const { loadPyodide } = require(`${distDir}/pyodide`);
