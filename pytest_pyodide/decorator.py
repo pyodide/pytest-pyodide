@@ -163,7 +163,7 @@ def value_to_name_or_none(
 
 
 def prepare_outer_funcdef(
-    funcdef: MaybeAsyncFuncDef, f: Callable
+    funcdef: MaybeAsyncFuncDef, f: Callable[..., Any]
 ) -> tuple[MaybeAsyncFuncDef, dict[str, Any]]:
     funcdef = deepcopy(funcdef)
     # Clear out the decorator list.
@@ -189,8 +189,8 @@ def prepare_outer_funcdef(
 
 
 def _create_outer_func(
-    run: Callable, funcdef: MaybeAsyncFuncDef, f: Callable
-) -> Callable:
+    run: Callable[..., Any], funcdef: MaybeAsyncFuncDef, f: Callable[..., Any]
+) -> Callable[..., Any]:
     """
     Create the top level item: it will be called by pytest and it calls
     run.
@@ -313,7 +313,7 @@ del temp
 
 
 def _locate_funcdef(
-    module_ast: ast.Module, f: Callable
+    module_ast: ast.Module, f: Callable[..., Any]
 ) -> tuple[list[ast.stmt], MaybeAsyncFuncDef]:
     """Locate the statements from the original module that we need to make our
     wrapper function.
@@ -364,7 +364,7 @@ def _locate_funcdef(
 
 
 class run_in_pyodide:
-    def __new__(cls, function: Callable | None = None, /, **kwargs):
+    def __new__(cls, function: Callable[..., Any] | None = None, /, **kwargs):
         if function:
             # Probably we were used like:
             #
@@ -422,7 +422,7 @@ class run_in_pyodide:
                 self._pkgs.append(pkg)
                 break
 
-    def __call__(self, f: Callable) -> Callable:
+    def __call__(self, f: Callable[..., Any]) -> Callable[..., Any]:
         module = sys.modules[f.__module__]
         module_filename = module.__file__ or ""
         module_ast = self._module_asts_dict[module_filename]
@@ -442,7 +442,7 @@ class run_in_pyodide:
         self._async_func = isinstance(funcdef, ast.AsyncFunctionDef)
         return wrapper
 
-    def _run(self, selenium: SeleniumType, args: tuple):
+    def _run(self, selenium: SeleniumType, args: tuple[Any, ...]):
         """The main runner, called from the AST generated in _create_outer_func."""
         __tracebackhide__ = True
         code = self._code_template(args)
@@ -458,7 +458,7 @@ class run_in_pyodide:
         else:
             return result
 
-    def _code_template(self, args: tuple) -> str:
+    def _code_template(self, args: tuple[Any, ...]) -> str:
         """
         Unpickle function ast and its arguments, compile and call function, and
         if the function is async await the result. Last, if there was an
