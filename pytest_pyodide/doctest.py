@@ -3,7 +3,6 @@ from collections.abc import Callable
 from copy import copy
 from doctest import DocTest, DocTestRunner, register_optionflag
 from pathlib import Path
-from typing import cast
 
 from _pytest.doctest import (
     DoctestModule,
@@ -39,7 +38,7 @@ def runtime_parametrize(item):
     """
     scope = Scope.from_user("module", "")
     name: str
-    runtimes = cast(list[str], pytest_wrapper.pyodide_runtimes)
+    runtimes = pytest_wrapper.pyodide_runtimes
     for idx, name in enumerate(runtimes):
         newitem = copy(item)
         # dtest is the actual doctest, we have to mutate it to allow pickling so
