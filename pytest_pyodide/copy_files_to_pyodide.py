@@ -1,18 +1,21 @@
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .runner import _BrowserBaseRunner
 
 from .server import spawn_web_server
 
-_copied_files: dict[Any, MutableSequence[tuple[Path, str]]] = {}
+_copied_files: dict["_BrowserBaseRunner", MutableSequence[tuple[Path, str]]] = {}
 
 
 def copy_files_to_emscripten_fs(
     file_list: Sequence[Path | str | tuple[Path | str, Path | str]],
-    selenium: Any,
-    install_wheels=True,
-    recurse_directories=True,
-):
+    selenium: "_BrowserBaseRunner",
+    install_wheels: bool = True,
+    recurse_directories: bool = True,
+) -> None:
     """
     Copies files in file_list to the emscripten file system. Files
     are passed as a list of source Path / install Path pairs.

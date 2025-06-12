@@ -186,7 +186,7 @@ def set_runtime_fixture_params(session):
     rt[0].params = pytest_wrapper.pyodide_runtimes
 
 
-def pytest_collection(session: Session):
+def pytest_collection(session: Session) -> None:
     from .doctest import patch_doctest_runner
 
     patch_doctest_runner()
@@ -194,7 +194,7 @@ def pytest_collection(session: Session):
     set_runtime_fixture_params(session)
 
 
-def pytest_collect_file(file_path: Path, parent: Collector):
+def pytest_collect_file(file_path: Path, parent: Collector) -> Any:
     # Have to set doctestmodules to False to prevent original hook from
     # triggering
     parent.config.option.doctestmodules = False
@@ -258,7 +258,7 @@ def _has_standalone_fixture(item):
     return False
 
 
-def modifyitems_run_in_pyodide(items: list[Any]):
+def modifyitems_run_in_pyodide(items: list[Any]) -> None:
     # TODO: get rid of this
     # if we are running tests in pyodide, then run all tests for each runtime
     new_items = []
@@ -273,7 +273,6 @@ def modifyitems_run_in_pyodide(items: list[Any]):
             x.pyodide_runtime = runtime
             new_items.append(x)
     items[:] = new_items
-    return
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
