@@ -1,9 +1,17 @@
-## Unreleased
+## [0.58.5] - 2025-07-12
+
+### Added
+
+- It's now possible to control what variables go in the Node global scope with
+  `Config.add_node_extra_globals()`.
+  [#154](https://github.com/pyodide/pytest-pyodide/pull/154)
 
 ### Fixed
 
 - Fixed path handling in windows environment.
   [#145](https://github.com/pyodide/pytest-pyodide/pull/145)
+- Dynamic imports now work correctly when running JavaScript in node.
+  [#147](https://github.com/pyodide/pytest-pyodide/pull/147)
 
 ## [0.58.3] - 2024-07-23
 
