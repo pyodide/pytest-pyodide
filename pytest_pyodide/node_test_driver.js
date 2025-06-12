@@ -3,16 +3,17 @@ const readline = require("readline");
 const path = require("path");
 const util = require("util");
 
-let nodeFetch = globalThis.fetch;
-let baseUrl = process.argv[2];
-let distDir = process.argv[3];
+const baseUrl = process.argv[2];
+const distDir = process.argv[3];
+const EXTRA_GLOBALS = JSON.parse(process.env.PYTEST_PYODIDE_NODE_TEST_DRIVER_EXTRA_GLOBALS);
 
-let { loadPyodide } = require(`${distDir}/pyodide`);
+
+const { loadPyodide } = require(`${distDir}/pyodide`);
 process.chdir(distDir);
 
 // node requires full paths.
 function _fetch(path, ...args) {
-  return nodeFetch(new URL(path, baseUrl).toString(), ...args);
+  return fetch(new URL(path, baseUrl).toString(), ...args);
 }
 
 const context = {
@@ -20,24 +21,25 @@ const context = {
   path,
   process,
   require,
-  setTimeout,
   fetch: _fetch,
-  TextDecoder: util.TextDecoder,
-  TextEncoder: util.TextEncoder,
-  URL,
-  clearInterval,
+  TextDecoder,
+  TextEncoder,
+  setTimeout,
   clearTimeout,
   setInterval,
-  setTimeout,
-  Headers,
+  clearInterval,
   AbortController,
   AbortSignal,
 };
+for (const global of EXTRA_GLOBALS) {
+  context[global] = globalThis[global];
+}
+
 vm.createContext(context);
 vm.runInContext("globalThis.self = globalThis;", context);
 
 // Get rid of all colors in output of console.log, they mess us up.
-for (let key of Object.keys(util.inspect.styles)) {
+for (const key of Object.keys(util.inspect.styles)) {
   util.inspect.styles[key] = undefined;
 }
 

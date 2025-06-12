@@ -12,3 +12,5 @@ def test_js_globals(selenium_standalone):
     hasattr(js, "setTimeout")
     hasattr(js, "clearTimeout")
     hasattr(js, "setInterval")
+    hasattr(js, "Request")
+    hasattr(js, "Response")

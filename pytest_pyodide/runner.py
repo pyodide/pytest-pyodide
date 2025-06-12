@@ -1,4 +1,5 @@
 import json
+import os
 import textwrap
 from pathlib import Path
 
@@ -534,7 +535,11 @@ class NodeRunner(_BrowserBaseRunner):
 
     def init_node(self, jspi=False):
         curdir = Path(__file__).parent
-        self.p = pexpect.spawn("/bin/bash", timeout=60)
+        globals_str = json.dumps(self._config.get_node_extra_globals())
+        env = os.environ.copy() | {
+            "PYTEST_PYODIDE_NODE_TEST_DRIVER_EXTRA_GLOBALS": globals_str
+        }
+        self.p = pexpect.spawn("/bin/bash", timeout=60, env=env)
         self.p.setecho(False)
         self.p.delaybeforesend = None
 
