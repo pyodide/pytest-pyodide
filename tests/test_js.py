@@ -5,12 +5,12 @@ from pytest_pyodide import run_in_pyodide
 def test_js_globals(selenium_standalone):
     import js
 
-    hasattr(js, "fetch")
-    hasattr(js, "Object")
-    hasattr(js, "AbortController")
-    hasattr(js, "AbortSignal")
-    hasattr(js, "setTimeout")
-    hasattr(js, "clearTimeout")
-    hasattr(js, "setInterval")
-    hasattr(js, "Request")
-    hasattr(js, "Response")
+    assert hasattr(js, "fetch")
+    assert hasattr(js, "Object")
+    assert hasattr(js, "AbortController")
+    assert hasattr(js, "AbortSignal")
+    assert hasattr(js, "setTimeout")
+    assert hasattr(js, "clearTimeout")
+    assert hasattr(js, "setInterval")
+    assert hasattr(js, "Request")
+    assert hasattr(js, "Response")

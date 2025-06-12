@@ -1,3 +1,10 @@
+## [0.58.6] - 2025-07-12
+
+### Fixed
+
+- `Config.add_node_extra_globals()` actually works now.
+  [#154](https://github.com/pyodide/pytest-pyodide/pull/154)
+
 ## [0.58.5] - 2025-07-12
 
 ### Added
