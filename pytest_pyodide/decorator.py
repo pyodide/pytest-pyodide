@@ -8,10 +8,8 @@ from copy import deepcopy
 from io import BytesIO
 from typing import Any, Protocol
 
-import pytest
-
 from .copy_files_to_pyodide import copy_files_to_emscripten_fs
-from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS
+from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS, pytest_wrapper
 from .runner import _BrowserBaseRunner
 from .utils import package_is_built as _package_is_built
 
@@ -19,7 +17,7 @@ MaybeAsyncFuncDef = ast.FunctionDef | ast.AsyncFunctionDef
 
 
 def package_is_built(package_name: str):
-    return _package_is_built(package_name, pytest.pyodide_dist_dir)
+    return _package_is_built(package_name, pytest_wrapper.pyodide_dist_dir)
 
 
 class SeleniumType(Protocol):
@@ -279,7 +277,7 @@ def _create_outer_func(
     globs.update({run_id: run})
     exec(co, globs)
 
-    return globs[funcdef.name]
+    return globs[funcdef.name]  # type: ignore[no-any-return]
 
 
 def initialize_decorator(selenium):

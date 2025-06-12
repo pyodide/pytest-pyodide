@@ -29,14 +29,14 @@ def parse_driver_timeout(node) -> float | None:
     if mark is None:
         return None
     else:
-        return mark.args[0]
+        return mark.args[0]  # type: ignore[no-any-return]
 
 
 def parse_xfail_browsers(node) -> dict[str, str]:
     mark = node.get_closest_marker("xfail_browsers")
     if mark is None:
         return {}
-    return mark.kwargs
+    return mark.kwargs  # type: ignore[no-any-return]
 
 
 @functools.cache
