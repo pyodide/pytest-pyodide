@@ -4,9 +4,10 @@ import xml.etree.ElementTree as ET
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, TYPE_CHECKING
 
-from .runner import _BrowserBaseRunner
+if TYPE_CHECKING:
+    from .runner import _BrowserBaseRunner
 
 T = TypeVar("T")
 
