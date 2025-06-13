@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from .config import get_global_config
+from .hook import pytest_wrapper
 from .runner import (
     NodeRunner,
     PlaywrightChromeRunner,
@@ -39,7 +40,7 @@ def _playwright_browsers(request):
                 returncode=1,
             )
 
-        runtimes = pytest.pyodide_runtimes
+        runtimes = pytest_wrapper.pyodide_runtimes
         cfg = get_global_config()
 
         with sync_playwright() as p:

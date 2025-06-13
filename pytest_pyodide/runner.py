@@ -7,6 +7,7 @@ import pexpect
 import pytest
 
 from .config import RUNTIMES, get_global_config
+from .hook import pytest_wrapper
 
 TEST_SETUP_CODE = """
 Error.stackTraceLimit = Infinity;
@@ -267,7 +268,7 @@ class _BrowserBaseRunner:
 
     @property
     def force_test_fail(self) -> bool:
-        return self.run_js("return !!pyodide._api.fail_test;")
+        return self.run_js("return !!pyodide._api.fail_test;")  # type: ignore[no-any-return]
 
     def clear_force_test_fail(self):
         self.run_js("pyodide._api.fail_test = false;")
@@ -467,7 +468,7 @@ GLOBAL_SAFARI_WEBDRIVER = None
 
 @pytest.fixture(scope="session", autouse=True)
 def use_global_safari_service():
-    if "safari" in pytest.pyodide_runtimes:
+    if "safari" in pytest_wrapper.pyodide_runtimes:
         global GLOBAL_SAFARI_WEBDRIVER
 
         from selenium.webdriver.common.driver_finder import DriverFinder

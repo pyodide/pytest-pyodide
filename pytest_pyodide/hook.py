@@ -31,6 +31,26 @@ RUNTIMES_AND_HOST = RUNTIMES + ["host"]
 RUNTIMES_NO_HOST = [f"{runtime}-no-host" for runtime in RUNTIMES]
 
 
+class PytestWrapper:
+    """The point of this class is to let us typecheck the
+    attributes we add to pytest.
+    """
+
+    pyodide_run_host_test: bool
+    pyodide_runtimes: set[str]
+    pyodide_dist_dir: Path
+    pyodide_options_stack: list[tuple[bool, set[str], Path]]
+
+    def __setattr__(self, name, value):
+        setattr(pytest, name, value)
+
+    def __getattr__(self, name):
+        return getattr(pytest, name)
+
+
+pytest_wrapper = PytestWrapper()
+
+
 def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
     """Preprocess the given runtime commandline parameter
 
@@ -96,28 +116,28 @@ def pytest_configure(config):
     run_host, runtimes = _filter_runtimes(config.option.runtime)
 
     if not hasattr(pytest, "pyodide_options_stack"):
-        pytest.pyodide_options_stack = []
+        pytest_wrapper.pyodide_options_stack = []
     else:
-        pytest.pyodide_options_stack.append(
-            [
-                pytest.pyodide_run_host_test,
-                pytest.pyodide_runtimes,
-                pytest.pyodide_dist_dir,
-            ]
+        pytest_wrapper.pyodide_options_stack.append(
+            (
+                pytest_wrapper.pyodide_run_host_test,
+                pytest_wrapper.pyodide_runtimes,
+                pytest_wrapper.pyodide_dist_dir,
+            )
         )
-    pytest.pyodide_run_host_test = run_host
-    pytest.pyodide_runtimes = runtimes
-    pytest.pyodide_dist_dir = config.option.dist_dir
+    pytest_wrapper.pyodide_run_host_test = run_host
+    pytest_wrapper.pyodide_runtimes = runtimes
+    pytest_wrapper.pyodide_dist_dir = config.option.dist_dir
 
 
 def pytest_unconfigure(config):
     close_pyodide_browsers()
     try:
         (
-            pytest.pyodide_run_host_test,
-            pytest.pyodide_runtimes,
-            pytest.pyodide_dist_dir,
-        ) = pytest.pyodide_options_stack.pop()  # type:ignore[attr-defined]
+            pytest_wrapper.pyodide_run_host_test,
+            pytest_wrapper.pyodide_runtimes,
+            pytest_wrapper.pyodide_dist_dir,
+        ) = pytest_wrapper.pyodide_options_stack.pop()
     except IndexError:
         pass
 
@@ -163,7 +183,7 @@ def runtime(request):
 
 def set_runtime_fixture_params(session):
     rt = session._fixturemanager._arg2fixturedefs["runtime"]
-    rt[0].params = pytest.pyodide_runtimes
+    rt[0].params = pytest_wrapper.pyodide_runtimes
 
 
 def pytest_collection(session: Session):
@@ -245,7 +265,7 @@ def modifyitems_run_in_pyodide(items: list[Any]):
     # if pyodide_runtimes is not a singleton this is buggy...
     # pytest_collection_modifyitems is only allowed to filter and reorder items,
     # not to add new ones...
-    for runtime in pytest.pyodide_runtimes:  # type: ignore[attr-defined]
+    for runtime in pytest_wrapper.pyodide_runtimes:
         if runtime == "host":
             continue
         for x in items:
@@ -284,7 +304,7 @@ def pytest_runtest_setup(item):
     if item.config.option.run_in_pyodide:
         if not hasattr(item, "fixturenames"):
             return
-        if pytest.pyodide_runtimes and "runtime" in item.fixturenames:
+        if pytest_wrapper.pyodide_runtimes and "runtime" in item.fixturenames:
             pytest.skip(reason="pyodide specific test, can't run in pyodide")
         else:
             # Pass this test to pyodide runner
@@ -317,9 +337,12 @@ def pytest_runtest_setup(item):
         if not hasattr(item, "fixturenames"):
             # Some items like DoctestItem have no fixture
             return
-        if not pytest.pyodide_runtimes and "runtime" in item.fixturenames:
+        if not pytest_wrapper.pyodide_runtimes and "runtime" in item.fixturenames:
             pytest.skip(reason="Non-host test")
-        elif not pytest.pyodide_run_host_test and "runtime" not in item.fixturenames:
+        elif (
+            not pytest_wrapper.pyodide_run_host_test
+            and "runtime" not in item.fixturenames
+        ):
             pytest.skip("Host test")
 
 
