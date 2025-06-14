@@ -3,13 +3,20 @@ import sys
 import xml.etree.ElementTree as ET
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING, Generic, TypeVar
+
+if TYPE_CHECKING:
+    from .runner import _BrowserBaseRunner
+
+T = TypeVar("T")
 
 import pytest
 
 from .server import spawn_web_server
 
 
-class ContextManagerUnwrapper:
+class ContextManagerUnwrapper(Generic[T]):
     """Class to take a context manager (e.g. a pytest fixture or something)
     and unwrap it so that it can be used for the whole of the module.
 
@@ -18,11 +25,11 @@ class ContextManagerUnwrapper:
     of the standard pytest_pyodide code here.
     """
 
-    def __init__(self, ctx_manager: AbstractContextManager):
+    def __init__(self, ctx_manager: AbstractContextManager[T]):
         self.ctx_manager = ctx_manager
         self.value = ctx_manager.__enter__()
 
-    def get_value(self):
+    def get_value(self) -> T:
         return self.value
 
     def __del__(self):
@@ -31,13 +38,13 @@ class ContextManagerUnwrapper:
     def close(self):
         if self.ctx_manager is not None:
             self.ctx_manager.__exit__(None, None, None)
-            self.value = None
+            del self.value
 
 
 @dataclass
 class _SeleniumInstance:
-    selenium: ContextManagerUnwrapper
-    server: ContextManagerUnwrapper
+    selenium: "ContextManagerUnwrapper[_BrowserBaseRunner]"
+    server: "ContextManagerUnwrapper[tuple[str, str, Path]]"
 
 
 _seleniums: dict[str, _SeleniumInstance] = {}
