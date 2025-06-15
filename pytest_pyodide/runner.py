@@ -178,7 +178,7 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            self._config.get_load_pyodide_script(self.browser).replace(PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, str(pytest_wrapper.pyodide_lockfile_dir))
+            self._config.get_load_pyodide_script(self.browser).replace(PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, str(pytest_wrapper.pyodide_lockfile_dir / "pyodide-lock.json"))
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
 
