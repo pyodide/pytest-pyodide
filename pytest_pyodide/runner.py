@@ -115,9 +115,10 @@ class _BrowserBaseRunner:
 
     def __init__(
         self,
-        server_port,
-        server_hostname="127.0.0.1",
-        server_log=None,
+        runtime_server_url,
+        lockfile_server_url,
+        runtime_server_log=None,
+        lockfile_server_log=None,
         load_pyodide=True,
         script_type="classic",
         dist_dir=None,
@@ -127,10 +128,9 @@ class _BrowserBaseRunner:
     ):
         self._config = get_global_config()
 
-        self.server_port = server_port
-        self.server_hostname = server_hostname
-        self.base_url = f"http://{self.server_hostname}:{self.server_port}"
-        self.server_log = server_log
+        self.base_url = runtime_server_url
+        self.lockfile_server_url = lockfile_server_url
+        self.server_log = runtime_server_log
         self.script_type = script_type
         self.dist_dir = dist_dir
         self.driver = self.get_driver(jspi)
@@ -178,7 +178,7 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            self._config.get_load_pyodide_script(self.browser).replace(PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, str(pytest_wrapper.pyodide_lockfile_dir / "pyodide-lock.json"))
+            self._config.get_load_pyodide_script(self.browser).replace(PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, str(self.lockfile_server_url / "pyodide-lock.json"))
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
 

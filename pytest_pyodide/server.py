@@ -93,12 +93,13 @@ def spawn_web_server(dist_dir, extra_headers=None, handler_cls=None):
         p.start()
         port = q.get(timeout=20)
         hostname = "127.0.0.1"
+        url = f"http://{hostname}:{port}"
 
         print(
-            f"Spawning webserver at http://{hostname}:{port} "
+            f"Spawning webserver at {url} "
             f"(see logs in {log_path})"
         )
-        yield hostname, port, log_path
+        yield url, log_path
     finally:
         q.put("TERMINATE")
         p.join()
