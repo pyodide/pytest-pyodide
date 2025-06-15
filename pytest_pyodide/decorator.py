@@ -17,7 +17,7 @@ MaybeAsyncFuncDef = ast.FunctionDef | ast.AsyncFunctionDef
 
 
 def package_is_built(package_name: str):
-    return _package_is_built(package_name, pytest_wrapper.pyodide_dist_dir)
+    return _package_is_built(package_name, pytest_wrapper.pyodide_lockfile_dir)
 
 
 class SeleniumType(Protocol):

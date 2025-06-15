@@ -5,10 +5,12 @@ Stores the global runtime configuration related to the pytest_pyodide package.
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
+from .hook import pytest_wrapper
+
 RUNTIMES = Literal["chrome", "firefox", "node", "safari"]
 
 _global_load_pyodide_script = """
-let pyodide = await loadPyodide({ fullStdLib: false, jsglobals : self });
+let pyodide = await loadPyodide({ fullStdLib: false, jsglobals : self, lockFileURL: "%s" });
 """
 
 
@@ -22,12 +24,16 @@ class Config:
             "safari": [],
         }
 
+        global_load_pyodide_script = _global_load_pyodide_script % (
+            pytest_wrapper.pyodide_lockfile_dir / "pyodide-lock.json"
+        )
+
         # The script to be executed to load the Pyodide.
         self.load_pyodide_script: dict[RUNTIMES, str] = {
-            "chrome": _global_load_pyodide_script,
-            "firefox": _global_load_pyodide_script,
-            "node": _global_load_pyodide_script,
-            "safari": _global_load_pyodide_script,
+            "chrome": global_load_pyodide_script,
+            "firefox": global_load_pyodide_script,
+            "node": global_load_pyodide_script,
+            "safari": global_load_pyodide_script,
         }
 
         # The script to be executed to initialize the runtime.
@@ -59,11 +65,16 @@ class Config:
         return self.node_extra_globals
 
 
-SINGLETON = Config()
+SINGLETON = None
 
 
 def get_global_config() -> Config:
     """
     Return the singleton config object.
     """
+    global SINGLETON
+    if not isinstance(SINGLETON, Config):
+        # lazy initialization so that the global config object can use the pytest configs
+        SINGLETON = Config()
+
     return SINGLETON

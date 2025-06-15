@@ -21,6 +21,21 @@ def test_dist_dir(pytester):
     result.assert_outcomes(passed=1)
 
 
+def test_lockfile_dir(pytester):
+    lockfile_dir = str(Path("lockfile").resolve())
+
+    pytester.makepyfile(
+        f"""
+        import pytest
+        def test_option(request):
+            assert str(request.config.getoption("--lockfile-dir", "")) == {lockfile_dir!r}
+        """
+    )
+
+    result = pytester.runpytest("--lockfile-dir", "lockfile")
+    result.assert_outcomes(passed=1)
+
+
 @pytest.mark.parametrize("runner", ["selenium", "playwright"])
 def test_runner(pytester, runner):
     pytester.makepyfile(
@@ -102,12 +117,14 @@ def test_options_pytester(pytester):
                 assert pytest.pyodide_run_host_test == True
                 assert pytest.pyodide_runtimes == set(["chrome","firefox","safari","node"])
                 assert pytest.pyodide_dist_dir == Path("some_weird_dir").resolve()
+                assert pytest.pyodide_lockfile_dir == Path("some_other_dir").resolve()
             """
         )
     )
     run_host = pytest.pyodide_run_host_test
     runtimes = pytest.pyodide_runtimes
     dist_dir = pytest.pyodide_dist_dir
+    lockfile_dir = pytest.pyodide_lockfile_dir
 
     result = pytester.runpytest(
         "--dist-dir",
@@ -116,9 +133,12 @@ def test_options_pytester(pytester):
         "chrome,firefox,safari,node",
         "--dist-dir",
         "some_weird_dir",
+        "--lockfile-dir",
+        "some_other_dir",
     )
     result.assert_outcomes(passed=1)
 
     assert run_host == pytest.pyodide_run_host_test
     assert runtimes == pytest.pyodide_runtimes
     assert dist_dir == pytest.pyodide_dist_dir
+    assert lockfile_dir == pytest.pyodide_lockfile_dir

@@ -39,6 +39,7 @@ class PytestWrapper:
     pyodide_run_host_test: bool
     pyodide_runtimes: set[str]
     pyodide_dist_dir: Path
+    pyodide_lockfile_dir: Path
     pyodide_options_stack: list[tuple[bool, set[str], Path]]
 
     def __setattr__(self, name, value):
@@ -123,11 +124,16 @@ def pytest_configure(config):
                 pytest_wrapper.pyodide_run_host_test,
                 pytest_wrapper.pyodide_runtimes,
                 pytest_wrapper.pyodide_dist_dir,
+                pytest_wrapper.pyodide_lockfile_dir,
             )
         )
     pytest_wrapper.pyodide_run_host_test = run_host
     pytest_wrapper.pyodide_runtimes = runtimes
     pytest_wrapper.pyodide_dist_dir = config.option.dist_dir
+    if config.option.lockfile_path is None:
+        pytest_wrapper.pyodide_lockfile_dir = config.option.dist_dir
+    else:
+        pytest_wrapper.pyodide_lockfile_dir = config.option.lockfile_dir
 
 
 def pytest_unconfigure(config):
@@ -137,6 +143,7 @@ def pytest_unconfigure(config):
             pytest_wrapper.pyodide_run_host_test,
             pytest_wrapper.pyodide_runtimes,
             pytest_wrapper.pyodide_dist_dir,
+            pytest_wrapper.pyodide_lockfile_dir,
         ) = pytest_wrapper.pyodide_options_stack.pop()
     except IndexError:
         pass
@@ -151,6 +158,14 @@ def pytest_addoption(parser):
         action="store",
         default="pyodide",
         help="Path to the pyodide dist directory",
+        type=Path,
+    )
+    group.addoption(
+        "--lockfile-dir",
+        dest="lockfile_dir",
+        action="store",
+        default=None,
+        help="Path to the directory where the pyodide lockfile is stored. Defaults to the dist directory.",
         type=Path,
     )
     group.addoption(
