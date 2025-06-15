@@ -6,7 +6,7 @@ from pathlib import Path
 import pexpect
 import pytest
 
-from .config import RUNTIMES, get_global_config
+from .config import RUNTIMES, get_global_config, PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR
 from .hook import pytest_wrapper
 
 TEST_SETUP_CODE = """
@@ -178,7 +178,7 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            self._config.get_load_pyodide_script(self.browser)
+            self._config.get_load_pyodide_script(self.browser).replace(PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, str(pytest_wrapper.pyodide_lockfile_dir))
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
 

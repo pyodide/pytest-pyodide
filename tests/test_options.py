@@ -142,3 +142,56 @@ def test_options_pytester(pytester):
     assert runtimes == pytest.pyodide_runtimes
     assert dist_dir == pytest.pyodide_dist_dir
     assert lockfile_dir == pytest.pyodide_lockfile_dir
+
+
+def test_options_diffrent_lockfile_dir(pytester, tmp_path):
+    pytester.makepyfile(
+        dedent(
+            """
+            import pytest
+            from pathlib import Path
+
+            def test_options_diffrent_lockfile_dir(selenium_standalone):
+                v = selenium_standalone.run_js("pyodide._api.lockfile_packages.testpkg.version")
+                assert v == "1.2.3"
+            """
+        )
+    )
+
+    test_lockfile = tmp_path / "pyodide-lock.json"
+    test_lockfile.write_text(
+        dedent(
+            """
+            {
+                "info": {
+                    "abi_version": "2025_0",
+                    "arch": "wasm32",
+                    "platform": "emscripten_4_0_9",
+                    "python": "3.13.2",
+                    "version": "0.28.0.dev0"
+                },
+                "packages": {
+                    "testpkg": {
+                        "name": "testpkg",
+                        "version": "1.2.3",
+                        "depends": [],
+                        "file_name": "testpkg-1.2.3-py3-none-any.whl",
+                        "install_dir": "site",
+                        "package_type": "package",
+                        "unvendored_tests": false,
+                        "imports": [],
+                        "sha256": "dummy-sha256-value"
+                    }
+                }
+            }
+            """
+        )
+    )
+
+    result = pytester.runpytest(
+        "--lockfile-dir",
+        str(tmp_path.resolve()),
+    )
+    result.assert_outcomes(passed=1)
+
+    assert pytest.pyodide_lockfile_dir == tmp_path.resolve()
