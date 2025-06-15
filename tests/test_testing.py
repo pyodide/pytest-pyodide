@@ -6,7 +6,7 @@ import pytest
 def test_web_server_secondary(selenium, web_server_secondary):
     (url, logs), _ = web_server_secondary
     assert pathlib.Path(logs).exists()
-    assert selenium.runtime_server_url != url
+    assert selenium.base_url != url
 
 
 def test_host():

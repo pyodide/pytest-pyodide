@@ -188,20 +188,6 @@ def test_options_different_lockfile_dir(request, pytester, tmp_path):
         )
     )
 
-    # result = pytester.inline_run(
-    #     file,
-    #     "--doctest-modules",
-    #     "--dist-dir",
-    #     request.config.getoption("--dist-dir"),
-    #     "--rt",
-    #     ",".join(pytest.pyodide_runtimes),
-    #     "--runner",
-    #     request.config.option.runner,
-    #     "--rootdir",
-    #     str(file.parent),
-    #     plugins=(MyPlugin(),),
-    # )
-
     result = pytester.runpytest(
         "--dist-dir",
         request.config.getoption("--dist-dir"),
@@ -209,6 +195,8 @@ def test_options_different_lockfile_dir(request, pytester, tmp_path):
         str(tmp_path.resolve()),
         "--runner",
         request.config.option.runner,
+        "--rt",
+        ",".join(pytest.pyodide_runtimes),
     )
     result.assert_outcomes(passed=1)
 
