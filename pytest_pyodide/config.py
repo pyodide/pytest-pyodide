@@ -5,7 +5,6 @@ Stores the global runtime configuration related to the pytest_pyodide package.
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
-
 PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR = "PYODIDE_LOCKFILE_URL_PLACEHOLDER"
 RUNTIMES = Literal["chrome", "firefox", "node", "safari"]
 

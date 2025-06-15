@@ -6,7 +6,7 @@ from pathlib import Path
 import pexpect
 import pytest
 
-from .config import RUNTIMES, get_global_config, PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR
+from .config import PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, RUNTIMES, get_global_config
 from .hook import pytest_wrapper
 
 TEST_SETUP_CODE = """
@@ -178,7 +178,10 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            self._config.get_load_pyodide_script(self.browser).replace(PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, str(self.lockfile_server_url / "pyodide-lock.json"))
+            self._config.get_load_pyodide_script(self.browser).replace(
+                PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR,
+                str(self.lockfile_server_url / "pyodide-lock.json"),
+            )
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
 
@@ -321,7 +324,7 @@ class _BrowserBaseRunner:
             }});
             return await res
             """.format(
-                f"http://{self.server_hostname}:{self.server_port}/{worker_file}",
+                f"{self.base_url}/{worker_file}",
                 self.script_type,
                 code,
             ),

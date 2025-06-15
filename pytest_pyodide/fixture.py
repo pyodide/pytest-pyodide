@@ -88,7 +88,10 @@ def selenium_common(
     return None, as initializing Pyodide for selenium is expensive
     """
 
-    (runtime_server_url, runtime_server_log), (lockfile_server_url, lockfile_server_log) = web_server_main
+    (runtime_server_url, runtime_server_log), (
+        lockfile_server_url,
+        lockfile_server_log,
+    ) = web_server_main
     runner_type = request.config.option.runner.lower()
 
     runner_set: dict[tuple[str, str], type[_BrowserBaseRunner]] = {
@@ -108,7 +111,7 @@ def selenium_common(
     dist_dir = Path(os.getcwd(), request.config.getoption("--dist-dir"))
     runner = runner_cls(
         runtime_server_url=runtime_server_url,
-        runtime_server_url=runtime_server_log,
+        runtime_server_log=runtime_server_log,
         lockfile_server_url=lockfile_server_url,
         lockfile_server_log=lockfile_server_log,
         load_pyodide=load_pyodide,
@@ -342,7 +345,11 @@ def console_html_fixture(request, runtime, web_server_main, playwright_browsers)
 @pytest.fixture(scope="session")
 def web_server_main():
     """Web server that serves files in the dist directory"""
-    with spawn_web_server(pytest_wrapper.pyodide_dist_dir) as dist_dir_server, spawn_web_server(pytest_wrapper.pyodide_lockfile_dir) as lockfile_dir_server:
+    with spawn_web_server(
+        pytest_wrapper.pyodide_dist_dir
+    ) as dist_dir_server, spawn_web_server(
+        pytest_wrapper.pyodide_lockfile_dir
+    ) as lockfile_dir_server:
         yield (
             dist_dir_server,
             lockfile_dir_server,
@@ -352,7 +359,11 @@ def web_server_main():
 @pytest.fixture(scope="session")
 def web_server_secondary():
     """Secondary web server that serves files dist directory"""
-    with spawn_web_server(pytest_wrapper.pyodide_dist_dir) as dist_dir_server, spawn_web_server(pytest_wrapper.pyodide_lockfile_dir) as lockfile_dir_server:
+    with spawn_web_server(
+        pytest_wrapper.pyodide_dist_dir
+    ) as dist_dir_server, spawn_web_server(
+        pytest_wrapper.pyodide_lockfile_dir
+    ) as lockfile_dir_server:
         yield (
             dist_dir_server,
             lockfile_dir_server,

@@ -40,7 +40,7 @@ class PytestWrapper:
     pyodide_runtimes: set[str]
     pyodide_dist_dir: Path
     pyodide_lockfile_dir: Path
-    pyodide_options_stack: list[tuple[bool, set[str], Path]]
+    pyodide_options_stack: list[tuple[bool, set[str], Path, Path]]
 
     def __setattr__(self, name, value):
         setattr(pytest, name, value)
