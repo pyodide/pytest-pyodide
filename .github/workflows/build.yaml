@@ -15,7 +15,7 @@ jobs:
       with:
         build-artifact-name: none
         build-artifact-path: none
-        pyodide-versions: "0.27.2,0.26.4"
+        pyodide-versions: "0.28.0a3"
 
   deploy:
     runs-on: ubuntu-24.04

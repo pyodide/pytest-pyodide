@@ -5,10 +5,11 @@ Stores the global runtime configuration related to the pytest_pyodide package.
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
+PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR = "PYODIDE_LOCKFILE_URL_PLACEHOLDER"
 RUNTIMES = Literal["chrome", "firefox", "node", "safari"]
 
-_global_load_pyodide_script = """
-let pyodide = await loadPyodide({ fullStdLib: false, jsglobals : self });
+_global_load_pyodide_script = f"""
+let pyodide = await loadPyodide({{ fullStdLib: false, jsglobals : self, lockFileURL: "{PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR}" }});
 """
 
 

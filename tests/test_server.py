@@ -10,11 +10,10 @@ def test_spawn_web_server_with_params(tmp_path):
     (tmp_path / "index.txt").write_text("a")
     extra_headers = {"Custom-Header": "42"}
     with spawn_web_server(tmp_path, extra_headers=extra_headers) as (
-        hostname,
-        port,
+        url,
         log_path,
     ):
-        res = requests.get(f"http://{hostname}:{port}/index.txt")
+        res = requests.get(f"{url}/index.txt")
         assert res.ok
         assert res.headers
         assert res.content == b"a"
@@ -25,9 +24,9 @@ def test_spawn_web_server_with_params(tmp_path):
 def test_spawn_web_server_default_templates(tmp_path):
     default_templates = _default_templates()
 
-    with spawn_web_server(tmp_path) as (hostname, port, _):
+    with spawn_web_server(tmp_path) as (url, _):
         for path, content in default_templates.items():
-            res = requests.get(f"http://{hostname}:{port}{path}")
+            res = requests.get(f"{url}{path}")
             assert res.ok
             assert res.headers
             assert res.content == content
@@ -46,18 +45,17 @@ def test_spawn_web_server_custom_templates(tmp_path):
     default_templates = _default_templates()
 
     with spawn_web_server(tmp_path, handler_cls=CustomTemplateHandler) as (
-        hostname,
-        port,
+        url,
         _,
     ):
         for path, content in default_templates.items():
-            res = requests.get(f"http://{hostname}:{port}{path}")
+            res = requests.get(f"{url}{path}")
             assert res.ok
             assert res.headers
             assert res.content == content
             assert res.headers["Access-Control-Allow-Origin"] == "*"
 
-        res = requests.get(f"http://{hostname}:{port}/index.txt")
+        res = requests.get(f"{url}/index.txt")
         assert res.ok
         assert res.content == b"hello world"
 
@@ -71,7 +69,7 @@ class HelloWorldHandler(http.server.SimpleHTTPRequestHandler):
 
 def test_custom_handler(tmp_path):
     with spawn_web_server(tmp_path, handler_cls=HelloWorldHandler) as server:
-        hostname, port, _ = server
-        res = requests.get(f"http://{hostname}:{port}/index.txt")
+        url, _ = server
+        res = requests.get(f"{url}/index.txt")
         assert res.ok
         assert res.content == b"hello world"
