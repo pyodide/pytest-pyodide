@@ -1,9 +1,12 @@
+import json
 from pathlib import Path
 from textwrap import dedent
 
 import pytest
 
 from pytest_pyodide.hook import _filter_runtimes
+
+
 
 
 def test_dist_dir(pytester):
@@ -144,49 +147,25 @@ def test_options_pytester(pytester):
     assert lockfile_dir == pytest.pyodide_lockfile_dir
 
 
-def test_options_different_lockfile_dir(request, pytester, tmp_path):
+def test_options_different_lockfile_dir(request, pytester, tmp_path, selenium):
     pytester.makepyfile(
         dedent(
             """
-            import pytest
-            from pathlib import Path
-
-            def test_options_diffrent_lockfile_dir(selenium_standalone):
-                v = selenium_standalone.run_js("pyodide._api.lockfile_packages.testpkg.version")
-                assert v == "1.2.3"
+            def test_options_different_lockfile_dir(selenium_standalone):
+                selenium_standalone.load_package("cloned_micropip")
+                selenium_standalone.run("import micropip")
             """
         )
     )
 
-    test_lockfile = tmp_path / "pyodide-lock.json"
-    test_lockfile.write_text(
-        dedent(
-            """
-            {
-                "info": {
-                    "abi_version": "2025_0",
-                    "arch": "wasm32",
-                    "platform": "emscripten_4_0_9",
-                    "python": "3.13.2",
-                    "version": "0.28.0.dev0"
-                },
-                "packages": {
-                    "testpkg": {
-                        "name": "testpkg",
-                        "version": "1.2.3",
-                        "depends": [],
-                        "file_name": "testpkg-1.2.3-py3-none-any.whl",
-                        "install_dir": "site",
-                        "package_type": "package",
-                        "unvendored_tests": false,
-                        "imports": [],
-                        "sha256": "dummy-sha256-value"
-                    }
-                }
-            }
-            """
-        )
-    )
+    orig_lockfile = f"{selenium.dist_dir}/pyodide-lock.json"
+    new_lockfile = tmp_path / "pyodide-lock.json"
+
+    lockfile_content = json.loads(Path(orig_lockfile).read_text())
+    # assume micropip is always available in the lockfile
+    lockfile_content["packages"]["cloned-micropip"] = lockfile_content["packages"]["micropip"]
+
+    new_lockfile.write_text(json.dumps(lockfile_content, indent=4))
 
     result = pytester.runpytest(
         "--dist-dir",
@@ -199,5 +178,3 @@ def test_options_different_lockfile_dir(request, pytester, tmp_path):
         ",".join(pytest.pyodide_runtimes),
     )
     result.assert_outcomes(passed=1)
-
-    assert pytest.pyodide_lockfile_dir == tmp_path.resolve()

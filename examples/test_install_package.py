@@ -6,7 +6,7 @@ from pytest_pyodide import spawn_web_server
 def test_install_from_custom_server(selenium_standalone):
     with spawn_web_server(Path(__file__).parent / "wheels") as server:
         base_url, _ = server
-        url = base_url + "snowballstemmer-2.2.0-py2.py3-none-any.whl"
+        url = base_url + "/snowballstemmer-2.2.0-py2.py3-none-any.whl"
 
         selenium = selenium_standalone
         selenium.run_js(
