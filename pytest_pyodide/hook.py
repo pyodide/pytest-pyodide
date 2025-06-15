@@ -130,7 +130,7 @@ def pytest_configure(config):
     pytest_wrapper.pyodide_run_host_test = run_host
     pytest_wrapper.pyodide_runtimes = runtimes
     pytest_wrapper.pyodide_dist_dir = config.option.dist_dir
-    if config.option.lockfile_path is None:
+    if config.option.lockfile_dir is None:
         pytest_wrapper.pyodide_lockfile_dir = config.option.dist_dir
     else:
         pytest_wrapper.pyodide_lockfile_dir = config.option.lockfile_dir
