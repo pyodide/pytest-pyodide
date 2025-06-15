@@ -7,8 +7,6 @@ import pytest
 from pytest_pyodide.hook import _filter_runtimes
 
 
-
-
 def test_dist_dir(pytester):
     dist_dir = str(Path("dist").resolve())
 
@@ -163,7 +161,9 @@ def test_options_different_lockfile_dir(request, pytester, tmp_path, selenium):
 
     lockfile_content = json.loads(Path(orig_lockfile).read_text())
     # assume micropip is always available in the lockfile
-    lockfile_content["packages"]["cloned-micropip"] = lockfile_content["packages"]["micropip"]
+    lockfile_content["packages"]["cloned-micropip"] = lockfile_content["packages"][
+        "micropip"
+    ]
 
     new_lockfile.write_text(json.dumps(lockfile_content, indent=4))
 
