@@ -144,7 +144,7 @@ def test_options_pytester(pytester):
     assert lockfile_dir == pytest.pyodide_lockfile_dir
 
 
-def test_options_diffrent_lockfile_dir(pytester, tmp_path):
+def test_options_different_lockfile_dir(request, pytester, tmp_path):
     pytester.makepyfile(
         dedent(
             """
@@ -188,9 +188,27 @@ def test_options_diffrent_lockfile_dir(pytester, tmp_path):
         )
     )
 
+    # result = pytester.inline_run(
+    #     file,
+    #     "--doctest-modules",
+    #     "--dist-dir",
+    #     request.config.getoption("--dist-dir"),
+    #     "--rt",
+    #     ",".join(pytest.pyodide_runtimes),
+    #     "--runner",
+    #     request.config.option.runner,
+    #     "--rootdir",
+    #     str(file.parent),
+    #     plugins=(MyPlugin(),),
+    # )
+
     result = pytester.runpytest(
+        "--dist-dir",
+        request.config.getoption("--dist-dir"),
         "--lockfile-dir",
         str(tmp_path.resolve()),
+        "--runner",
+        request.config.option.runner,
     )
     result.assert_outcomes(passed=1)
 

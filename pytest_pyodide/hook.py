@@ -114,6 +114,7 @@ def pytest_configure(config):
     )
 
     config.option.dist_dir = Path(config.option.dist_dir).resolve()
+    config.option.lockfile_dir = Path(config.option.lockfile_dir or config.option.dist_dir).resolve()
     run_host, runtimes = _filter_runtimes(config.option.runtime)
 
     if not hasattr(pytest, "pyodide_options_stack"):
@@ -130,10 +131,7 @@ def pytest_configure(config):
     pytest_wrapper.pyodide_run_host_test = run_host
     pytest_wrapper.pyodide_runtimes = runtimes
     pytest_wrapper.pyodide_dist_dir = config.option.dist_dir
-    if config.option.lockfile_dir is None:
-        pytest_wrapper.pyodide_lockfile_dir = config.option.dist_dir
-    else:
-        pytest_wrapper.pyodide_lockfile_dir = config.option.lockfile_dir
+    pytest_wrapper.pyodide_lockfile_dir = config.option.lockfile_dir
 
 
 def pytest_unconfigure(config):
