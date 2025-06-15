@@ -122,6 +122,7 @@ class _BrowserBaseRunner:
         load_pyodide=True,
         script_type="classic",
         dist_dir=None,
+        lockfile_dir=None,
         jspi=False,
         *args,
         **kwargs,
@@ -133,6 +134,7 @@ class _BrowserBaseRunner:
         self.server_log = runtime_server_log
         self.script_type = script_type
         self.dist_dir = dist_dir
+        self.lockfile_dir = lockfile_dir
         self.driver = self.get_driver(jspi)
 
         self.set_script_timeout(self.script_timeout)
@@ -180,7 +182,7 @@ class _BrowserBaseRunner:
         self.run_js(
             self._config.get_load_pyodide_script(self.browser).replace(
                 PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR,
-                str(self.lockfile_server_url / "pyodide-lock.json"),
+                f"{self.lockfile_server_url}/pyodide-lock.json",
             )
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
@@ -568,6 +570,15 @@ class NodeRunner(_BrowserBaseRunner):
             self.p.expect_exact("READY!!")
         except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
             raise JavascriptException("", self.p.before.decode()) from None
+
+    def load_pyodide(self):
+        self.run_js(
+            self._config.get_load_pyodide_script(self.browser).replace(
+                PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR,
+                f"{self.lockfile_dir}/pyodide-lock.json",
+            )
+            + self.POST_LOAD_PYODIDE_SCRIPT
+        )
 
     def get_driver(self, jspi=False):
         self._logs = []

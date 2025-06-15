@@ -108,7 +108,8 @@ def selenium_common(
     if runner_cls is None:
         raise AssertionError(f"Unknown runner or browser: {runner_type} / {runtime}")
 
-    dist_dir = Path(os.getcwd(), request.config.getoption("--dist-dir"))
+    dist_dir = Path(os.getcwd(), pytest_wrapper.pyodide_dist_dir)
+    lockfile_dir = Path(os.getcwd(), pytest_wrapper.pyodide_lockfile_dir)
     runner = runner_cls(
         runtime_server_url=runtime_server_url,
         runtime_server_log=runtime_server_log,
@@ -118,6 +119,7 @@ def selenium_common(
         browsers=browsers,
         script_type=script_type,
         dist_dir=dist_dir,
+        lockfile_dir=lockfile_dir,
         jspi=jspi,
     )
     try:
