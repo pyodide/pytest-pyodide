@@ -141,7 +141,7 @@ async def run_in_pyodide_main(
 
         except ImportError:
             pass
-        return (1, encode(e), repr(result))
+        return (1, encode(e), repr(e))
 
 
 __all__ = ["PyodideHandle", "encode"]
