@@ -88,10 +88,12 @@ def selenium_common(
     return None, as initializing Pyodide for selenium is expensive
     """
 
-    (runtime_server_url, runtime_server_log), (
-        lockfile_server_url,
-        lockfile_server_log,
-    ) = web_server_main
+    runtime_server, lockfile_server = web_server_main
+    runtime_server_url = f"http://{runtime_server[0]}:{runtime_server[1]}"
+    runtime_server_log = runtime_server[2]
+    lockfile_server_url = f"http://{lockfile_server[0]}:{lockfile_server[1]}"
+    lockfile_server_log = lockfile_server[2]
+
     runner_type = request.config.option.runner.lower()
 
     runner_set: dict[tuple[str, str], type[_BrowserBaseRunner]] = {
@@ -335,7 +337,7 @@ def console_html_fixture(request, runtime, web_server_main, playwright_browsers)
         browsers=playwright_browsers,
     ) as selenium:
         selenium.goto(
-            f"http://{selenium.server_hostname}:{selenium.server_port}/console.html"
+            f"{selenium.dist_url}/console.html"
         )
         selenium.javascript_setup()
         try:

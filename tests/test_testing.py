@@ -4,9 +4,9 @@ import pytest
 
 
 def test_web_server_secondary(selenium, web_server_secondary):
-    (url, logs), _ = web_server_secondary
+    (host, port, logs), _ = web_server_secondary
     assert pathlib.Path(logs).exists()
-    assert selenium.base_url != url
+    assert selenium.base_url != f"http://{host}:{port}"
 
 
 def test_host():

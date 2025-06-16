@@ -87,7 +87,8 @@ def copy_files_to_emscripten_fs(
         return
     base_path = Path.cwd()
     with spawn_web_server(base_path) as server:
-        base_url, _ = server
+        server_hostname, server_port, _ = server
+        base_url = f"http://{server_hostname}:{server_port}/"
         # fetch all files into the pyodide
         # n.b. this might be slow for big packages
 
@@ -110,7 +111,7 @@ def copy_files_to_emscripten_fs(
         )
         for file, dest in new_files:
             _copied_files[selenium].append((file, dest))
-            file_url = f"{base_url}/{file.relative_to(base_path).as_posix()}"
+            file_url = base_url + str(file.relative_to(base_path).as_posix())
             if file.suffix == ".whl" and install_wheels:
                 # wheel - install the wheel on the pyodide side before
                 # any fetches (and don't copy it)
