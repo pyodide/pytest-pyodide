@@ -1,11 +1,12 @@
 import io
 import pickle
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from hypothesis import HealthCheck, settings, strategies
 
 
-def is_picklable(x):
+def is_picklable(x: Any) -> bool:
     try:
         pickle.dumps(x)
         return True
@@ -13,9 +14,9 @@ def is_picklable(x):
         return False
 
 
-def is_equal_to_self(x):
+def is_equal_to_self(x: Any) -> bool:
     try:
-        return x == x
+        return bool(x == x)
     except Exception:
         return False
 
@@ -29,14 +30,14 @@ except ImportError:
 
 
 class NoHypothesisUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
+    def find_class(self, module: str, name: str) -> Any:
         # Only allow safe classes from builtins.
         if module == "hypothesis":
             raise pickle.UnpicklingError()
         return super().find_class(module, name)
 
 
-def no_hypothesis(x):
+def no_hypothesis(x: Any) -> bool:
     try:
         NoHypothesisUnpickler(io.BytesIO(pickle.dumps(x))).load()
         return True

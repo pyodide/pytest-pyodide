@@ -1,11 +1,18 @@
 import contextlib
 import functools
 import json
+from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .runner import _BrowserBaseRunner
 
 
 @contextlib.contextmanager
-def set_webdriver_script_timeout(selenium, script_timeout: float | None):
+def set_webdriver_script_timeout(
+    selenium: "_BrowserBaseRunner", script_timeout: float | None
+) -> Iterator[None]:
     """Set selenium script timeout
 
     Parameters
@@ -23,7 +30,7 @@ def set_webdriver_script_timeout(selenium, script_timeout: float | None):
         selenium.set_script_timeout(selenium.script_timeout)
 
 
-def parse_driver_timeout(node) -> float | None:
+def parse_driver_timeout(node: Any) -> float | None:
     """Parse driver timeout value from pytest request object"""
     mark = node.get_closest_marker("driver_timeout")
     if mark is None:
@@ -32,7 +39,7 @@ def parse_driver_timeout(node) -> float | None:
         return mark.args[0]  # type: ignore[no-any-return]
 
 
-def parse_xfail_browsers(node) -> dict[str, str]:
+def parse_xfail_browsers(node: Any) -> dict[str, str]:
     mark = node.get_closest_marker("xfail_browsers")
     if mark is None:
         return {}

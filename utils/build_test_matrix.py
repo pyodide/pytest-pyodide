@@ -77,7 +77,7 @@ def _inject_versions_inner(
     return configs_with_versions
 
 
-def inject_versions(config: TestConfig, args: dict[str, list[str]]):
+def inject_versions(config: TestConfig, args: dict[str, list[str]]) -> list[TestConfig]:
     """
     Add corresponding versions to test-config
     """
@@ -141,7 +141,7 @@ def build_configs(args: dict[str, list[str]]) -> list[TestConfig]:
     return remove_duplicate_configs(matrix)
 
 
-def validate_args(args: dict[str, list[str]]):
+def validate_args(args: dict[str, list[str]]) -> None:
     runners = args["runner"]
     for runner in runners:
         if runner not in ("selenium", "playwright"):
@@ -204,7 +204,7 @@ def parse_args() -> dict[str, list[str]]:
     return args_dict
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     configs: list[TestConfig] = build_configs(args)
