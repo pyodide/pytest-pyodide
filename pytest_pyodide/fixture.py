@@ -336,9 +336,7 @@ def console_html_fixture(request, runtime, web_server_main, playwright_browsers)
         load_pyodide=False,
         browsers=playwright_browsers,
     ) as selenium:
-        selenium.goto(
-            f"{selenium.dist_url}/console.html"
-        )
+        selenium.goto(f"{selenium.dist_url}/console.html")
         selenium.javascript_setup()
         try:
             yield selenium
