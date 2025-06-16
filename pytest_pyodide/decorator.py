@@ -100,15 +100,15 @@ def _encode(obj: Any) -> str:
     return b64encode(b.getvalue()).decode()
 
 
-def _decode(result: str, selenium: SeleniumType) -> Any:
+def _decode(selenium: SeleniumType, result, repr) -> Any:
     try:
         return Unpickler(BytesIO(b64decode(result)), selenium).load()
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            f"There was a problem with unpickling the return value/exception from your pyodide environment. "
-            f"This usually means the type of the return value/exception does not exist in your host environment. "
-            f"The original message is: {exc}."
-        ) from None
+    except Exception as e:
+        e.add_note(
+            "The error occurred while unpickling the return value/exception from your pyodide environment.\n"
+            f"The repr of the object we failed to unpickle was '{repr}'"
+        )
+        raise
 
 
 def all_args(funcdef: MaybeAsyncFuncDef) -> list[ast.arg]:
@@ -450,9 +450,9 @@ class run_in_pyodide:
             selenium.load_package(self._pkgs)
 
         r = selenium.run_async(code)
-        [status, result] = r
+        [status, result, repr] = r
 
-        result = _decode(result, selenium)
+        result = _decode(selenium, result, repr)
         if status:
             raise result
         else:
