@@ -92,6 +92,13 @@ def _filter_runtimes(runtime: str) -> tuple[bool, set[str]]:
 
 
 def pytest_configure(config):
+    # Fix for pytest 8.x compatibility: DoctestItem missing 'cls' attribute
+    # The fixture reordering code in pytest 8.x expects all items to have a 'cls' attribute
+    # but DoctestItem doesn't inherit from PyobjMixin which provides this attribute
+    from _pytest.doctest import DoctestItem
+    if not hasattr(DoctestItem, 'cls'):
+        DoctestItem.cls = property(lambda self: None)
+
     config.addinivalue_line(
         "markers",
         "skip_refcount_check: Don't run refcount checks",
