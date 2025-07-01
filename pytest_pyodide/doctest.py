@@ -40,11 +40,15 @@ def runtime_parametrize(item):
     name: str
     runtimes = pytest_wrapper.pyodide_runtimes
     for idx, name in enumerate(runtimes):
-        # Create a new item from the parent instead of copying
+        # dtest is the actual doctest, we have to mutate it to allow pickling so
+        # better copy it.
+        dtest = copy(item.dtest)
+        # Create a new item from the parent.
+        # I copied here before but it created problems.
         newitem = item.__class__.from_parent(
             item.parent,
             name=f"{item.name}[{name}]",
-            dtest=copy(item.dtest),
+            dtest=dtest,
             runner=item.runner,
         )
         # Add runtime fixture to the list of fixtures and give it a specific
