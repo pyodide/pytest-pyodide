@@ -6,12 +6,6 @@ import pytest
 from pytest_pyodide import run_in_pyodide
 
 DOCTESTS = """\
-import pytest
-
-@pytest.fixture(scope="module")
-def runtime():
-    return "{}"
-
 def pyodide_fail():
     '''
     >>> from js import Object # doctest: +RUN_IN_PYODIDE
@@ -39,7 +33,7 @@ def pyodide_success():
 """
 
 
-def test_doctest_run(pytester, selenium, runtime, request, playwright_browsers, capsys):
+def test_doctest_run(pytester, selenium, request, playwright_browsers, capsys):
     file = pytester.makepyfile(DOCTESTS)
     config = pytester.parseconfigure(file)
 
@@ -53,14 +47,7 @@ def test_doctest_run(pytester, selenium, runtime, request, playwright_browsers, 
         sys.path.append(str(path.parent))
         path.write_text(contents)
 
-    write_file(
-        selenium, Path("/test_files/test_doctest_run.py"), DOCTESTS.format(runtime)
-    )
-    vals = {
-        "selenium": selenium,
-        "playwright_browsers": playwright_browsers,
-        "runtime": runtime,
-    }
+    write_file(selenium, Path("/test_files/test_doctest_run.py"), DOCTESTS)
 
     class MyPlugin:
         """Copy a couple of fixtures into the inner pytest
@@ -70,6 +57,7 @@ def test_doctest_run(pytester, selenium, runtime, request, playwright_browsers, 
         """
 
         def pytest_fixture_setup(self, fixturedef, request):
+            vals = {"selenium": selenium, "playwright_browsers": playwright_browsers}
             if fixturedef.argname in vals:
                 val = vals[fixturedef.argname]
                 cache_key = fixturedef.cache_key(request)
