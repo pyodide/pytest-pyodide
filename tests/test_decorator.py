@@ -86,7 +86,7 @@ def test_inner_function_js_exception(selenium):
         inner_function(selenium)
 
 
-def test_not_unpickable_return_value(selenium):
+def test_unpickleable_return_value(selenium):
     @run_in_pyodide
     async def inner_function(selenium):
         with open("some_module.py", "w") as fp:
@@ -96,10 +96,37 @@ def test_not_unpickable_return_value(selenium):
 
         return Test()
 
-    with pytest.raises(
-        ModuleNotFoundError,
-        match="There was a problem with unpickling the return.*",
-    ):
+    regex = "\n".join(
+        [
+            r"No module named 'some_module'",
+            r"The error occurred while unpickling the value returned from pyodide.",
+            r"The repr of the object we failed to unpickle was '<some_module.Test object at 0x[0-9a-f]*>'",
+        ]
+    )
+
+    with pytest.raises(ModuleNotFoundError, match=regex):
+        inner_function(selenium)
+
+
+def test_unpickleable_exception(selenium):
+    @run_in_pyodide
+    async def inner_function(selenium):
+        with open("some_module2.py", "w") as fp:
+            fp.write("class TestException(Exception): pass\n")
+
+        from some_module2 import TestException
+
+        raise TestException
+
+    regex = "\n".join(
+        [
+            r"No module named 'some_module2'",
+            r"The error occurred while unpickling the exception raised from pyodide.",
+            r"The repr of the object we failed to unpickle was 'TestException\(\)'",
+        ]
+    )
+
+    with pytest.raises(ModuleNotFoundError, match=regex):
         inner_function(selenium)
 
 

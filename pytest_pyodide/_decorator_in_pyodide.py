@@ -97,7 +97,7 @@ def decode(x: str) -> Any:
 
 async def run_in_pyodide_main(
     mod64: str, args64: str, module_filename: str, func_name: str, async_func: bool
-) -> tuple[int, str]:
+) -> tuple[int, str, str]:
     """
     This actually runs the code for run_in_pyodide.
     """
@@ -119,7 +119,7 @@ async def run_in_pyodide_main(
         result = d[func_name](None, *args)
         if async_func:
             result = await result
-        return (0, encode(result))
+        return (0, encode(result), repr(result))
     except BaseException as e:
         try:
             # If tblib is present, we can show much better tracebacks.
@@ -141,7 +141,7 @@ async def run_in_pyodide_main(
 
         except ImportError:
             pass
-        return (1, encode(e))
+        return (1, encode(e), repr(e))
 
 
 __all__ = ["PyodideHandle", "encode"]
