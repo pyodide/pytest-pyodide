@@ -100,12 +100,16 @@ def _encode(obj: Any) -> str:
     return b64encode(b.getvalue()).decode()
 
 
-def _decode(selenium: SeleniumType, result, repr) -> Any:
+def _decode(selenium: SeleniumType, result, status, repr) -> Any:
+    if status:
+        thing = "exception raised"
+    else:
+        thing = "value returned"
     try:
         return Unpickler(BytesIO(b64decode(result)), selenium).load()
     except Exception as e:
         e.add_note(
-            "The error occurred while unpickling the return value/exception from your pyodide environment.\n"
+            f"The error occurred while unpickling the {thing} from pyodide.\n"
             f"The repr of the object we failed to unpickle was '{repr}'"
         )
         raise
@@ -452,7 +456,7 @@ class run_in_pyodide:
         r = selenium.run_async(code)
         [status, result, repr] = r
 
-        result = _decode(selenium, result, repr)
+        result = _decode(selenium, result, status, repr)
         if status:
             raise result
         else:
