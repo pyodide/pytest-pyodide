@@ -98,7 +98,7 @@ def pytest_configure(config):
     from _pytest.doctest import DoctestItem
 
     if not hasattr(DoctestItem, "cls"):
-        DoctestItem.cls = property(lambda self: None)
+        DoctestItem.cls = property(lambda self: None)  # type: ignore[attr-defined]
 
     config.addinivalue_line(
         "markers",
