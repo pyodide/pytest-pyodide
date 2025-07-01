@@ -31,6 +31,7 @@ test = [
   "pytest-cov",
   "build",
   "requests",
+  "pytest>=8",
 ]
 
 # pytest will look up `pytest11` entrypoints to find plugins
