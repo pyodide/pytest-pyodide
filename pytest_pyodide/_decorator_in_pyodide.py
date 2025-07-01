@@ -97,7 +97,7 @@ def decode(x: str) -> Any:
 
 async def run_in_pyodide_main(
     mod64: str, args64: str, module_filename: str, func_name: str, async_func: bool
-) -> tuple[int, str]:
+) -> tuple[int, str, str]:
     """
     This actually runs the code for run_in_pyodide.
     """
