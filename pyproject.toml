@@ -31,7 +31,7 @@ test = [
   "pytest-cov",
   "build",
   "requests",
-  "pytest>=8",
+  "selenium<4.21.0",
 ]
 
 # pytest will look up `pytest11` entrypoints to find plugins

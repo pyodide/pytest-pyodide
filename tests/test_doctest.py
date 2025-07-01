@@ -83,6 +83,7 @@ def test_doctest_run(pytester, selenium, request, playwright_browsers, capsys):
     result.assertoutcome(passed=2, failed=1)
     result.getfailures()[0]
     captured = capsys.readouterr()
+    # The indentation is different here in Python 3.12 vs Python 3.13...
     expected = dedent(
         """
         003     >>> from js import Object # doctest: +RUN_IN_PYODIDE
