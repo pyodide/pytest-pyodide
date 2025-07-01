@@ -97,8 +97,8 @@ def test_doctest_run(pytester, selenium, runtime, request, playwright_browsers, 
     captured = capsys.readouterr()
     expected = dedent(
         """
-        003     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-        004     >>> 1 == 2
+        009 >>> from js import Object # doctest: +RUN_IN_PYODIDE
+        010 >>> 1 == 2
         Expected:
             True
         Got:

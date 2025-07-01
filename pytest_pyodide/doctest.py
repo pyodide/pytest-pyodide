@@ -40,18 +40,17 @@ def runtime_parametrize(item):
     name: str
     runtimes = pytest_wrapper.pyodide_runtimes
     for idx, name in enumerate(runtimes):
-        newitem = copy(item)
-        # dtest is the actual doctest, we have to mutate it to allow pickling so
-        # better copy it too.
-        newitem.dtest = copy(item.dtest)
-        # Add e.g., `[chrome]` to the name, have to add it to the nodeid too or
-        # else it won't be displayed on the terminal.
-        newitem.name += f"[{name}]"
-        newitem._nodeid += f"[{name}]"
+        # Create a new item from the parent instead of copying
+        newitem = item.__class__.from_parent(
+            item.parent,
+            name=f"{item.name}[{name}]",
+            dtest=copy(item.dtest),
+            runner=item.runner,
+        )
         # Add runtime fixture to the list of fixtures and give it a specific
         # value. Normally this would be done by metafunc.parametrize but it is
         # hard to get access to that from here.
-        newitem.fixturenames = ("runtime",)
+        newitem.fixturenames = list(item.fixturenames) + ["runtime"]
         newitem.callspec = CallSpec2(
             params={"runtime": name},
             indices={"runtime": idx},
