@@ -1,7 +1,7 @@
 # pytest-pyodide
 
 [![PyPI Latest Release](https://img.shields.io/pypi/v/pytest-pyodide.svg)](https://pypi.org/project/pytest-pyodide/)
-![GHA](https://github.com/pyodide/pytest-pyodide/actions/workflows/build.yml/badge.svg)
+[![main](https://github.com/pyodide/pytest-pyodide/actions/workflows/build.yaml/badge.svg)](https://github.com/pyodide/pytest-pyodide/actions/workflows/build.yaml)
 [![codecov](https://codecov.io/gh/pyodide/pytest-pyodide/branch/main/graph/badge.svg?token=U7tWHpJj5c)](https://codecov.io/gh/pyodide/pytest-pyodide)
 
 
@@ -21,7 +21,7 @@ You would also need one at least one of the following runtimes:
 
 ## Github Reusable workflow
 
-`pytest-pyodide` also supports testing on GitHub Action by means of a reusable workflow in [/.github/workflows/main.yml](/.github/workflows/main.yml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process.
+`pytest-pyodide` also supports testing on GitHub Action by means of a reusable workflow in [/.github/workflows/main.yaml](/.github/workflows/main.yaml) This allows you to test on a range of browser/OS combinations without having to install all the testing stuff, and integrate it easily into your CI process.
 
 In your github actions workflow, call it with as a separate job. To pass in your built wheel, use an `upload-artifact` step in your build step.
 
