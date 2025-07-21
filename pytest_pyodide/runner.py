@@ -455,7 +455,7 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         )
         driver.quit()
 
-        if jspi and chrome_version >= 137:
+        if jspi and chrome_version < 137:
             options.add_argument("--enable-features=WebAssemblyExperimentalJSPI")
             options.add_argument("--enable-experimental-webassembly-features")
         for flag in self._config.get_flags("chrome"):
