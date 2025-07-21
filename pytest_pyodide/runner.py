@@ -453,7 +453,6 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         chrome_version = int(
             driver.capabilities.get("browserVersion", "0").split(".")[0]
         )
-        print(chrome_version)
         driver.quit()
 
         if jspi and chrome_version >= 137:
