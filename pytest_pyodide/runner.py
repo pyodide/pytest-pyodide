@@ -450,7 +450,9 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         driver = Chrome(options=options)
-        chrome_version = int(driver.capabilities.get('browserVersion', '0').split('.')[0])
+        chrome_version = int(
+            driver.capabilities.get("browserVersion", "0").split(".")[0]
+        )
         print(chrome_version)
         driver.quit()
 
