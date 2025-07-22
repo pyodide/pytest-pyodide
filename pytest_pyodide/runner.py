@@ -116,13 +116,13 @@ class _BrowserBaseRunner:
     def __init__(
         self,
         server_port,
+        *args,
         server_hostname="127.0.0.1",
         server_log=None,
         load_pyodide=True,
         script_type="classic",
         dist_dir=None,
         jspi=False,
-        *args,
         **kwargs,
     ):
         self._config = get_global_config()
