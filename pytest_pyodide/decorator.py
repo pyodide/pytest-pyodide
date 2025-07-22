@@ -345,11 +345,7 @@ def _locate_funcdef(
         ):
             statements.append(node)
 
-        if (
-            node.end_lineno
-            and node.end_lineno > func_line_no
-            and node.lineno < func_line_no
-        ):
+        if node.end_lineno and (node.lineno < func_line_no < node.end_lineno):
             it = iter(node.body)  # type: ignore[attr-defined]
             continue
 
