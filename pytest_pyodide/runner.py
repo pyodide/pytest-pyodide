@@ -116,7 +116,6 @@ class _BrowserBaseRunner:
     def __init__(
         self,
         server_port,
-        *args,
         server_hostname="127.0.0.1",
         server_log=None,
         load_pyodide=True,
