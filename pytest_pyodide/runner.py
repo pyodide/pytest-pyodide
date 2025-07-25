@@ -122,7 +122,6 @@ class _BrowserBaseRunner:
         script_type="classic",
         dist_dir=None,
         jspi=False,
-        *args,
         **kwargs,
     ):
         self._config = get_global_config()
