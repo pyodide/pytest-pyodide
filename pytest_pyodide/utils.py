@@ -28,8 +28,7 @@ def parse_driver_timeout(node) -> float | None:
     mark = node.get_closest_marker("driver_timeout")
     if mark is None:
         return None
-    else:
-        return mark.args[0]  # type: ignore[no-any-return]
+    return mark.args[0]  # type: ignore[no-any-return]
 
 
 def parse_xfail_browsers(node) -> dict[str, str]:
