@@ -363,9 +363,8 @@ class _SeleniumBaseRunner(_BrowserBaseRunner):
         retval = self.driver.execute_async_script(wrapper % (code, check_code))
         if retval[0] == 0:
             return retval[1]
-        else:
-            print("JavascriptException message: ", retval[3])
-            raise JavascriptException(retval[1], retval[2])
+        print("JavascriptException message: ", retval[3])
+        raise JavascriptException(retval[1], retval[2])
 
     @property
     def urls(self):
@@ -416,8 +415,7 @@ class _PlaywrightBaseRunner(_BrowserBaseRunner):
         retval = self.driver.evaluate(wrapper % (code, check_code))
         if retval[0] == 0:
             return retval[1]
-        else:
-            raise JavascriptException(retval[1], retval[2])
+        raise JavascriptException(retval[1], retval[2])
 
 
 class SeleniumFirefoxRunner(_SeleniumBaseRunner):
@@ -643,5 +641,4 @@ class NodeRunner(_BrowserBaseRunner):
         self.p.expect_exact(f"\r\n{cmd_id}:UUID\r\n")
         if success:
             return json.loads(self.p.before.decode().replace("undefined", "null"))
-        else:
-            raise JavascriptException("", self.p.before.decode())
+        raise JavascriptException("", self.p.before.decode())

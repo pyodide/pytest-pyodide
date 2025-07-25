@@ -372,9 +372,8 @@ class run_in_pyodide:
             # def f():
             #   pass
             return run_in_pyodide(**kwargs)(function)
-        else:
-            # Just do normal __new__ behavior
-            return object.__new__(cls)
+        # Just do normal __new__ behavior
+        return object.__new__(cls)
 
     def __init__(
         self,
