@@ -106,8 +106,7 @@ def _remove_pytest_capture_title(
     ret_data = "\n".join(lines[1:])
     if re.search(r"\S", ret_data):
         return ret_data
-    else:
-        return None
+    return None
 
 
 def run_test_in_pyodide(node_tree_id, selenium, ignore_fail=False):
