@@ -87,6 +87,8 @@ lint.select = [
   "PLC",    # pylint conventions
   "PLE",    # pylint errors
   "UP",     # pyupgrade
+  "PLR1716",
+  "RET505",
   "RET506",
 ]
 lint.ignore = ["E402", "E501", "E731", "E741"]
