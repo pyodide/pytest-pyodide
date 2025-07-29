@@ -454,8 +454,7 @@ class run_in_pyodide:
         result = _decode(selenium, result, status, repr)
         if status:
             raise result
-        else:
-            return result
+        return result
 
     def _code_template(self, args: tuple[Any, ...]) -> str:
         """
