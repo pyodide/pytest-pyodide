@@ -281,7 +281,6 @@ def modifyitems_run_in_pyodide(items: list[Any]):
             x.pyodide_runtime = runtime
             new_items.append(x)
     items[:] = new_items
-    return
 
 
 def pytest_collection_modifyitems(items: list[Any]) -> None:
