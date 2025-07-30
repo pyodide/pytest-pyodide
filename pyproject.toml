@@ -87,6 +87,7 @@ lint.select = [
   "PLC",    # pylint conventions
   "PLE",    # pylint errors
   "UP",     # pyupgrade
+  "PLR1711",
   "PLR1716",
   "RET505",
   "RET506",
