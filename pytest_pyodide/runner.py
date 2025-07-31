@@ -144,22 +144,22 @@ class _BrowserBaseRunner:
             self.restore_state()
 
     def get_driver(self, jspi=False):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def goto(self, page):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def set_script_timeout(self, timeout):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def quit(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def refresh(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def run_js_inner(self, code, check_code):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def prepare_driver(self):
         if self.script_type == "classic":
@@ -569,7 +569,7 @@ class NodeRunner(_BrowserBaseRunner):
 
         class NodeDriver:
             def __getattr__(self, x):
-                raise NotImplementedError()
+                raise NotImplementedError
 
         return NodeDriver()
 
