@@ -86,8 +86,8 @@ def test_doctest_run(pytester, selenium, request, playwright_browsers, capsys):
     # The indentation is different here in Python 3.12 vs Python 3.13...
     expected = dedent(
         """
-        003     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-        004     >>> 1 == 2
+        003 >>> from js import Object # doctest: +RUN_IN_PYODIDE
+        004 >>> 1 == 2
         Expected:
             True
         Got:

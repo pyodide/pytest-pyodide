@@ -88,7 +88,12 @@ def selenium_common(
     return None, as initializing Pyodide for selenium is expensive
     """
 
-    server_hostname, server_port, server_log = web_server_main
+    runtime_server, lockfile_server = web_server_main
+    runtime_server_url = f"http://{runtime_server[0]}:{runtime_server[1]}"
+    runtime_server_log = runtime_server[2]
+    lockfile_server_url = f"http://{lockfile_server[0]}:{lockfile_server[1]}"
+    lockfile_server_log = lockfile_server[2]
+
     runner_type = request.config.option.runner.lower()
 
     runner_set: dict[tuple[str, str], type[_BrowserBaseRunner]] = {
@@ -105,15 +110,18 @@ def selenium_common(
     if runner_cls is None:
         raise AssertionError(f"Unknown runner or browser: {runner_type} / {runtime}")
 
-    dist_dir = Path(os.getcwd(), request.config.getoption("--dist-dir"))
+    dist_dir = Path(os.getcwd(), pytest_wrapper.pyodide_dist_dir)
+    lockfile_dir = Path(os.getcwd(), pytest_wrapper.pyodide_lockfile_dir)
     runner = runner_cls(
-        server_port=server_port,
-        server_hostname=server_hostname,
-        server_log=server_log,
+        runtime_server_url=runtime_server_url,
+        runtime_server_log=runtime_server_log,
+        lockfile_server_url=lockfile_server_url,
+        lockfile_server_log=lockfile_server_log,
         load_pyodide=load_pyodide,
         browsers=browsers,
         script_type=script_type,
         dist_dir=dist_dir,
+        lockfile_dir=lockfile_dir,
         jspi=jspi,
     )
     try:
@@ -328,9 +336,7 @@ def console_html_fixture(request, runtime, web_server_main, playwright_browsers)
         load_pyodide=False,
         browsers=playwright_browsers,
     ) as selenium:
-        selenium.goto(
-            f"http://{selenium.server_hostname}:{selenium.server_port}/console.html"
-        )
+        selenium.goto(f"{selenium.dist_url}/console.html")
         selenium.javascript_setup()
         try:
             yield selenium
@@ -339,17 +345,31 @@ def console_html_fixture(request, runtime, web_server_main, playwright_browsers)
 
 
 @pytest.fixture(scope="session")
-def web_server_main(request):
+def web_server_main():
     """Web server that serves files in the dist directory"""
-    with spawn_web_server(request.config.option.dist_dir) as output:
-        yield output
+    with spawn_web_server(
+        pytest_wrapper.pyodide_dist_dir
+    ) as dist_dir_server, spawn_web_server(
+        pytest_wrapper.pyodide_lockfile_dir
+    ) as lockfile_dir_server:
+        yield (
+            dist_dir_server,
+            lockfile_dir_server,
+        )
 
 
 @pytest.fixture(scope="session")
-def web_server_secondary(request):
+def web_server_secondary():
     """Secondary web server that serves files dist directory"""
-    with spawn_web_server(request.config.option.dist_dir) as output:
-        yield output
+    with spawn_web_server(
+        pytest_wrapper.pyodide_dist_dir
+    ) as dist_dir_server, spawn_web_server(
+        pytest_wrapper.pyodide_lockfile_dir
+    ) as lockfile_dir_server:
+        yield (
+            dist_dir_server,
+            lockfile_dir_server,
+        )
 
 
 @pytest.fixture(params=["classic", "module"], scope="module")

@@ -6,7 +6,7 @@ from pathlib import Path
 import pexpect
 import pytest
 
-from .config import RUNTIMES, get_global_config
+from .config import PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR, RUNTIMES, get_global_config
 from .hook import pytest_wrapper
 
 TEST_SETUP_CODE = """
@@ -115,23 +115,25 @@ class _BrowserBaseRunner:
 
     def __init__(
         self,
-        server_port,
-        server_hostname="127.0.0.1",
-        server_log=None,
+        runtime_server_url,
+        lockfile_server_url,
+        runtime_server_log=None,
+        lockfile_server_log=None,
         load_pyodide=True,
         script_type="classic",
         dist_dir=None,
+        lockfile_dir=None,
         jspi=False,
         **kwargs,
     ):
         self._config = get_global_config()
 
-        self.server_port = server_port
-        self.server_hostname = server_hostname
-        self.base_url = f"http://{self.server_hostname}:{self.server_port}"
-        self.server_log = server_log
+        self.base_url = runtime_server_url
+        self.lockfile_server_url = lockfile_server_url
+        self.server_log = runtime_server_log
         self.script_type = script_type
         self.dist_dir = dist_dir
+        self.lockfile_dir = lockfile_dir
         self.driver = self.get_driver(jspi)
 
         self.set_script_timeout(self.script_timeout)
@@ -177,7 +179,10 @@ class _BrowserBaseRunner:
 
     def load_pyodide(self):
         self.run_js(
-            self._config.get_load_pyodide_script(self.browser)
+            self._config.get_load_pyodide_script(self.browser).replace(
+                PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR,
+                f"{self.lockfile_server_url}/pyodide-lock.json",
+            )
             + self.POST_LOAD_PYODIDE_SCRIPT
         )
 
@@ -320,7 +325,7 @@ class _BrowserBaseRunner:
             }});
             return await res
             """.format(
-                f"http://{self.server_hostname}:{self.server_port}/{worker_file}",
+                f"{self.base_url}/{worker_file}",
                 self.script_type,
                 code,
             ),
@@ -562,6 +567,15 @@ class NodeRunner(_BrowserBaseRunner):
             self.p.expect_exact("READY!!")
         except (pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT):
             raise JavascriptException("", self.p.before.decode()) from None
+
+    def load_pyodide(self):
+        self.run_js(
+            self._config.get_load_pyodide_script(self.browser).replace(
+                PYODIDE_LOCKFILE_URL_PLACEHOLDER_STR,
+                f"{self.lockfile_dir}/pyodide-lock.json",
+            )
+            + self.POST_LOAD_PYODIDE_SCRIPT
+        )
 
     def get_driver(self, jspi=False):
         self._logs = []
