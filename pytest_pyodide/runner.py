@@ -446,7 +446,13 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
-        if jspi:
+        driver = Chrome(options=options)
+        chrome_version = int(
+            driver.capabilities.get("browserVersion", "0").split(".")[0]
+        )
+        driver.quit()
+
+        if jspi and chrome_version < 137:
             options.add_argument("--enable-features=WebAssemblyExperimentalJSPI")
             options.add_argument("--enable-experimental-webassembly-features")
         for flag in self._config.get_flags("chrome"):
