@@ -33,6 +33,9 @@ class SeleniumType(Protocol):
     def run_js(self, code: str):
         ...
 
+    def is_closed(self):
+        ...
+
 
 class _ReadableFileobj(Protocol):
     def read(self, __n: int) -> bytes:
@@ -83,11 +86,12 @@ class PyodideHandle:
             return
         ptr = self.ptr
         self.ptr = None
-        self.selenium.run_js(
-            f"""
-            pyodide._module._Py_DecRef({ptr});
-            """
-        )
+        if not self.selenium.is_closed():
+            self.selenium.run_js(
+                f"""
+                pyodide._module._Py_DecRef({ptr});
+                """
+            )
 
 
 def _encode(obj: Any) -> str:
