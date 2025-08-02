@@ -328,6 +328,8 @@ class _BrowserBaseRunner:
         )
 
     def load_package(self, packages):
+        if not packages:
+            return
         self.run_js(f"await pyodide.loadPackage({packages!r})")
 
 
