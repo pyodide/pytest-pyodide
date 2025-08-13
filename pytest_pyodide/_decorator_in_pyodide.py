@@ -20,6 +20,7 @@ import pickle
 from base64 import b64decode, b64encode
 from inspect import isclass
 from io import BytesIO
+from types import FrameType
 from typing import Any
 
 import pyodide_js
@@ -60,7 +61,7 @@ class Pickler(pickle.Pickler):
         pyodide_js._module._Py_IncRef(obj.ptr)
         return ("PyodideHandle", obj.ptr)
 
-    def reducer_override(self, obj):
+    def reducer_override(self, obj: Any) -> Any:
         try:
             from _pytest.outcomes import OutcomeException
 
@@ -125,7 +126,7 @@ async def run_in_pyodide_main(
             # If tblib is present, we can show much better tracebacks.
             from tblib import pickling_support
 
-            def get_locals(frame):
+            def get_locals(frame: FrameType) -> dict[str, Any]:
                 result = {}
                 tbhide = frame.f_locals.get("__tracebackhide__")
                 if tbhide:

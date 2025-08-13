@@ -3,6 +3,7 @@ from collections.abc import Callable
 from copy import copy
 from doctest import DocTest, DocTestRunner, register_optionflag
 from pathlib import Path
+from typing import Any
 
 from _pytest.doctest import (
     DoctestModule,
@@ -118,7 +119,7 @@ def run_doctest_in_pyodide_outer(
     compileflags: int | None = None,
     out: Callable[[str], object] | None = None,
     clear_globs: bool = True,
-):
+) -> Any:
     if not getattr(test, "pyodide_test", None):
         # Run host test as normal
         return host_DocTestRunner_run(self, test, compileflags, out, clear_globs)

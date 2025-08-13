@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
     from .runner import _BrowserBaseRunner
@@ -32,10 +32,10 @@ class ContextManagerUnwrapper(Generic[T]):
     def get_value(self) -> T:
         return self.value
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         if self.ctx_manager is not None:
             self.ctx_manager.__exit__(None, None, None)
             del self.value
@@ -52,7 +52,9 @@ _playwright_browser_list = None
 _playwright_browser_generator = None
 
 
-def get_browser_pyodide(request: pytest.FixtureRequest, runtime: str):
+def get_browser_pyodide(
+    request: pytest.FixtureRequest, runtime: str
+) -> "_BrowserBaseRunner":
     """Start a browser running with pyodide, ready to run pytest
     calls. If the same runtime is already running, it will
     just return that.
@@ -109,7 +111,9 @@ def _remove_pytest_capture_title(
     return None
 
 
-def run_test_in_pyodide(node_tree_id, selenium, ignore_fail=False):
+def run_test_in_pyodide(
+    node_tree_id: Any, selenium: "_BrowserBaseRunner", ignore_fail: bool = False
+) -> bool:
     """This runs a single test (identified by node_tree_id) inside
     the pyodide runtime. How it does it is by calling pytest on the
     browser pyodide with the full node ID, which is the same
@@ -161,7 +165,7 @@ def run_test_in_pyodide(node_tree_id, selenium, ignore_fail=False):
     return True
 
 
-def close_pyodide_browsers():
+def close_pyodide_browsers() -> None:
     """Close the browsers that are currently open with
     pyodide runtime initialised.
 
