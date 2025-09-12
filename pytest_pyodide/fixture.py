@@ -147,7 +147,7 @@ def rename_fixture(orig_name, new_name):
 standalone = rename_fixture("selenium", "selenium_standalone")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def selenium_standalone(request, runtime, web_server_main, playwright_browsers):
     with selenium_common(
         request, runtime, web_server_main, browsers=playwright_browsers
@@ -162,11 +162,12 @@ def selenium_standalone(request, runtime, web_server_main, playwright_browsers):
 
 
 @pytest.fixture(scope="function")
-def selenium_standalone_refresh(selenium):
+def selenium_standalone_refresh(request, selenium_standalone):
     """
     Experimental standalone fixture which refreshes a page instead of
     instantiating a new webdriver session.
     """
+    selenium = selenium_standalone
     selenium.clean_logs()
 
     yield selenium
