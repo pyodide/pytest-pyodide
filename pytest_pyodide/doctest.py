@@ -54,7 +54,7 @@ def runtime_parametrize(item):
         # Add runtime fixture to the list of fixtures and give it a specific
         # value. Normally this would be done by metafunc.parametrize but it is
         # hard to get access to that from here.
-        newitem.fixturenames = list(getattr(item, "fixturenames",  [])) + ["runtime"]
+        newitem.fixturenames = list(getattr(item, "fixturenames", [])) + ["runtime"]
         newitem.callspec = CallSpec2(
             params={"runtime": name},
             indices={"runtime": idx},
