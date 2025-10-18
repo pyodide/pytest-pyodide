@@ -16,12 +16,19 @@ function _fetch(path, ...args) {
   return fetch(new URL(path, baseUrl).toString(), ...args);
 }
 
+class _Request extends Request {
+  constructor(path, ...args) {
+    return new Request(new URL(path, baseUrl).toString(), ...args);
+  }
+}
+
 const context = {
   loadPyodide,
   path,
   process,
   require,
   fetch: _fetch,
+  Request: _Request,
   TextDecoder,
   TextEncoder,
   setTimeout,
