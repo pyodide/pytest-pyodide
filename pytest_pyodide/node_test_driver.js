@@ -13,7 +13,10 @@ process.chdir(distDir);
 
 // node requires full paths.
 function _fetch(path, ...args) {
-  return fetch(new URL(path, baseUrl).toString(), ...args);
+  if (typeof path === "string") {
+    path = new URL(path, baseUrl).toString();
+  }
+  return fetch(path, ...args);
 }
 
 class _Request extends Request {
