@@ -241,8 +241,8 @@ REWRITTEN_MODULE_ASTS: dict[str, ast.Module] = {}
 
 
 def pytest_pycollect_makemodule(module_path: Path, parent: Collector) -> None:
-    # saving the origina and rewritten AST is a relatively expensive operation. Let's do
-    # it only if "run_in_pyodide" is actaully used in the source code. This is not a
+    # saving the original and rewritten AST is a relatively expensive operation. Let's
+    # do it only if "run_in_pyodide" is actually used in the source code. This is not a
     # super precise check, but it's good enough in 99.9% of the cases. See
     # https://github.com/pyodide/pytest-pyodide/issues/178
     source = module_path.read_bytes()
