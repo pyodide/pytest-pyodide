@@ -39,16 +39,16 @@ def parse_xfail_browsers(node) -> dict[str, str]:
 
 
 @functools.cache
-def built_packages(dist_dir: Path) -> list[str]:
+def built_packages(lockfile_dir: Path) -> list[str]:
     """Returns the list of built package names from repodata.json"""
-    repodata_path = dist_dir / "pyodide-lock.json"
+    repodata_path = lockfile_dir / "pyodide-lock.json"
     if not repodata_path.exists():
         # Try again for backwards compatibility
-        repodata_path = dist_dir / "repodata.json"
+        repodata_path = lockfile_dir / "repodata.json"
     if not repodata_path.exists():
         return []
     return list(json.loads(repodata_path.read_text())["packages"].keys())
 
 
-def package_is_built(package_name: str, dist_dir: Path) -> bool:
-    return package_name.lower() in built_packages(dist_dir)
+def package_is_built(package_name: str, lockfile_dir: Path) -> bool:
+    return package_name.lower() in built_packages(lockfile_dir)

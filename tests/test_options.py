@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from textwrap import dedent
 
@@ -18,6 +19,21 @@ def test_dist_dir(pytester):
     )
 
     result = pytester.runpytest("--dist-dir", "dist")
+    result.assert_outcomes(passed=1)
+
+
+def test_lockfile_dir(pytester):
+    lockfile_dir = str(Path("lockfile").resolve())
+
+    pytester.makepyfile(
+        f"""
+        import pytest
+        def test_option(request):
+            assert str(request.config.getoption("--lockfile-dir", "")) == {lockfile_dir!r}
+        """
+    )
+
+    result = pytester.runpytest("--lockfile-dir", "lockfile")
     result.assert_outcomes(passed=1)
 
 
@@ -102,12 +118,14 @@ def test_options_pytester(pytester):
                 assert pytest.pyodide_run_host_test == True
                 assert pytest.pyodide_runtimes == set(["chrome","firefox","safari","node"])
                 assert pytest.pyodide_dist_dir == Path("some_weird_dir").resolve()
+                assert pytest.pyodide_lockfile_dir == Path("some_other_dir").resolve()
             """
         )
     )
     run_host = pytest.pyodide_run_host_test
     runtimes = pytest.pyodide_runtimes
     dist_dir = pytest.pyodide_dist_dir
+    lockfile_dir = pytest.pyodide_lockfile_dir
 
     result = pytester.runpytest(
         "--dist-dir",
@@ -116,9 +134,47 @@ def test_options_pytester(pytester):
         "chrome,firefox,safari,node",
         "--dist-dir",
         "some_weird_dir",
+        "--lockfile-dir",
+        "some_other_dir",
     )
     result.assert_outcomes(passed=1)
 
     assert run_host == pytest.pyodide_run_host_test
     assert runtimes == pytest.pyodide_runtimes
     assert dist_dir == pytest.pyodide_dist_dir
+    assert lockfile_dir == pytest.pyodide_lockfile_dir
+
+
+def test_options_different_lockfile_dir(request, pytester, tmp_path, selenium):
+    pytester.makepyfile(
+        dedent(
+            """
+            def test_options_different_lockfile_dir(selenium_standalone):
+                selenium_standalone.load_package("cloned_micropip")
+                selenium_standalone.run("import micropip")
+            """
+        )
+    )
+
+    orig_lockfile = f"{selenium.dist_dir}/pyodide-lock.json"
+    new_lockfile = tmp_path / "pyodide-lock.json"
+
+    lockfile_content = json.loads(Path(orig_lockfile).read_text())
+    # assume micropip is always available in the lockfile
+    lockfile_content["packages"]["cloned-micropip"] = lockfile_content["packages"][
+        "micropip"
+    ]
+
+    new_lockfile.write_text(json.dumps(lockfile_content, indent=4))
+
+    result = pytester.runpytest(
+        "--dist-dir",
+        request.config.getoption("--dist-dir"),
+        "--lockfile-dir",
+        str(tmp_path.resolve()),
+        "--runner",
+        request.config.option.runner,
+        "--rt",
+        ",".join(pytest.pyodide_runtimes),
+    )
+    result.assert_outcomes(passed=1)
