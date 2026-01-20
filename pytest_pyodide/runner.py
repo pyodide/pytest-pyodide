@@ -90,7 +90,10 @@ globalThis.assertThrowsAsync = async function (cb, errname, pattern) {
 
 
 class JavascriptException(Exception):
-    def __init__(self, msg, stack):
+    msg: str
+    stack: str
+
+    def __init__(self, msg: str, stack: str):
         self.msg = msg
         self.stack = stack
         # In chrome the stack contains the message
