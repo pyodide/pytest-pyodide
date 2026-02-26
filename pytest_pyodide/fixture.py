@@ -196,7 +196,10 @@ def selenium_esm(request, runtime, web_server_main, playwright_browsers):
 
 @contextlib.contextmanager
 def selenium_standalone_noload_common(
-    request, runtime, web_server_main, playwright_browsers,
+    request,
+    runtime,
+    web_server_main,
+    playwright_browsers,
 ):
     with selenium_common(
         request,
