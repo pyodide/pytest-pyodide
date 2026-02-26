@@ -116,3 +116,6 @@ max-complexity = 31  # C901: Recommended goal is 10
 [tool.pytest]
 asyncio_mode = "strict"
 addopts = ["--tb=short", "--doctest-modules", "--cov=pytest_pyodide", "--cov-report=xml"]
+testpaths = [
+    "tests",
+]
