@@ -119,7 +119,6 @@ class _BrowserBaseRunner:
         server_hostname="127.0.0.1",
         server_log=None,
         load_pyodide=True,
-        script_type="classic",
         dist_dir=None,
         jspi=False,
         **kwargs,
@@ -130,7 +129,6 @@ class _BrowserBaseRunner:
         self.server_hostname = server_hostname
         self.base_url = f"http://{self.server_hostname}:{self.server_port}"
         self.server_log = server_log
-        self.script_type = script_type
         self.dist_dir = dist_dir
         self.driver = self.get_driver(jspi)
 
@@ -162,12 +160,7 @@ class _BrowserBaseRunner:
         raise NotImplementedError()
 
     def prepare_driver(self):
-        if self.script_type == "classic":
-            self.goto(f"{self.base_url}/test.html")
-        elif self.script_type == "module":
-            self.goto(f"{self.base_url}/module_test.html")
-        else:
-            raise Exception("Unknown script type to load!")
+        self.goto(f"{self.base_url}/module_test.html")
 
     def javascript_setup(self):
         self.run_js(
@@ -298,15 +291,11 @@ class _BrowserBaseRunner:
             # we have a multiline string, fix indentation
             code = textwrap.dedent(code)
 
-        worker_file = (
-            "webworker_dev.js"
-            if self.script_type == "classic"
-            else "module_webworker_dev.js"
-        )
+        worker_file = "module_webworker_dev.js"
 
         return self.run_js(
             """
-            let worker = new Worker('{}', {{ type: '{}' }});
+            let worker = new Worker('{}', {{ type: 'module' }});
             let res = new Promise((res, rej) => {{
                 worker.onerror = e => rej(e);
                 worker.onmessage = e => {{
@@ -321,7 +310,6 @@ class _BrowserBaseRunner:
             return await res
             """.format(
                 f"http://{self.server_hostname}:{self.server_port}/{worker_file}",
-                self.script_type,
                 code,
             ),
             pyodide_checks=False,
