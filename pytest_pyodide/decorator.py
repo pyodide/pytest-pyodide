@@ -1,5 +1,6 @@
 import ast
 import functools
+import os
 import pickle
 import sys
 from base64 import b64decode, b64encode
@@ -380,6 +381,7 @@ class run_in_pyodide:
         packages: Collection[str] = (),
         pytest_assert_rewrites: bool = True,
         *,
+        skip_if_not_all_built: bool = "CI" in os.environ,
         _force_assert_rewrites: bool = False,
     ):
         """
@@ -399,8 +401,8 @@ class run_in_pyodide:
             If True, use pytest assertion rewrites. This gives better error messages
             when an assertion fails, but requires us to load pytest.
         """
-
         self._pkgs = list(packages)
+        self._skip_if_not_all_built = skip_if_not_all_built
         pytest_assert_rewrites = _force_assert_rewrites or (
             pytest_assert_rewrites and package_is_built("pytest")
         )
@@ -444,10 +446,18 @@ class run_in_pyodide:
     def _run(self, selenium: SeleniumType, args: tuple[Any, ...]):
         """The main runner, called from the AST generated in _create_outer_func."""
         __tracebackhide__ = True
-        code = self._code_template(args)
-        if self._pkgs:
-            selenium.load_package(self._pkgs)
 
+        unbuilt = sorted(pkg for pkg in self._pkgs if not package_is_built(pkg))
+        if unbuilt:
+            msg = "Requires unbuilt packages: " + ", ".join(unbuilt)
+            if "PYTEST_CURRENT_TEST" not in os.environ:
+                raise RuntimeError(msg)
+            if self._skip_if_not_all_built:
+                pytest.skip(msg)
+            pytest.fail(msg)
+        selenium.load_package(self._pkgs)
+
+        code = self._code_template(args)
         r = selenium.run_async(code)
         [status, result, repr] = r
 
