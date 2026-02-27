@@ -78,7 +78,6 @@ def selenium_common(
     runtime,
     web_server_main,
     load_pyodide=True,
-    script_type="classic",
     browsers=None,
     jspi=False,
 ):
@@ -112,7 +111,6 @@ def selenium_common(
         server_log=server_log,
         load_pyodide=load_pyodide,
         browsers=browsers,
-        script_type=script_type,
         dist_dir=dist_dir,
         jspi=jspi,
     )
@@ -186,7 +184,6 @@ def selenium_esm(request, runtime, web_server_main, playwright_browsers):
         web_server_main,
         load_pyodide=True,
         browsers=playwright_browsers,
-        script_type="module",
     ) as selenium:
         with set_webdriver_script_timeout(
             selenium, script_timeout=parse_driver_timeout(request.node)
@@ -199,7 +196,10 @@ def selenium_esm(request, runtime, web_server_main, playwright_browsers):
 
 @contextlib.contextmanager
 def selenium_standalone_noload_common(
-    request, runtime, web_server_main, playwright_browsers, script_type="classic"
+    request,
+    runtime,
+    web_server_main,
+    playwright_browsers,
 ):
     with selenium_common(
         request,
@@ -207,7 +207,6 @@ def selenium_standalone_noload_common(
         web_server_main,
         load_pyodide=False,
         browsers=playwright_browsers,
-        script_type=script_type,
     ) as selenium:
         with set_webdriver_script_timeout(
             selenium, script_timeout=parse_driver_timeout(request.node)
@@ -220,17 +219,13 @@ def selenium_standalone_noload_common(
 
 @pytest.fixture(scope="function")
 def selenium_webworker_standalone(
-    request, runtime, web_server_main, playwright_browsers, script_type
+    request, runtime, web_server_main, playwright_browsers
 ):
-    # Avoid loading the fixture if the test is going to be skipped
-    if runtime == "firefox" and script_type == "module":
-        pytest.skip("firefox does not support module type web worker")
-
     if runtime == "node":
         pytest.skip("no support in node")
 
     with selenium_standalone_noload_common(
-        request, runtime, web_server_main, playwright_browsers, script_type=script_type
+        request, runtime, web_server_main, playwright_browsers
     ) as selenium:
         yield selenium
 
@@ -352,6 +347,7 @@ def web_server_secondary(request):
         yield output
 
 
-@pytest.fixture(params=["classic", "module"], scope="module")
+# deprecated: classic type webworker is not supported anymore in Pyodide > 0.29
+@pytest.fixture(params=["module"], scope="module")
 def script_type(request):
     return request.param

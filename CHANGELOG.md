@@ -1,3 +1,10 @@
+## [0.59.0] - 2026-02-XX
+
+### Changed
+
+- Drop support for classic web worker.
+  [#182](https://github.com/pyodide/pytest-pyodide/pull/182)
+
 ## [0.58.6] - 2025-07-12
 
 ### Fixed
