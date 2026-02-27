@@ -32,7 +32,7 @@ class NoHypothesisUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         # Only allow safe classes from builtins.
         if module == "hypothesis":
-            raise pickle.UnpicklingError()
+            raise pickle.UnpicklingError
         return super().find_class(module, name)
 
 
