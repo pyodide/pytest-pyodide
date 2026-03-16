@@ -3,20 +3,23 @@ import functools
 import pickle
 import sys
 from base64 import b64decode, b64encode
-from collections.abc import Callable, Collection
+from collections.abc import Callable, Collection, Sequence
 from copy import deepcopy
 from io import BytesIO
-from typing import Any, Protocol
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar
 
 from .copy_files_to_pyodide import copy_files_to_emscripten_fs
 from .hook import ORIGINAL_MODULE_ASTS, REWRITTEN_MODULE_ASTS, pytest_wrapper
-from .runner import _BrowserBaseRunner
 from .utils import package_is_built as _package_is_built
+
+if TYPE_CHECKING:
+    from .runner import _BrowserBaseRunner
 
 MaybeAsyncFuncDef = ast.FunctionDef | ast.AsyncFunctionDef
 
 
-def package_is_built(package_name: str):
+def package_is_built(package_name: str) -> bool:
     return _package_is_built(package_name, pytest_wrapper.pyodide_dist_dir)
 
 
@@ -24,13 +27,13 @@ class SeleniumType(Protocol):
     JavascriptException: type
     browser: str
 
-    def load_package(self, pkgs: str | list[str]):
+    def load_package(self, pkgs: str | list[str]) -> None:
         ...
 
-    def run_async(self, code: str):
+    def run_async(self, code: str) -> Any:
         ...
 
-    def run_js(self, code: str):
+    def run_js(self, code: str) -> Any:
         ...
 
 
@@ -78,7 +81,7 @@ class PyodideHandle:
         self.selenium = selenium
         self.ptr: int | None = ptr
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.ptr is None:
             return
         ptr = self.ptr
@@ -265,7 +268,7 @@ def _create_outer_func(
     # This will show:
     # >   run(selenium_arg_name, (arg1, arg2, ...))
     # in the traceback.
-    def fake_body_for_traceback(arg1, arg2, selenium_arg_name):
+    def fake_body_for_traceback(arg1: Any, arg2: Any, selenium_arg_name: str) -> None:
         run(selenium_arg_name, (arg1, arg2, ...))
 
     # Adjust line numbers to point into our fake function
@@ -284,7 +287,7 @@ def _create_outer_func(
     return globs[funcdef.name]  # type: ignore[no-any-return]
 
 
-def initialize_decorator(selenium):
+def initialize_decorator(selenium: "_BrowserBaseRunner") -> None:
     from pathlib import Path
 
     _decorator_in_pyodide = (
@@ -364,7 +367,9 @@ def _locate_funcdef(
 
 
 class run_in_pyodide:
-    def __new__(cls, function: Callable[..., Any] | None = None, /, **kwargs):
+    def __new__(
+        cls, function: Callable[..., Any] | None = None, /, **kwargs: Any
+    ) -> Any:
         if function:
             # Probably we were used like:
             #
@@ -441,7 +446,7 @@ class run_in_pyodide:
         self._async_func = isinstance(funcdef, ast.AsyncFunctionDef)
         return wrapper
 
-    def _run(self, selenium: SeleniumType, args: tuple[Any, ...]):
+    def _run(self, selenium: SeleniumType, args: tuple[Any, ...]) -> Any:
         """The main runner, called from the AST generated in _create_outer_func."""
         __tracebackhide__ = True
         code = self._code_template(args)
@@ -483,12 +488,20 @@ class run_in_pyodide:
         """
 
 
-def copy_files_to_pyodide(file_list, install_wheels=True, recurse_directories=True):
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
+def copy_files_to_pyodide(
+    file_list: Sequence[Path | str | tuple[Path | str, Path | str]],
+    install_wheels: bool = True,
+    recurse_directories: bool = True,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """A decorator that copies files across to pyodide"""
 
-    def wrap(fn):
+    def wrap(fn: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(fn)
-        def wrapped_f(*args, **argv):
+        def wrapped_f(*args: P.args, **argv: P.kwargs) -> T:
             # get selenium from args
             selenium = None
             for a in args:
