@@ -20,6 +20,7 @@ import pickle
 from base64 import b64decode, b64encode
 from inspect import isclass
 from io import BytesIO
+from pathlib import Path
 from typing import Any
 
 import pyodide_js
@@ -142,6 +143,23 @@ async def run_in_pyodide_main(
         except ImportError:
             pass
         return (1, encode(e), repr(e))
+
+
+def start_coverage(coverage_args64):
+    coverage_args = decode(coverage_args64)
+
+    import coverage
+
+    coverage = coverage.Coverage(**coverage_args)
+    coverage.start()
+    return coverage
+
+
+def end_coverage(coverage):
+    coverage.stop()
+    coverage.save()
+    coverage_bytes = Path(".coverage").read_bytes()
+    return b64encode(coverage_bytes).decode()
 
 
 __all__ = ["PyodideHandle", "encode"]
