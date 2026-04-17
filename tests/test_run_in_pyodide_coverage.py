@@ -108,9 +108,7 @@ def test_run_in_pyodide_coverage(selenium, tmp_path, monkeypatch):
     assert result.stdout == "Wrote JSON report to coverage.json\n"
 
     coverage_json = json.loads((tmp_path / "coverage.json").read_text())
-    file = coverage_json["files"][
-        "/home/hood/Documents/programming/pytest-pyodide/tests/coverage-test/dummy_pkg/__init__.py"
-    ]
+    file = coverage_json["files"][str(DUMMY_PKG_FILE.absolute())]
     functions = file["functions"]
     pprint(functions)
 
