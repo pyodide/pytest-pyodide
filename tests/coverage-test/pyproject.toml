@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dummy-pkg"
+version = "0.1.0"
+description = "Dummy package for exercising run_in_pyodide_coverage"
+requires-python = ">=3.10"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dummy_pkg"]
+
+
+[tool.coverage.paths]
+source = [
+  "{COVERAGE_TEST_PATH}",
+  "/lib/python*/site-packages",
+]
