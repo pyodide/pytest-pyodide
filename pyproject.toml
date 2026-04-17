@@ -32,6 +32,7 @@ test = [
   "build",
   "requests",
   "selenium<4.21.0",
+  "coverage",
 ]
 
 # pytest will look up `pytest11` entrypoints to find plugins

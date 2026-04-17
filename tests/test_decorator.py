@@ -167,22 +167,19 @@ def test_selenium4(selenium_standalone):
     ]
 
 
-def test_local_fail_load_package(selenium_standalone):
+def test_local_fail_load_package(selenium_standalone, monkeypatch):
     selenium = selenium_standalone
 
-    def _load_package_error(*args, **kwargs):
+    def load_package_error(*args, **kwargs):
         raise OSError("STOP!")
 
-    _load_package_original = selenium.load_package
-    selenium.load_package = _load_package_error
+    monkeypatch.setattr(selenium, "load_package", load_package_error)
 
     exc = None
     try:
         example_func(selenium)
     except OSError:
         exc = pytest.ExceptionInfo.from_current()
-    finally:
-        selenium.load_package = _load_package_original
 
     assert exc
     try:

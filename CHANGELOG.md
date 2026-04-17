@@ -1,3 +1,8 @@
+## [Unreleased]
+
+- Add `run_in_pyodide_coverage()` function for coverage testing.
+  [#183](https://github.com/pyodide/pytest-pyodide/pull/183)
+
 ## [0.59.0] - 2026-02-27
 
 ### Changed
