@@ -12,6 +12,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from pprint import pprint
 
 from pytest_pyodide.decorator import run_in_pyodide_coverage
 from pytest_pyodide.server import spawn_web_server
@@ -111,9 +112,6 @@ def test_run_in_pyodide_coverage(selenium, tmp_path, monkeypatch):
         "/home/hood/Documents/programming/pytest-pyodide/tests/coverage-test/dummy_pkg/__init__.py"
     ]
     functions = file["functions"]
-
-    from pprint import pprint
-
     pprint(functions)
 
     assert functions["add"]["missing_lines"] == []
