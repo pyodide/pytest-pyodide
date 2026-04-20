@@ -16,9 +16,7 @@ def test_load_package_succeeds(selenium):
     must not raise, and the package must be importable afterwards."""
     selenium.load_package("micropip")
     # If the package is really loaded, importing it in Pyodide succeeds.
-    selenium.run_js(
-        "await pyodide.runPythonAsync('import micropip');"
-    )
+    selenium.run_js("await pyodide.runPythonAsync('import micropip');")
 
 
 def test_load_package_bad_url_raises(selenium):
@@ -50,9 +48,7 @@ def test_load_package_partial_failure_raises(selenium):
     """If a list contains both a valid and an invalid package, the call
     must still raise so the failure is not silently swallowed."""
     with pytest.raises(RuntimeError) as exc_info:
-        selenium.load_package(
-            ["micropip", "definitely-not-a-real-package-xyz"]
-        )
+        selenium.load_package(["micropip", "definitely-not-a-real-package-xyz"])
 
     msg = str(exc_info.value)
     assert "definitely-not-a-real-package-xyz" in msg
