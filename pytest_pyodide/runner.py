@@ -316,7 +316,39 @@ class _BrowserBaseRunner:
         )
 
     def load_package(self, packages):
-        self.run_js(f"await pyodide.loadPackage({packages!r})")
+        # Pyodide's ``loadPackage`` reports failures in two different ways:
+        #
+        #   * For a known-but-unresolvable package (e.g. a wheel URL that
+        #     404s), the returned promise resolves normally and the failure
+        #     is only delivered via the ``errorCallback`` option.
+        #   * For an unknown package name, the returned promise rejects
+        #     with a JavaScript ``Error``.
+        #
+        # Both paths are easy to miss in tests -- in the first case the
+        # missing package surfaces later as a confusing
+        # ``ModuleNotFoundError`` inside Pyodide. We normalize both into a
+        # single ``RuntimeError`` raised at the call site so load failures
+        # are always reported immediately and with the problematic package
+        # reference in the message.
+        result = self.run_js(
+            f"""
+            const __errors = [];
+            try {{
+                await pyodide.loadPackage({packages!r}, {{
+                    errorCallback: (msg) => {{ __errors.push(msg); }},
+                }});
+            }} catch (e) {{
+                __errors.push(e.message || String(e));
+            }}
+            return __errors;
+            """
+        )
+        if result:
+            raise RuntimeError(
+                "pyodide.loadPackage({!r}) reported errors:\n  {}".format(
+                    packages, "\n  ".join(result)
+                )
+            )
 
 
 class _SeleniumBaseRunner(_BrowserBaseRunner):
