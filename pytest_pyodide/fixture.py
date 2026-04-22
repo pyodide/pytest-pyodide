@@ -10,6 +10,9 @@ import pytest
 from .config import get_global_config
 from .hook import pytest_wrapper
 from .runner import (
+    BrowserWorkerChromeRunner,
+    BrowserWorkerFirefoxRunner,
+    BrowserWorkerSafariRunner,
     NodeRunner,
     PlaywrightChromeRunner,
     PlaywrightFirefoxRunner,
@@ -72,6 +75,41 @@ def _playwright_browsers(request):
                     browser.close()
 
 
+@functools.cache
+def _runner_map() -> dict[tuple[str, str, str], type[_BrowserBaseRunner]]:
+    def runner_key(runner: type[_BrowserBaseRunner]) -> tuple[str, str, str]:
+        worker = "worker" if getattr(runner, "_worker", False) else "main"
+        return (runner.runner, runner.browser, worker)
+
+    runners = [
+        SeleniumFirefoxRunner,
+        SeleniumChromeRunner,
+        SeleniumSafariRunner,
+        PlaywrightFirefoxRunner,
+        PlaywrightChromeRunner,
+        BrowserWorkerChromeRunner,
+        BrowserWorkerFirefoxRunner,
+        BrowserWorkerSafariRunner,
+        NodeRunner,
+    ]
+    return {runner_key(rt): rt for rt in runners}
+
+
+def _get_runner_cls(
+    runtime: str, runner_type: str, is_worker: bool
+) -> type[_BrowserBaseRunner]:
+    if runtime == "node":
+        runner_type = "node"
+    thread = "worker" if is_worker else "main"
+
+    runner_cls = _runner_map().get((runner_type, runtime, thread))
+    if runner_cls is None:
+        raise AssertionError(
+            f"Unknown runner or browser: {runner_type} / {runtime} / {thread}"
+        )
+    return runner_cls
+
+
 @contextlib.contextmanager
 def selenium_common(
     request,
@@ -80,6 +118,7 @@ def selenium_common(
     load_pyodide=True,
     browsers=None,
     jspi=False,
+    worker=False,
 ):
     """Returns an initialized selenium object.
 
@@ -88,21 +127,7 @@ def selenium_common(
     """
 
     server_hostname, server_port, server_log = web_server_main
-    runner_type = request.config.option.runner.lower()
-
-    runner_set: dict[tuple[str, str], type[_BrowserBaseRunner]] = {
-        ("selenium", "firefox"): SeleniumFirefoxRunner,
-        ("selenium", "chrome"): SeleniumChromeRunner,
-        ("selenium", "safari"): SeleniumSafariRunner,
-        ("selenium", "node"): NodeRunner,
-        ("playwright", "firefox"): PlaywrightFirefoxRunner,
-        ("playwright", "chrome"): PlaywrightChromeRunner,
-        ("playwright", "node"): NodeRunner,
-    }
-
-    runner_cls = runner_set.get((runner_type, runtime))
-    if runner_cls is None:
-        raise AssertionError(f"Unknown runner or browser: {runner_type} / {runtime}")
+    runner_cls = _get_runner_cls(runtime, request.config.option.runner.lower(), worker)
 
     dist_dir = Path(os.getcwd(), request.config.getoption("--dist-dir"))
     runner = runner_cls(
@@ -278,6 +303,48 @@ def selenium(request, selenium_module_scope):
         yield selenium
 
 
+# selenium instance cached at the module level
+@pytest.fixture(scope="module")
+def selenium_worker_module_scope(
+    request, runtime, web_server_main, playwright_browsers
+):
+    if runtime == "node":
+        pytest.skip("selenium_worker has no support in node")
+
+    with selenium_common(
+        request, runtime, web_server_main, browsers=playwright_browsers, worker=True
+    ) as selenium:
+        yield selenium
+
+
+# Hypothesis is unhappy with function scope fixtures. Instead, use the
+# module scope fixture `selenium_module_scope` and use:
+# `with selenium_context_manager(selenium_module_scope) as selenium`
+@contextlib.contextmanager
+def selenium_worker_context_manager(selenium_worker_module_scope):
+    try:
+        selenium_worker_module_scope.clean_logs()
+        yield selenium_worker_module_scope
+    finally:
+        try:
+            print(selenium_worker_module_scope.logs)
+        except ValueError:
+            # For reasons I don't entirely understand, it is possible for
+            # selenium to be closed before this is executed. In that case, just
+            # skip printing the logs and we can exit cleanly.
+            pass
+
+
+@pytest.fixture
+def selenium_worker(request, selenium_worker_module_scope):
+    with selenium_worker_context_manager(
+        selenium_worker_module_scope
+    ) as selenium, set_webdriver_script_timeout(
+        selenium, script_timeout=parse_driver_timeout(request.node)
+    ):
+        yield selenium
+
+
 @pytest.fixture
 def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
     yield from selenium_jspi_inner(
@@ -285,13 +352,29 @@ def selenium_jspi(request, runtime, web_server_main, playwright_browsers):
     )
 
 
-def selenium_jspi_inner(request, runtime, web_server_main, playwright_browsers):
+@pytest.fixture
+def selenium_jspi_worker(request, runtime, web_server_main, playwright_browsers):
+    if runtime == "node":
+        pytest.skip("selenium_worker has no support in node")
+    yield from selenium_jspi_inner(
+        request, runtime, web_server_main, playwright_browsers, worker=True
+    )
+
+
+def selenium_jspi_inner(
+    request, runtime, web_server_main, playwright_browsers, worker=False
+):
     if runtime in ["firefox", "safari"]:
         pytest.skip(f"jspi not supported in {runtime}")
     if request.config.option.runner.lower() == "playwright":
         pytest.skip("jspi not supported with playwright")
     with selenium_common(
-        request, runtime, web_server_main, browsers=playwright_browsers, jspi=True
+        request,
+        runtime,
+        web_server_main,
+        browsers=playwright_browsers,
+        jspi=True,
+        worker=worker,
     ) as selenium, set_webdriver_script_timeout(
         selenium, script_timeout=parse_driver_timeout(request.node)
     ):

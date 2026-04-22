@@ -103,6 +103,7 @@ class JavascriptException(Exception):
 
 class _BrowserBaseRunner:
     browser: RUNTIMES = ""  # type: ignore[assignment]
+    runner: str = ""
     script_timeout = 20
     JavascriptException = JavascriptException
 
@@ -130,6 +131,7 @@ class _BrowserBaseRunner:
         self.base_url = f"http://{self.server_hostname}:{self.server_port}"
         self.server_log = server_log
         self.dist_dir = dist_dir
+        self.jspi = jspi
         self.driver = self.get_driver(jspi)
 
         self.set_script_timeout(self.script_timeout)
@@ -352,6 +354,8 @@ class _BrowserBaseRunner:
 
 
 class _SeleniumBaseRunner(_BrowserBaseRunner):
+    runner = "selenium"
+
     def goto(self, page):
         self.driver.get(page)
 
@@ -394,6 +398,8 @@ class _SeleniumBaseRunner(_BrowserBaseRunner):
 
 
 class _PlaywrightBaseRunner(_BrowserBaseRunner):
+    runner = "playwright"
+
     def __init__(self, browsers, *args, **kwargs):
         self.browsers = browsers
         super().__init__(*args, **kwargs)
@@ -536,6 +542,102 @@ class SeleniumSafariRunner(_SeleniumBaseRunner):
         return instance
 
 
+class _BrowserWorkerRunnerMixin(_BrowserBaseRunner):
+    """Mixin that makes a Selenium-based runner execute JS inside a
+    persistent Web Worker instead of on the main page.
+
+    The main page still drives the browser (via Selenium), but each
+    ``run_js_inner`` call is proxied to a long-lived worker. This lets us
+    test Pyodide code paths that differ between the main thread and a
+    worker context (e.g. ``importScripts``, ``FileReaderSync``, lack of
+    DOM, etc.) across Chrome, Firefox, and Safari.
+    """
+
+    _worker = True
+
+    WORKER_FILE = "module_webworker_runner.js"
+
+    def prepare_driver(self):
+        super().prepare_driver()
+        # Boot a persistent worker on the page and install a small RPC
+        # helper (``self.__workerCall``) that returns a promise resolved
+        # with the worker's response for a given message id.
+        worker_url = f"{self.base_url}/{self.WORKER_FILE}"
+        bootstrap = f"""
+            const worker = new Worker({worker_url!r}, {{ type: 'module' }});
+            self.__worker = worker;
+            self.__workerPending = new Map();
+            self.__workerNextId = 1;
+            worker.onmessage = (ev) => {{
+                const {{ id }} = ev.data ?? {{}};
+                const entry = self.__workerPending.get(id);
+                if (!entry) {{ return; }}
+                self.__workerPending.delete(id);
+                entry(ev.data);
+            }};
+            worker.onerror = (ev) => {{
+                // Reject every pending call with the worker error.
+                const err = {{
+                    ok: false,
+                    error: ev.message ?? String(ev),
+                    message: ev.message ?? "",
+                    stack: ev.filename
+                        ? `${{ev.filename}}:${{ev.lineno}}:${{ev.colno}}`
+                        : "",
+                }};
+                for (const [id, entry] of self.__workerPending) {{
+                    self.__workerPending.delete(id);
+                    entry({{ id, ...err }});
+                }}
+            }};
+            self.__workerCall = function (code) {{
+                const id = self.__workerNextId++;
+                return new Promise((resolve) => {{
+                    self.__workerPending.set(id, resolve);
+                    worker.postMessage({{ id, code }});
+                }});
+            }};
+        """
+        # Run the bootstrap on the main page itself
+        super().run_js_inner(bootstrap, "")
+
+    def run_js_inner(self, code, check_code):
+        # Run ``code`` inside the worker; ``check_code`` must also run
+        # inside the worker because it references ``globalThis.pyodide``
+        # and ``pyodide._module`` which only exist on the worker's
+        # ``self`` (they are set there by ``load_pyodide``). We fold both
+        # into a single async IIFE so ``code``'s ``return`` value is
+        # returned only after ``check_code`` has run.
+        worker_body = f"""
+            const __result = await (async () => {{ {code} }})();
+            {check_code}
+            return __result;
+        """
+        wrapper = f"""
+            const __res = await self.__workerCall({worker_body!r});
+            if (__res.ok) {{
+                return __res.result;
+            }}
+            const __e = new Error(__res.message || __res.error);
+            __e.stack = __res.stack;
+            throw __e;
+        """
+        # check_code here is run on the page. We already handled it in worker_body
+        return super().run_js_inner(wrapper, "")
+
+
+class BrowserWorkerChromeRunner(_BrowserWorkerRunnerMixin, SeleniumChromeRunner):
+    pass
+
+
+class BrowserWorkerFirefoxRunner(_BrowserWorkerRunnerMixin, SeleniumFirefoxRunner):
+    pass
+
+
+class BrowserWorkerSafariRunner(_BrowserWorkerRunnerMixin, SeleniumSafariRunner):
+    pass
+
+
 class PlaywrightChromeRunner(_PlaywrightBaseRunner):
     browser = "chrome"
 
@@ -550,6 +652,7 @@ class PlaywrightFirefoxRunner(_PlaywrightBaseRunner):
 
 class NodeRunner(_BrowserBaseRunner):
     browser = "node"
+    runner = "node"
 
     def init_node(self, jspi=False):
         curdir = Path(__file__).parent
