@@ -16,7 +16,6 @@ from pytest_pyodide.runner import (
     _BrowserWorkerRunnerMixin,
 )
 
-
 # ---------------------------------------------------------------------------
 # Host-only tests (no browser required)
 # ---------------------------------------------------------------------------
