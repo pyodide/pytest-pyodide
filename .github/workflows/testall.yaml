@@ -80,6 +80,7 @@ jobs:
       build-artifact-name: ${{ inputs.build-artifact-name }}
       build-artifact-path: ${{ inputs.build-artifact-path }}
       pyodide-version: ${{ matrix.pyodide_version }}
+      python-version: ${{ matrix.python_version }}
       os: ${{ matrix.os }}
       runner: ${{ matrix.runner }}
       browser: ${{ matrix.browser }}

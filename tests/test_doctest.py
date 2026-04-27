@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from textwrap import dedent
 
@@ -83,19 +84,25 @@ def test_doctest_run(pytester, selenium, request, playwright_browsers, capsys):
     result.assertoutcome(passed=2, failed=1)
     result.getfailures()[0]
     captured = capsys.readouterr()
-    # The indentation is different here in Python 3.12 vs Python 3.13...
+    # The indentation is different here in Python 3.12 vs Python 3.13 vs Python 3.14...
     expected = dedent(
         """
-        003     >>> from js import Object # doctest: +RUN_IN_PYODIDE
-        004     >>> 1 == 2
+        003 >>> from js import Object # doctest: +RUN_IN_PYODIDE
+        004 >>> 1 == 2
         Expected:
             True
         Got:
             False
         """
     ).strip()
-    print(captured.out)
-    assert expected in captured.out
+
+    def normalize(s):
+        return re.sub(r" +>", " >", s)
+
+    result = normalize(captured.out)
+    print(result)
+
+    assert expected in result
 
 
 def test_doctest_collect(pytester):

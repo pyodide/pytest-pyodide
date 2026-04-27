@@ -12,7 +12,11 @@ on:
       pyodide-version:
         required: false
         type: string
-        default: "0.27.2"
+        default: "0.29.3"
+      python-version:
+        required: false
+        type: string
+        default: "3.13"
       os:
         required: false
         type: string
@@ -102,7 +106,7 @@ jobs:
 
       - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
-          python-version: 3.12
+          python-version: ${{ inputs.python-version }}
 
       - name: install pyodide-py
         run: |
