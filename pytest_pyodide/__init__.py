@@ -3,6 +3,9 @@ from importlib.metadata import PackageNotFoundError, version
 from .config import get_global_config
 from .decorator import copy_files_to_pyodide, run_in_pyodide
 from .runner import (
+    BrowserWorkerChromeRunner,
+    BrowserWorkerFirefoxRunner,
+    BrowserWorkerSafariRunner,
     NodeRunner,
     PlaywrightChromeRunner,
     PlaywrightFirefoxRunner,
@@ -20,6 +23,9 @@ except PackageNotFoundError:
     pass
 
 __all__ = [
+    "BrowserWorkerChromeRunner",
+    "BrowserWorkerFirefoxRunner",
+    "BrowserWorkerSafariRunner",
     "NodeRunner",
     "PlaywrightChromeRunner",
     "PlaywrightFirefoxRunner",
