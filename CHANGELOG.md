@@ -1,4 +1,16 @@
+## [0.59.2] - 2026-04-27
+
+### Added
+
+- Added CI support for Pyodide 0.28.3 and Pyodide 0.29.3
+  [#186](https://github.com/pyodide/pytest-pyodide/pull/186)
+- Add `selenium_webworker` fixture which runs code in a webworker but is
+  otherwise a drop-in replacement for `selenium`.
+  [#185](https://github.com/pyodide/pytest-pyodide/pull/185)
+
 ## [0.59.1] - 2026-04-17
+
+### Added
 
 - Add `run_in_pyodide_coverage()` function for coverage testing.
   [#183](https://github.com/pyodide/pytest-pyodide/pull/183)
