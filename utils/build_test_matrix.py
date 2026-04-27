@@ -19,6 +19,27 @@ DEFAULT_PLAYWRIGHT_VERSION = "1.44.0"
 
 
 @dataclasses.dataclass
+class VersionPair:
+    pyodide_version: tuple[int, int]
+    python_version: str
+
+
+PYODIDE_TO_PYTHON_VERSION: list[VersionPair] = [
+    VersionPair(pyodide_version=(0, 28), python_version="3.13"),
+    VersionPair(pyodide_version=(0, 25), python_version="3.12"),
+    VersionPair(pyodide_version=(0, 23), python_version="3.11"),
+]
+
+
+def python_version_for_pyodide(pyodide_version: str) -> str:
+    pyodide_ver = tuple(int(x) for x in pyodide_version.split(".")[:2])
+    for pair in PYODIDE_TO_PYTHON_VERSION:
+        if pyodide_ver >= pair.pyodide_version:
+            return pair.python_version
+    return "3.10"
+
+
+@dataclasses.dataclass
 class TestConfig:
     pyodide_version: str
     os: str
@@ -26,6 +47,7 @@ class TestConfig:
     browser: str
     browser_version: str = ""
     playwright_version: str = ""
+    python_version: str = ""
 
     @property
     def runtime(self) -> str:
@@ -130,7 +152,13 @@ def build_configs(args: dict[str, list[str]]) -> list[TestConfig]:
     for _os, _pyodide_version, _runner, _browser in itertools.product(
         os, pyodide_version, runner, browser
     ):
-        config = TestConfig(_pyodide_version, _os, _runner, _browser)
+        config = TestConfig(
+            _pyodide_version,
+            _os,
+            _runner,
+            _browser,
+            python_version=python_version_for_pyodide(_pyodide_version),
+        )
 
         if not is_valid_config(config):
             continue
