@@ -9,13 +9,11 @@ from pytest_pyodide.hook import _filter_runtimes
 def test_dist_dir(pytester):
     dist_dir = str(Path("dist").resolve())
 
-    pytester.makepyfile(
-        f"""
+    pytester.makepyfile(f"""
         import pytest
         def test_option(request):
             assert str(request.config.getoption("--dist-dir", "")) == {dist_dir!r}
-        """
-    )
+        """)
 
     result = pytester.runpytest("--dist-dir", "dist")
     result.assert_outcomes(passed=1)
@@ -23,13 +21,11 @@ def test_dist_dir(pytester):
 
 @pytest.mark.parametrize("runner", ["selenium", "playwright"])
 def test_runner(pytester, runner):
-    pytester.makepyfile(
-        f"""
+    pytester.makepyfile(f"""
         import pytest
         def test_option(request):
             assert request.config.getoption("--runner") == {runner!r}
-        """
-    )
+        """)
 
     result = pytester.runpytest("--runner", runner)
     result.assert_outcomes(passed=1)
@@ -38,13 +34,11 @@ def test_runner(pytester, runner):
 def test_invalid_runner(pytester):
     runner = "blah"
 
-    pytester.makepyfile(
-        f"""
+    pytester.makepyfile(f"""
         import pytest
         def test_option(request):
             assert request.config.getoption("--runner") == {runner!r}
-        """
-    )
+        """)
 
     result = pytester.runpytest("--runner", runner)
 
@@ -61,13 +55,11 @@ def test_invalid_runner(pytester):
 def test_invalid_runtime(pytester, _runtime):
     _runtime.split(",")
 
-    pytester.makepyfile(
-        """
+    pytester.makepyfile("""
         import pytest
         def test_option():
             assert True
-        """
-    )
+        """)
 
     # TODO: catch internal errors directly?
     with pytest.raises(ValueError, match="Pytest terminal summary report not found"):
@@ -92,9 +84,7 @@ def test_filter_runtimes(_runtime, expected):
 
 
 def test_options_pytester(pytester):
-    pytester.makepyfile(
-        dedent(
-            """
+    pytester.makepyfile(dedent("""
             import pytest
             from pathlib import Path
 
@@ -102,9 +92,7 @@ def test_options_pytester(pytester):
                 assert pytest.pyodide_run_host_test == True
                 assert pytest.pyodide_runtimes == set(["chrome","firefox","safari","node"])
                 assert pytest.pyodide_dist_dir == Path("some_weird_dir").resolve()
-            """
-        )
-    )
+            """))
     run_host = pytest.pyodide_run_host_test
     runtimes = pytest.pyodide_runtimes
     dist_dir = pytest.pyodide_dist_dir

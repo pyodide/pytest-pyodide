@@ -69,7 +69,7 @@ class PyodideDoctestMixin:
         """Call super and then if test includes the RUN_IN_PYODIDE option on the
         first line, make one copy for each Pyodide runtime environment
         """
-        for item in super().collect():  # type:ignore[misc]
+        for item in super().collect():  # type: ignore[misc]
             pyodide_test = RUN_IN_PYODIDE in item.dtest.examples[0].options
             item.dtest.pyodide_test = pyodide_test
             if not pyodide_test:
@@ -140,7 +140,7 @@ def run_doctest_in_pyodide_outer(
     # So we just take the DocTestRunner apart and put it back together inside
     # Pyodide.
     optionflags = self.optionflags
-    continue_on_failure = self.continue_on_failure  # type:ignore[attr-defined]
+    continue_on_failure = self.continue_on_failure  # type: ignore[attr-defined]
 
     return run_doctest_in_pyodide_inner(
         selenium, optionflags, continue_on_failure, test, compileflags, out, clear_globs

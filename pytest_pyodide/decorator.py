@@ -27,22 +27,17 @@ class SeleniumType(Protocol):
     JavascriptException: type
     browser: str
 
-    def load_package(self, pkgs: str | list[str]):
-        ...
+    def load_package(self, pkgs: str | list[str]): ...
 
-    def run_async(self, code: str):
-        ...
+    def run_async(self, code: str): ...
 
-    def run_js(self, code: str):
-        ...
+    def run_js(self, code: str): ...
 
 
 class _ReadableFileobj(Protocol):
-    def read(self, __n: int) -> bytes:
-        ...
+    def read(self, __n: int) -> bytes: ...
 
-    def readline(self) -> bytes:
-        ...
+    def readline(self) -> bytes: ...
 
 
 class Unpickler(pickle.Unpickler):
@@ -86,11 +81,9 @@ class PyodideHandle:
             return
         ptr = self.ptr
         self.ptr = None
-        self.selenium.run_js(
-            f"""
+        self.selenium.run_js(f"""
             pyodide._module._Py_DecRef({ptr});
-            """
-        )
+            """)
 
 
 def _encode(obj: Any) -> str:
@@ -246,12 +239,10 @@ def _create_outer_func(
     # Make onwards call with two args:
     # 1. <selenium_arg_name>
     # 2. all other arguments in a tuple
-    func_body = ast.parse(
-        """\
+    func_body = ast.parse("""\
         __tracebackhide__ = True; \
         return run(selenium_arg_name, (arg1, arg2, ...)) \
-        """.strip()
-    ).body
+        """.strip()).body
     onwards_call = func_body[1].value  # type: ignore[attr-defined]
     onwards_call.func = ast.Name(id=run_id, ctx=ast.Load())
     onwards_call.args[0].id = selenium_arg_name  # Set variable name
@@ -293,8 +284,7 @@ def initialize_decorator(selenium):
     _decorator_in_pyodide = (
         Path(__file__).parent / "_decorator_in_pyodide.py"
     ).read_text()
-    selenium.run(
-        f"""
+    selenium.run(f"""
 def temp():
     _decorator_in_pyodide = '''{_decorator_in_pyodide}'''
     from importlib.machinery import ModuleSpec
@@ -315,8 +305,7 @@ def temp():
     sys.modules[modname] = mod
 temp()
 del temp
-        """
-    )
+        """)
 
 
 def _locate_funcdef(
@@ -547,24 +536,20 @@ class run_in_pyodide_coverage(run_in_pyodide):
 
     def _get_code_prelude(self):
         """Start coverage with the coverage_args passed from the host"""
-        return dedent(
-            f"""
+        return dedent(f"""
             from pytest_pyodide.decorator import start_coverage
             coverage = start_coverage({_encode(self._coverage_args)!r})
-            """
-        )
+            """)
 
     def _get_code_epilogue(self):
         """Stop coverage and append the data to the result"""
-        return dedent(
-            """
+        return dedent("""
             from pytest_pyodide.decorator import end_coverage
             coverage_outdata = end_coverage(coverage)
             result = (*result, coverage_outdata)
-            """
-        )
+            """)
 
-    def _process_extra(self, coverage_out_binary):  # type:ignore[override]
+    def _process_extra(self, coverage_out_binary):  # type: ignore[override]
         """Write coverage data to the file system"""
         _get_coverage_path().write_bytes(b64decode(coverage_out_binary))
 

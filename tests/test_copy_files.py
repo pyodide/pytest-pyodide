@@ -11,8 +11,7 @@ from pytest_pyodide.decorator import copy_files_to_pyodide, run_in_pyodide
 def test_non_recursive_decorator(selenium):
     should_exist = f"non_recursive_test/{Path(__file__).name}"
     should_not_exist = "non_recursive_test/datafiles/in_pyodide_tests.py"
-    selenium.run(
-        f"""
+    selenium.run(f"""
         with open("{should_exist}") as f:
             txt = f.read()
             assert(txt.find("test_non_recursive_decorator")!=-1)
@@ -21,8 +20,7 @@ def test_non_recursive_decorator(selenium):
             assert("File {should_not_exist} was copied")
         except IOError:
             pass
-        """
-    )
+        """)
 
 
 @copy_files_to_pyodide(
@@ -31,16 +29,14 @@ def test_non_recursive_decorator(selenium):
 def test_recursive_decorator(selenium):
     should_exist = f"recursive_test/{Path(__file__).name}"
     should_also_exist = "recursive_test/datafiles/in_pyodide_tests.py"
-    selenium.run(
-        f"""
+    selenium.run(f"""
         with open("{should_exist}") as f:
             assert(txt.find("test_non_recursive_decorator")!=-1)
         try:
             open("{should_also_exist}","r")
         except IOError:
             assert("File {should_also_exist} was not copied")
-        """
-    )
+        """)
 
 
 # possible test cases = list of a)tuple, b)path, c) folder name, d) glob pattern
@@ -54,8 +50,7 @@ def test_recursive_decorator(selenium):
 )
 def test_copy_files_decorator(selenium):
     auto_target_path = Path(__file__).relative_to(Path.cwd())
-    selenium.run(
-        f"""
+    selenium.run(f"""
     with open("test.py") as f:
         txt = f.read()
     assert(txt.find("test_copy_files_decorator test 1")!=-1)
@@ -71,8 +66,7 @@ def test_copy_files_decorator(selenium):
     with open("python_only/test_copy_files.py") as f:
         txt = f.read()
     assert(txt.find("test_copy_files_decorator test 4")!=-1)
-    """
-    )
+    """)
 
 
 @copy_files_to_pyodide([(__file__, "test2.py")])

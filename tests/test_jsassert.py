@@ -1,6 +1,5 @@
 def test_assert(selenium):
-    selenium.run_js(
-        r"""
+    selenium.run_js(r"""
         let shouldPass;
         shouldPass = true;
         assert(() => shouldPass, "blah");
@@ -17,13 +16,11 @@ def test_assert(selenium):
         if(!threw){
             throw new Error("Didn't throw!");
         }
-        """
-    )
+        """)
 
 
 def test_assert_throws(selenium):
-    selenium.run_js(
-        r"""
+    selenium.run_js(r"""
         let shouldPass;
         let threw;
         assertThrows(() => { throw new TypeError("aaabbbccc") }, "TypeError", "bbc");
@@ -62,5 +59,4 @@ def test_assert_throws(selenium):
             assert(() => e.message.endsWith(`expected error message to match pattern /a..d/ got:\nblah`));
         }
         assert(() => threw);
-        """
-    )
+        """)

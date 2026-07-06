@@ -93,9 +93,12 @@ lint.select = [
   "RET505",
   "RET506",
 ]
-lint.ignore = ["E402", "E501", "E731", "E741"]
-# line-length = 219  # E501: Recommended goal is 88 to match black
-target-version = "py312"
+lint.ignore = [
+  "E402", # import not at top of file
+  "E501", # line too long
+  "PLC0415", # import outside top level
+]
+target-version = "py311"
 
 
 [tool.ruff.lint.isort]

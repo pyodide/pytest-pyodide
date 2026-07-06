@@ -127,8 +127,7 @@ def run_test_in_pyodide(node_tree_id, selenium, ignore_fail=False):
         "-o",
         "junit_logging=out-err",
     ]
-    ret_xml = selenium.run_async(
-        f"""
+    ret_xml = selenium.run_async(f"""
         import pytest
         retcode = pytest.main({all_args})
 
@@ -136,8 +135,7 @@ def run_test_in_pyodide(node_tree_id, selenium, ignore_fail=False):
         with open("test_output.xml","r") as f:
             output_xml=f.read()
         output_xml
-        """
-    )
+        """)
     # get the error from junitxml
     root = ET.fromstring(ret_xml)
     fails = root.findall("*/testcase[failure]")

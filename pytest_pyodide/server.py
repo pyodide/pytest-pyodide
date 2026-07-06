@@ -126,7 +126,7 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
         handler_cls = functools.partial(DefaultHandler, extra_headers=extra_headers)
 
     with socketserver.TCPServer(("", 0), handler_cls) as httpd:
-        host, port = httpd.server_address
+        host, port = httpd.server_address  # type: ignore[misc]
         print(f"Starting webserver at http://{host}:{port}")  # type: ignore[str-bytes-safe]
         httpd.server_name = "test-server"  # type: ignore[attr-defined]
         httpd.server_port = port  # type: ignore[attr-defined]

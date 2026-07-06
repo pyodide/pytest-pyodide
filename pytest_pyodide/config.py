@@ -52,8 +52,8 @@ class Config:
     def get_initialize_script(self) -> str:
         return self.initialize_script
 
-    def add_node_extra_globals(self, l: Iterable[str]):
-        self.node_extra_globals.extend(l)
+    def add_node_extra_globals(self, extra_globals: Iterable[str]):
+        self.node_extra_globals.extend(extra_globals)
 
     def get_node_extra_globals(self) -> Sequence[str]:
         return self.node_extra_globals

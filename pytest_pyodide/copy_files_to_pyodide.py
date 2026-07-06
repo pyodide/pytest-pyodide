@@ -92,8 +92,7 @@ def copy_files_to_emscripten_fs(
         # fetch all files into the pyodide
         # n.b. this might be slow for big packages
 
-        selenium.run(
-            """
+        selenium.run("""
             import os
             from pathlib import Path
             from pyodide.http import pyfetch
@@ -107,37 +106,28 @@ def copy_files_to_emscripten_fs(
                     byte_data = await response.bytes()
                     fp.write(byte_data)
 
-            """
-        )
+            """)
         for file, dest in new_files:
             _copied_files[selenium].append((file, dest))
             file_url = base_url + str(file.relative_to(base_path).as_posix())
             if file.suffix == ".whl" and install_wheels:
                 # wheel - install the wheel on the pyodide side before
                 # any fetches (and don't copy it)
-                selenium.run_async(
-                    f"""
+                selenium.run_async(f"""
                     all_wheels.append("{file_url}")
-                    """
-                )
+                    """)
             else:
                 # add file to fetches
-                selenium.run_async(
-                    f"""
+                selenium.run_async(f"""
                     all_fetches.append(_fetch_file("{file_url}",Path("{dest}")))
-                    """
-                )
+                    """)
         # install all wheels with micropip
-        selenium.run_async(
-            """
+        selenium.run_async("""
             import micropip
             await micropip.install(all_wheels)
-            """
-        )
+            """)
         # fetch everything all at once
-        selenium.run_async(
-            """
+        selenium.run_async("""
             import asyncio, os, os.path
             await asyncio.gather(*all_fetches)
-            """
-        )
+            """)

@@ -90,12 +90,10 @@ def test_selenium_worker_run_python(selenium_worker):
 
 
 def test_selenium_worker_run_python_async(selenium_worker):
-    selenium_worker.run_async(
-        """
+    selenium_worker.run_async("""
         import asyncio
         await asyncio.sleep(0)
-        """
-    )
+        """)
 
 
 def test_selenium_worker_js_exception(selenium_worker):
