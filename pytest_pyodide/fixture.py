@@ -161,7 +161,7 @@ def rename_fixture(orig_name, new_name):
                 kwargs[orig_name] = kwargs.pop(new_name)
             return f(*args, **kwargs)
 
-        wrapper.__signature__ = new_sig  # type:ignore[attr-defined]
+        wrapper.__signature__ = new_sig  # type: ignore[attr-defined]
         return wrapper
 
     return use_variant
@@ -295,10 +295,11 @@ def selenium_context_manager(selenium_module_scope):
 
 @pytest.fixture
 def selenium(request, selenium_module_scope):
-    with selenium_context_manager(
-        selenium_module_scope
-    ) as selenium, set_webdriver_script_timeout(
-        selenium, script_timeout=parse_driver_timeout(request.node)
+    with (
+        selenium_context_manager(selenium_module_scope) as selenium,
+        set_webdriver_script_timeout(
+            selenium, script_timeout=parse_driver_timeout(request.node)
+        ),
     ):
         yield selenium
 
@@ -337,10 +338,11 @@ def selenium_worker_context_manager(selenium_worker_module_scope):
 
 @pytest.fixture
 def selenium_worker(request, selenium_worker_module_scope):
-    with selenium_worker_context_manager(
-        selenium_worker_module_scope
-    ) as selenium, set_webdriver_script_timeout(
-        selenium, script_timeout=parse_driver_timeout(request.node)
+    with (
+        selenium_worker_context_manager(selenium_worker_module_scope) as selenium,
+        set_webdriver_script_timeout(
+            selenium, script_timeout=parse_driver_timeout(request.node)
+        ),
     ):
         yield selenium
 
@@ -368,15 +370,18 @@ def selenium_jspi_inner(
         pytest.skip(f"jspi not supported in {runtime}")
     if request.config.option.runner.lower() == "playwright":
         pytest.skip("jspi not supported with playwright")
-    with selenium_common(
-        request,
-        runtime,
-        web_server_main,
-        browsers=playwright_browsers,
-        jspi=True,
-        worker=worker,
-    ) as selenium, set_webdriver_script_timeout(
-        selenium, script_timeout=parse_driver_timeout(request.node)
+    with (
+        selenium_common(
+            request,
+            runtime,
+            web_server_main,
+            browsers=playwright_browsers,
+            jspi=True,
+            worker=worker,
+        ) as selenium,
+        set_webdriver_script_timeout(
+            selenium, script_timeout=parse_driver_timeout(request.node)
+        ),
     ):
         yield selenium
 

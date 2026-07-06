@@ -70,9 +70,7 @@ def test_rename_fixture2(myfixture):
 def test_has_standalone_fixture(pytester):
     from textwrap import dedent
 
-    pytester.makepyfile(
-        dedent(
-            """
+    pytester.makepyfile(dedent("""
             from pytest_pyodide.fixture import rename_fixture
 
             @rename_fixture("selenium", "selenium_standalone")
@@ -82,9 +80,7 @@ def test_has_standalone_fixture(pytester):
             @rename_fixture("selenium_standalone", "selenium_standalone1")
             def test_example2(selenium_standalone):
                 pass
-            """
-        )
-    )
+            """))
     node = pytester.getpathnode("test_has_standalone_fixture.py")
     r = node.collect()
     t1, t2 = r

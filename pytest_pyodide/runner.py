@@ -177,8 +177,7 @@ class _BrowserBaseRunner:
         )
 
     def initialize_pyodide(self):
-        self.run_js(
-            """
+        self.run_js("""
             let isPyProxy;
             if(pyodide.ffi) {
                 isPyProxy = (o) => o instanceof pyodide.ffi.PyProxy;
@@ -196,8 +195,7 @@ class _BrowserBaseRunner:
                 result.destroy();
                 return converted_result;
             }
-            """
-        )
+            """)
         self.run_js(self._config.get_initialize_script())
         from .decorator import initialize_decorator
 
@@ -218,21 +216,17 @@ class _BrowserBaseRunner:
         self.run_js("self.logs = []", pyodide_checks=False)
 
     def run(self, code):
-        return self.run_js(
-            f"""
+        return self.run_js(f"""
             let result = pyodide.runPython({code!r});
             return pyodide.$handleTestResult(result);
-            """
-        )
+            """)
 
     def run_async(self, code):
-        return self.run_js(
-            f"""
+        return self.run_js(f"""
             await pyodide.loadPackagesFromImports({code!r})
             let result = await pyodide.runPythonAsync({code!r});
             return pyodide.$handleTestResult(result);
-            """
-        )
+            """)
 
     def run_js(self, code, pyodide_checks=True):
         """Run JavaScript code and check for pyodide errors"""
@@ -271,13 +265,11 @@ class _BrowserBaseRunner:
         self.run_js("self.__savedState = pyodide._api.saveState();")
 
     def restore_state(self):
-        self.run_js(
-            """
+        self.run_js("""
             if(self.__savedState){
                 pyodide._api.restoreState(self.__savedState)
             }
-            """
-        )
+            """)
 
     def get_num_proxies(self):
         return self.run_js("return pyodide._module.pyproxy_alloc_map.size")
@@ -332,8 +324,7 @@ class _BrowserBaseRunner:
         # single ``RuntimeError`` raised at the call site so load failures
         # are always reported immediately and with the problematic package
         # reference in the message.
-        result = self.run_js(
-            f"""
+        result = self.run_js(f"""
             const __errors = [];
             try {{
                 await pyodide.loadPackage({packages!r}, {{
@@ -343,8 +334,7 @@ class _BrowserBaseRunner:
                 __errors.push(e.message || String(e));
             }}
             return __errors;
-            """
-        )
+            """)
         if result:
             raise RuntimeError(
                 "pyodide.loadPackage({!r}) reported errors:\n  {}".format(

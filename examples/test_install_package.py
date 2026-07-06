@@ -10,15 +10,11 @@ def test_install_from_custom_server(selenium_standalone):
         url = base_url + "snowballstemmer-2.2.0-py2.py3-none-any.whl"
 
         selenium = selenium_standalone
-        selenium.run_js(
-            f"""
+        selenium.run_js(f"""
             await pyodide.loadPackage({url!r});
-            """
-        )
-        selenium.run(
-            """
+            """)
+        selenium.run("""
             import snowballstemmer
             stemmer = snowballstemmer.stemmer('english')
             assert stemmer.stemWords(["university"]) == ["univers"]
-            """
-        )
+            """)
