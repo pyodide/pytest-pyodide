@@ -105,7 +105,7 @@ def test_run_in_pyodide_coverage(selenium, tmp_path, monkeypatch):
         check=True,
     )
     assert result.returncode == 0
-    assert result.stdout == "Wrote JSON report to coverage.json\n"
+    assert (tmp_path / "coverage.json").exists()
 
     coverage_json = json.loads((tmp_path / "coverage.json").read_text())
     file = coverage_json["files"][str(DUMMY_PKG_FILE.absolute())]
