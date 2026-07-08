@@ -92,6 +92,7 @@ lint.select = [
   "PLR1716",
   "RET505",
   "RET506",
+  "RSE102",
 ]
 lint.ignore = [
   "E402", # import not at top of file
