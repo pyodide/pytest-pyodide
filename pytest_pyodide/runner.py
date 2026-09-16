@@ -438,8 +438,6 @@ class SeleniumFirefoxRunner(_SeleniumBaseRunner):
     browser = "firefox"
 
     def get_driver(self, jspi=False):
-        if jspi:
-            raise NotImplementedError("JSPI not supported in Firefox")
         from selenium.webdriver import Firefox
         from selenium.webdriver.firefox.options import Options
         from selenium.webdriver.firefox.service import Service
@@ -462,9 +460,6 @@ class SeleniumChromeRunner(_SeleniumBaseRunner):
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
-        if jspi:
-            options.add_argument("--enable-features=WebAssemblyExperimentalJSPI")
-            options.add_argument("--enable-experimental-webassembly-features")
         for flag in self._config.get_flags("chrome"):
             options.add_argument(flag)
         return Chrome(options=options)
@@ -662,10 +657,13 @@ class NodeRunner(_BrowserBaseRunner):
             )
 
         extra_args = self._config.get_flags("node")[:]
-        # Node v14 require the --experimental-wasm-bigint which
-        # produces errors on later versions
         if jspi:
-            extra_args.append("--experimental-wasm-stack-switching")
+            if node_major <= 21:
+                raise RuntimeError(
+                    f"Node version {node_version} is too old for jspi, please use node >= 22"
+                )
+            if node_major <= 24:
+                extra_args.append("--experimental-wasm-jspi")
 
         self.p.sendline(
             f"node --expose-gc {' '.join(extra_args)} {curdir}/node_test_driver.js {self.base_url} {self.dist_dir}",

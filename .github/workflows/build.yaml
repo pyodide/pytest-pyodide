@@ -15,7 +15,10 @@ jobs:
       with:
         build-artifact-name: none
         build-artifact-path: none
-        pyodide-versions: "0.29.3,0.28.3,0.27.2,0.26.4"
+        # 0.29.4 and 0.29.5 ship a broken coverage wheel (unresolved symbol
+        # MyFrame_BorrowCode in tracer.so) which crashes run_in_pyodide_coverage,
+        # so stay on 0.29.3 for the 0.29.x line.
+        pyodide-versions: "314.0.7,0.29.3,0.28.3,0.27.8,0.26.4"
 
   deploy:
     runs-on: ubuntu-24.04

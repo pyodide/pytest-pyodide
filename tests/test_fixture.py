@@ -33,7 +33,7 @@ def test_playwright_browsers(playwright_browsers, request):
 def test_jspi(selenium_jspi):
     from js import WebAssembly
 
-    assert hasattr(WebAssembly, "Suspender")
+    assert hasattr(WebAssembly, "Suspending")
 
 
 @run_in_pyodide

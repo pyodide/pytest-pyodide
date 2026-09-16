@@ -12,9 +12,9 @@ DEFAULT_RUNNER = "selenium"
 DEFAULT_BROWSER = "chrome, firefox, node, safari, host"
 # at the time of writing, chrome latest (>131) times out.
 # xref: https://github.com/pyodide/pytest-pyodide/pull/146
-DEFAULT_CHROME_VERSION = "125"
+DEFAULT_CHROME_VERSION = "153"
 DEFAULT_FIREFOX_VERSION = "latest"
-DEFAULT_NODE_VERSION = "22"
+DEFAULT_NODE_VERSION = "26"
 DEFAULT_PLAYWRIGHT_VERSION = "1.44.0"
 
 
@@ -33,6 +33,10 @@ PYODIDE_TO_PYTHON_VERSION: list[VersionPair] = [
 
 def python_version_for_pyodide(pyodide_version: str) -> str:
     pyodide_ver = tuple(int(x) for x in pyodide_version.split(".")[:2])
+    if pyodide_ver[0] > 0:
+        minor = str(pyodide_ver[0])[1:]
+        return f"3.{minor}"
+
     for pair in PYODIDE_TO_PYTHON_VERSION:
         if pyodide_ver >= pair.pyodide_version:
             return pair.python_version

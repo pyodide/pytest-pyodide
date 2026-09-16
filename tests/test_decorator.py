@@ -293,22 +293,29 @@ def check_refcount(selenium, n):
 
     import __main__
 
-    assert sys.getrefcount(__main__.o) == n
+    # Don't call getrefcount inside the assert statement: pytest's assertion
+    # rewriting stores subexpressions in temporary locals, which adds an extra
+    # reference on Python <= 3.13 but not on 3.14+ (where locals are pushed to
+    # the stack as borrowed references).
+    refcount = sys.getrefcount(__main__.o)
+    assert refcount == n
 
 
 def test_selenium_handle(selenium):
     handle = returns_handle(selenium)
-    check_refcount(selenium, 4)
+    # References to __main__.o: the __main__ module dict, the _Py_IncRef done
+    # when the PyodideHandle was pickled, and the getrefcount argument.
+    check_refcount(selenium, 3)
     set_handle(selenium, handle, 7, 2)
     set_handle(selenium, handle, "b", 1)
     assert_get_handle(selenium, handle, "a", 6)
     assert_get_handle(selenium, handle, 7, 2)
     assert_get_handle(selenium, handle, "b", 1)
-    check_refcount(selenium, 4)
+    check_refcount(selenium, 3)
 
     # FIXME: refcount not decremented when deleting handle
     del handle
-    # check_refcount(selenium, 3)
+    # check_refcount(selenium, 2)
 
 
 def test_pytest_dot_skip(selenium):
