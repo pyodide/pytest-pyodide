@@ -23,7 +23,7 @@ dependencies = [
   "hypothesis",
   "selenium",
   "playwright",
-  "tblib>=3",
+  "pyodide-tblib>=3",
 ]
 
 [project.optional-dependencies]
