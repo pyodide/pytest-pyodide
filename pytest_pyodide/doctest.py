@@ -11,12 +11,16 @@ from _pytest.doctest import (
     _is_main_py,
     _is_setup_py,
 )
-from _pytest.python import CallSpec2
 from _pytest.scope import Scope
 from pytest import Collector
 
 from . import run_in_pyodide
 from .hook import ORIGINAL_MODULE_ASTS, pytest_wrapper
+
+try:
+    from _pytest.python import CallSpec
+except ImportError:  # pytest < 9.2
+    from _pytest.python import CallSpec2 as CallSpec
 
 __all__ = ["patch_doctest_runner", "collect_doctests"]
 
@@ -55,7 +59,7 @@ def runtime_parametrize(item):
         # value. Normally this would be done by metafunc.parametrize but it is
         # hard to get access to that from here.
         newitem.fixturenames = list(getattr(item, "fixturenames", [])) + ["runtime"]
-        newitem.callspec = CallSpec2(
+        newitem.callspec = CallSpec(
             params={"runtime": name},
             indices={"runtime": idx},
             _idlist=[name],
