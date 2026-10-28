@@ -1,3 +1,10 @@
+## [0.59.3] - 2026-10-28
+
+### Fixed
+
+- Fixed compatibility with pytest 9.2.0
+  [#190](https://github.com/pyodide/pytest-pyodide/pull/190)
+
 ## [0.59.2] - 2026-04-27
 
 ### Added
