@@ -190,8 +190,17 @@ def runtime(request):
 
 
 def set_runtime_fixture_params(session):
-    rt = session._fixturemanager._arg2fixturedefs["runtime"]
-    rt[0].params = pytest_wrapper.pyodide_runtimes
+    fm = session._fixturemanager
+    if hasattr(fm, "_arg2fixturedefs"):
+        # pytest < 9.2
+        rt = fm._arg2fixturedefs["runtime"]
+        rt[0].params = pytest_wrapper.pyodide_runtimes
+    else:
+        # pytest >= 9.2: fixturedefs are keyed by node. The result is ordered
+        # from least to most specific, reversed; the plugin's fixture is
+        # registered at the session level, so it is the last one.
+        rt = fm.getfixturedefs("runtime", session)
+        rt[-1].params = pytest_wrapper.pyodide_runtimes
 
 
 def pytest_collection(session: Session):
