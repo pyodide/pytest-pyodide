@@ -105,6 +105,13 @@ def spawn_web_server(dist_dir, extra_headers=None, handler_cls=None):
         shutil.rmtree(tmp_dir)
 
 
+class _ThreadingTCPServer(socketserver.ThreadingTCPServer):
+    # Handle each connection in its own thread. With a single-threaded server,
+    # a browser that keeps an idle connection open (seen with Chrome 158)
+    # blocks requests from every other browser until that connection closes.
+    daemon_threads = True
+
+
 def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
     """Start the HTTP web server
 
@@ -125,7 +132,7 @@ def run_web_server(q, log_filepath, dist_dir, extra_headers, handler_cls):
     if not handler_cls:
         handler_cls = functools.partial(DefaultHandler, extra_headers=extra_headers)
 
-    with socketserver.TCPServer(("", 0), handler_cls) as httpd:
+    with _ThreadingTCPServer(("", 0), handler_cls) as httpd:
         host, port = httpd.server_address  # type: ignore[misc]
         print(f"Starting webserver at http://{host}:{port}")  # type: ignore[str-bytes-safe]
         httpd.server_name = "test-server"  # type: ignore[attr-defined]

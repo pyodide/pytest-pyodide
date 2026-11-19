@@ -366,7 +366,7 @@ def selenium_jspi_worker(request, runtime, web_server_main, playwright_browsers)
 def selenium_jspi_inner(
     request, runtime, web_server_main, playwright_browsers, worker=False
 ):
-    if runtime in ["firefox", "safari"]:
+    if runtime == "safari":
         pytest.skip(f"jspi not supported in {runtime}")
     if request.config.option.runner.lower() == "playwright":
         pytest.skip("jspi not supported with playwright")
@@ -383,6 +383,11 @@ def selenium_jspi_inner(
             selenium, script_timeout=parse_driver_timeout(request.node)
         ),
     ):
+        # Firefox enables JSPI by default since version 160.
+        if runtime == "firefox" and not selenium.run_js(
+            "return 'Suspending' in WebAssembly"
+        ):
+            pytest.skip(f"jspi not supported in {runtime}")
         yield selenium
 
 
