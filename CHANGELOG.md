@@ -5,14 +5,14 @@
 - The test web server now handles each connection in its own thread. With
   Chrome 158, an idle connection held by one browser blocked requests from
   other browsers, so new sessions timed out.
-  [#PR](https://github.com/pyodide/pytest-pyodide/pull/PR)
+  [#192](https://github.com/pyodide/pytest-pyodide/pull/192)
 
 ### Changed
 
 - JSPI fixtures (`selenium_jspi`, `selenium_jspi_worker`,
   `selenium_also_with_jspi`) now run on Firefox when it supports JSPI
   (Firefox 160+), instead of always being skipped.
-  [#PR](https://github.com/pyodide/pytest-pyodide/pull/PR)
+  [#192](https://github.com/pyodide/pytest-pyodide/pull/192)
 
 ## [0.59.3] - 2026-10-28
 
